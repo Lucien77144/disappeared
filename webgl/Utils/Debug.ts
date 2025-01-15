@@ -170,7 +170,6 @@ export default class Debug {
    * Save the preset in the local storage
    */
   private _savePreset(): void {
-    console.trace(copyObject(this._preset))
     localStorage.setItem(this.name, JSON.stringify(this._preset))
   }
 

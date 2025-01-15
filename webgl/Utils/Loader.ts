@@ -17,15 +17,10 @@ import type {
 import type { Dictionary } from '~/models/functions/dictionary.model.js'
 import EventEmitter from '~/utils/class/EventEmitter.js'
 
-/**
- * Setup i18n
- * @returns i18n instance
- */
-function setupI18n() {
-  return useI18n()
-}
-
 export default class Loader extends EventEmitter {
+  // Static
+  static _i18n: ReturnType<typeof useI18n>
+
   // Public
   public total: number
   public loaded: number
@@ -35,7 +30,6 @@ export default class Loader extends EventEmitter {
   private _experience: Experience
   private _loaders: Array<TLoader>
   private _store: Experience['store']
-  private _i18n!: ReturnType<typeof setupI18n>
   private $bus: Experience['$bus']
 
   /**
@@ -43,17 +37,21 @@ export default class Loader extends EventEmitter {
    */
   constructor() {
     super()
+    // Static
+    if (!Loader._i18n) {
+      Loader._i18n = useI18n()
+    }
+
+    // Public
+    this.total = 0
+    this.loaded = 0
+    this.items = {}
 
     // Private
     this._experience = new Experience()
     this._loaders = []
     this._store = this._experience.store
     this.$bus = this._experience.$bus
-
-    // Public
-    this.total = 0
-    this.loaded = 0
-    this.items = {}
 
     // Init
     this._init()
@@ -87,8 +85,6 @@ export default class Loader extends EventEmitter {
    * Init loaders
    */
   private _init(): void {
-    this._i18n ??= setupI18n()
-
     // Images
     this._loaders.push({
       extensions: ['jpg', 'png', 'svg', 'webp'],
@@ -287,9 +283,9 @@ export default class Loader extends EventEmitter {
       const trackEl = document.createElement('track')
       trackEl.src = subtitles[key]
       trackEl.kind = 'subtitles'
-      trackEl.label = this._i18n.t('LANG.' + key.toUpperCase() + '.LABEL')
+      trackEl.label = Loader._i18n.t('LANG.' + key.toUpperCase() + '.LABEL')
       trackEl.srclang = key
-      trackEl.default = this._i18n.locale.value == key
+      trackEl.default = Loader._i18n.locale.value == key
 
       trackEl.addEventListener('cuechange', this._handleCueChange)
       element.appendChild(trackEl)
@@ -298,7 +294,7 @@ export default class Loader extends EventEmitter {
     })
 
     // Update the track on locale change
-    this._onLangChange(element, (this._i18n.locale.value || 'fr') as TLocale)
+    this._onLangChange(element, (Loader._i18n.locale.value || 'fr') as TLocale)
     this.$bus?.on('lang:change', (locale: TLocale) =>
       this._onLangChange(element, locale)
     )
