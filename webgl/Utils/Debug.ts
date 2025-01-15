@@ -12,15 +12,15 @@ export default class Debug {
   // Public
   public name: string
   public panel?: TDebugPanel
-  public stats?: Stats
-  public preset: Dictionary<Object>
 
   // Private
   private _experience: Experience
   private _viewport?: Experience['viewport']
-  private _dragManager?: DragManager
   private _scrollManager?: Experience['scrollManager']
+  private _dragManager?: DragManager
+  private _stats?: Stats
   private _offset: { x: number; y: number }
+  private _preset: Dictionary<Object>
 
   /**
    * Constructor
@@ -28,7 +28,7 @@ export default class Debug {
   constructor() {
     // Public
     this.name = 'debug-new'
-    this.preset = {}
+    this._preset = {}
 
     // Private
     this._experience = new Experience()
@@ -115,23 +115,23 @@ export default class Debug {
       .replace(' ', '-')
 
     if (update) {
-      const state = this.formatState(debug.exportState(), this.preset[label])
+      const state = this.formatState(debug.exportState(), this._preset[label])
       debug.importState(state)
     }
 
     debug.on('change', () => {
-      this.preset[label] = debug.exportState()
+      this._preset[label] = debug.exportState()
       this._savePreset()
     })
 
-    return this.preset[label]
+    return this._preset[label]
   }
 
   /**
    * Update the debug
    */
   public update(): void {
-    this.stats?.update()
+    this._stats?.update()
   }
 
   /**
@@ -139,7 +139,7 @@ export default class Debug {
    */
   public dispose(): void {
     this.panel?.dispose()
-    this.stats?.dispose()
+    this._stats?.dispose()
   }
 
   /**
@@ -170,14 +170,15 @@ export default class Debug {
    * Save the preset in the local storage
    */
   private _savePreset(): void {
-    localStorage.setItem(this.name, JSON.stringify(this.preset))
+    console.trace(copyObject(this._preset))
+    localStorage.setItem(this.name, JSON.stringify(this._preset))
   }
 
   /**
    * Init local storage values to preset
    */
   private _setPreset(): void {
-    this.preset = JSON.parse(localStorage.getItem(this.name) || '{}')
+    this._preset = JSON.parse(localStorage.getItem(this.name) || '{}')
   }
 
   /**
@@ -185,7 +186,7 @@ export default class Debug {
    */
   private _init(): void {
     this.name = `debug-${this._experience.name}`
-    this.stats = new Stats(!!this._viewport?.debug)
+    this._stats = new Stats(!!this._viewport?.debug)
     this._setPreset()
 
     // Init tweakpane

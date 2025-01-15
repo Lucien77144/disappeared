@@ -5,9 +5,9 @@ import type { TExperienceStore } from '../stores/experience.store.model'
  * Represents scene information.
  */
 export type TSceneInfos = {
-  id?: number
+  id: number
   isDefault?: boolean
-  name?: string
+  name: string
   Scene: { new (): ExtendableScene }
   nav?: {
     scale: number

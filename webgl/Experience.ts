@@ -95,7 +95,7 @@ export default class Experience {
    */
   public start() {
     this.sceneManager
-      .init(this.viewport?.debug && this.defaultScene)
+      .init(this.viewport?.debug ? this.defaultScene : undefined)
       .then(() => {
         this.active = true
 
@@ -138,9 +138,6 @@ export default class Experience {
     // Toggle landing
     const landing = this.debug.panel.addBinding(this.store, 'landing', {
       label: 'Landing page',
-      onchange: (val: boolean) => {
-        this.store.landing = val
-      },
     })
 
     // Set the landing value

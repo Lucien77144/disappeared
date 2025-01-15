@@ -172,12 +172,10 @@ export default class SceneManager {
    * Init scene
    * @param {*} baseScene If set, initial scene name to load
    */
-  public init(baseScene?: string | false): Promise<void> {
-    // Set the scene name
-    const name = !!baseScene ? baseScene : this.scenes.default.name
-
+  public init(baseScene: string = this.scenes.default.name): Promise<void> {
     // Debug
-    if (this._debug && name) this._setDebug(name)
+    if (this._debug && baseScene) this._setDebug(baseScene)
+    const name = this._debugScene.value || baseScene
 
     // Get the scene from the store or the default one
     const scene = this._getSceneFromList(name)
@@ -323,7 +321,7 @@ export default class SceneManager {
     })
 
     // Persist the folder and enable it
-    this._debug?.persist(this._debugScene, persist.controller.value.rawValue)
+    this._debug?.persist(this._debugScene, !!persist.controller.value.rawValue)
     this._debugNavigation.disabled = false
 
     // Add switch event on change scene
