@@ -1,0 +1,13 @@
+[
+  {
+    "name": "Main",
+    "data": {},
+    "items": [
+      {
+        "name": "introMountain",
+        "source": "/img/icons/countries/fr.png",
+        "type": "texture"
+      }
+    ]
+  }
+]

@@ -1,0 +1,63 @@
+@use 'sass:color';
+
+// CSS Variables
+body,
+html {
+  --primary: #4b7cfb;
+  --secondary: #f5e5e0;
+  --beige: #efdbd4;
+  --beige-sky: #f1dad2;
+  --black: #151515;
+  --white: #f4f4f4;
+  --success: #00ff00;
+  --info: #00ccff;
+  --warning: #ffcc00;
+  --danger: #ff0000;
+}
+
+// Sass Colors Variables
+$darken-amount: -10%;
+$lighten-amount: 10%;
+
+$primary: #4b7cfb;
+$primary-dark: color.adjust($primary, $lightness: $darken-amount);
+$primary-light: color.adjust($primary, $lightness: $lighten-amount);
+
+$secondary: #f5e5e0;
+$secondary-dark: color.adjust($secondary, $lightness: $darken-amount);
+$secondary-light: color.adjust($secondary, $lightness: $lighten-amount);
+
+$beige: #efdbd4;
+$beige-dark: color.adjust($beige, $lightness: $darken-amount);
+$beige-light: color.adjust($beige, $lightness: $lighten-amount);
+
+$beige-sky: #f1dad2;
+$beige-sky-dark: color.adjust($beige-sky, $lightness: $darken-amount);
+$beige-sky-light: color.adjust($beige-sky, $lightness: $lighten-amount);
+
+$black: #151515;
+$black-dark: color.adjust($black, $lightness: $darken-amount);
+$black-light: color.adjust($black, $lightness: $lighten-amount);
+
+$white: #f4f4f4;
+$white-dark: color.adjust($white, $lightness: $darken-amount);
+$white-light: color.adjust($white, $lightness: $lighten-amount);
+
+$success: #00ff00;
+$success-dark: color.adjust($success, $lightness: $darken-amount);
+$success-light: color.adjust($success, $lightness: $lighten-amount);
+
+$info: #00ccff;
+$info-dark: color.adjust($info, $lightness: $darken-amount);
+$info-light: color.adjust($info, $lightness: $lighten-amount);
+
+$warning: #ffcc00;
+$warning-dark: color.adjust($warning, $lightness: $darken-amount);
+$warning-light: color.adjust($warning, $lightness: $lighten-amount);
+
+$danger: #ff0000;
+$danger-dark: color.adjust($danger, $lightness: $darken-amount);
+$danger-light: color.adjust($danger, $lightness: $lighten-amount);
+
+// Sass fonts
+$lato: 'Lato', sans-serif;

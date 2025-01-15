@@ -1,0 +1,32 @@
+@use '_variables.scss';
+
+/**
+ * Reset
+ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/**
+ * Global Styles
+ */
+body,
+html {
+  height: 100vh;
+  width: 100vw;
+  padding: 0;
+  margin: 0;
+  background-color: variables.$beige-sky;
+  font-family: variables.$lato;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+/**
+ * Transition
+ */
+.t-25 {
+  transition: 0.25s ease-in-out !important;
+}

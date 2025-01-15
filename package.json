@@ -1,0 +1,32 @@
+{
+  "name": "template-nuxt-three",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev --host",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "devDependencies": {
+    "@types/node": "^18.17.14",
+    "@types/three": "^0.160.0",
+    "nuxt": "^3.14.1592",
+    "sass": "^1.81.0",
+    "vue": "^3.5.13",
+    "vue-router": "^4.4.5"
+  },
+  "dependencies": {
+    "@nuxtjs/google-fonts": "^3.2.0",
+    "@nuxtjs/i18n": "^8.5.6",
+    "@pinia/nuxt": "^0.5.5",
+    "gsap": "^3.12.5",
+    "mitt": "^3.0.1",
+    "pinia": "^2.2.6",
+    "stats.js": "^0.17.0",
+    "three": "^0.160.1",
+    "tweakpane": "^4.0.5",
+    "vue3-lottie": "^3.3.1"
+  }
+}
