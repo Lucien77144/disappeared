@@ -2,7 +2,7 @@ import ExtendableScene from '../../Modules/Extendables/ExtendableScene'
 import type { ExtendableSceneEvents } from '../../Modules/Extendables/ExtendableScene/ExtendableSceneEvents'
 import Cube from './Items/Cube'
 
-export default class Main
+export default class Home
   extends ExtendableScene
   implements ExtendableSceneEvents
 {

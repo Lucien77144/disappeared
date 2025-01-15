@@ -3,8 +3,8 @@ import type { Group } from 'three'
 import type { BufferGeometry } from 'three'
 import type { DataTexture } from 'three'
 import type { Dictionary } from '../functions/dictionary.model'
-import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader'
-import type { Font } from 'three/examples/jsm/loaders/FontLoader'
+import type { Font } from 'three/examples/jsm/loaders/FontLoader.js'
+import type { GLTF } from 'three/examples/jsm/Addons.js'
 
 /**
  * Type for the file extensions

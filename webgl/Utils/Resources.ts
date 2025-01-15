@@ -18,8 +18,11 @@ const SOURCES = sources as TResourceGroup[]
  * Resources
  */
 export default class Resources extends EventEmitter {
+  // Static
+  public static items: Dictionary<TResourceData>
+  public static loadedSources: Dictionary<keyof Resources['items']>
+
   // Public
-  public items: Dictionary<TResourceData>
   public groups: {
     loaded: Array<TResourceGroup>
     current?: TResourceGroup
@@ -30,6 +33,7 @@ export default class Resources extends EventEmitter {
   public sources: TResourceGroup[]
 
   // Private
+  private _timeline?: gsap.core.Timeline
   private _experience: Experience
   private _loader!: Loader
   private $bus: Experience['$bus']
@@ -44,6 +48,7 @@ export default class Resources extends EventEmitter {
     // Public
     this.sources = []
     this.items = {} // Will contain every resources
+    this.loadedSources = {} // Will contain every resources
     this.groups = { loaded: [] }
     this.progress = { value: 0 }
     this.loaded = 0
@@ -59,6 +64,34 @@ export default class Resources extends EventEmitter {
   }
 
   /**
+   * Get items
+   */
+  public get items() {
+    return Resources.items
+  }
+
+  /**
+   * Set items
+   */
+  public set items(value) {
+    Resources.items = value
+  }
+
+  /**
+   * Get loaded sources
+   */
+  public get loadedSources() {
+    return Resources.loadedSources
+  }
+
+  /**
+   * Set loaded sources
+   */
+  public set loadedSources(value) {
+    Resources.loadedSources = value
+  }
+
+  /**
    * Load resources by groups (if unset, load all resources)
    * @param {*} groups Groups of resources to load
    */
@@ -66,12 +99,10 @@ export default class Resources extends EventEmitter {
     this.total = 0
     this.loaded = 0
 
-    this.sources = SOURCES.filter(
-      (s: TResourceGroup) => !groups || groups.includes(s.name)
-    ).map((s: TResourceGroup) => ({
+    this.sources = this._getSources(groups).map((s: TResourceGroup) => ({
       ...s,
       items: s.items.filter((i) => {
-        if (!(i.name in this.items)) {
+        if (!(i.name in this.items) && !this.items[i.name]) {
           this.total++
           return true
         }
@@ -82,11 +113,12 @@ export default class Resources extends EventEmitter {
   }
 
   /**
-   * Dispose and dispose ressources (if unset, dispose all resources)
+   * Dispose and dispose resources (if unset, dispose all resources)
    * @param {*} groups Groups of resources to dispose
    */
   public dispose(groups?: Array<TResourceGroup['name']>) {
-    SOURCES.filter((s: TResourceGroup) => !groups || groups.includes(s.name))
+    this._timeline?.kill()
+    this._getSources(groups)
       .flatMap((s: TResourceGroup) => s.items.map((i) => i.name))
       .forEach((name: TResourceItem['name']) => {
         if (this.items[name] instanceof Texture) {
@@ -97,16 +129,53 @@ export default class Resources extends EventEmitter {
   }
 
   /**
+   * Get the sources data depending on the groups
+   * @param groups Groups of resources to get
+   */
+  private _getSources(
+    groups?: Array<TResourceGroup['name']>
+  ): TResourceGroup[] {
+    return SOURCES.filter(
+      (s: TResourceGroup) => !groups || groups.includes(s.name)
+    )
+  }
+
+  /**
    * Load next group
    */
   private _loadNextGroup(): void {
     this.groups.current = this.sources.shift()
     if (!this.groups.current) return
 
-    this.groups.current.total = this.groups.current.items.length
+    const filteredItems = this.groups.current.items.filter((i) => {
+      if (i.name in this.items) {
+        console.warn(
+          `⚠️ "${i.name}" already exist, skipping source "${i.source}"`
+        )
+        this._onLoadingFileEnd({ resource: i, data: this.items[i.name] })
+        return false
+      } else if (i.source in this.loadedSources) {
+        console.info(`🏗️ "${i.source}" already loaded, skipping...`)
+
+        const name = this.loadedSources[i.source]
+        const data = this.items[name]
+
+        this._onLoadingFileEnd({ resource: i, data })
+        return false
+      }
+
+      return true
+    })
+
+    this.groups.current.total = filteredItems.length
     this.groups.current.loaded = 0
 
-    this._loader?.load(this.groups.current.items)
+    if (this.groups.current.total === 0) {
+      this._groupEnd()
+      return
+    }
+
+    this._loader?.load(filteredItems)
   }
 
   /**
@@ -127,7 +196,7 @@ export default class Resources extends EventEmitter {
     if (this.sources.length > 0) {
       this._loadNextGroup()
     } else {
-      this.$bus?.emit('resources:done')
+      this.$bus?.emit('resources:ready')
     }
   }
 
@@ -147,15 +216,16 @@ export default class Resources extends EventEmitter {
     }
 
     this.items[file.resource.name] = data
+    this.loadedSources[file.resource.source] = file.resource.name
 
     // Progress and event
-    if (this.groups.current?.loaded !== undefined) {
+    if (this.groups.current?.loaded) {
       this.groups.current.loaded++
     }
     this.loaded++
 
     // Set the loading event
-    gsap.timeline().to(this.progress, {
+    this._timeline = gsap.timeline().to(this.progress, {
       value: (this.loaded / this.total) * 100,
       duration: 1,
       ease: 'power2.inOut',

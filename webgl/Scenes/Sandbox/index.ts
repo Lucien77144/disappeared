@@ -2,7 +2,7 @@ import ExtendableScene from '../../Modules/Extendables/ExtendableScene'
 import { ExtendableSceneEvents } from '../../Modules/Extendables/ExtendableScene/ExtendableSceneEvents'
 import Cube2 from './Items/Cube2'
 
-export default class Main2
+export default class Sandbox
   extends ExtendableScene
   implements ExtendableSceneEvents
 {
