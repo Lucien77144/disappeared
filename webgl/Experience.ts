@@ -42,7 +42,6 @@ export default class Experience {
   public store!: Store
 
   // Private
-  private _landingPage!: boolean
   private _handleResize!: () => void
   private _handleStart!: () => void
   private _handleUpdate!: () => void
@@ -67,7 +66,6 @@ export default class Experience {
     this.store = new Store()
 
     // Private
-    this._landingPage = true
     this._handleResize = this._resize.bind(this)
     this._handleStart = this.start.bind(this)
     this._handleUpdate = this._update.bind(this)
@@ -79,13 +77,27 @@ export default class Experience {
   }
 
   /**
+   * Get active status
+   */
+  public get active() {
+    return this.store.active
+  }
+
+  /**
+   * Set active status
+   */
+  private set active(val: boolean) {
+    this.store.active = val
+  }
+
+  /**
    * Start the experience
    */
   public start() {
     this.sceneManager
-      .init(this.viewport?.debug ? this.defaultScene : undefined)
+      .init(this.viewport?.debug && this.defaultScene)
       .then(() => {
-        this.store.active = true
+        this.active = true
 
         // Events
         this.time.on('tick', this._handleUpdate)
@@ -107,12 +119,12 @@ export default class Experience {
     this.scrollManager?.dispose()
     this.cursorManager?.dispose()
     this.keysManager?.dispose()
-    this.store?.dispose()
     this.renderer.dispose()
     this.resources.dispose()
     this.sceneManager.dispose()
     this.audioManager.dispose()
     this.debug?.dispose()
+    this.store?.dispose()
 
     delete Experience._instance
   }
@@ -124,11 +136,18 @@ export default class Experience {
     this.debug = new Debug()
 
     // Toggle landing
-    const landing = this.debug.panel.addBinding(this, '_landingPage', {
+    const landing = this.debug.panel.addBinding(this.store, 'landing', {
       label: 'Landing page',
+      onchange: (val: boolean) => {
+        this.store.landing = val
+      },
     })
-    this._landingPage = this.debug.persist(landing)?.binding.value
-    this.store.landing = this._landingPage
+
+    // Set the landing value
+    const value = this.debug.persist(landing)?.binding.value
+    if (defined(value)) {
+      this.store.landing = value
+    }
   }
 
   /**

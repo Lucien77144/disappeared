@@ -44,7 +44,7 @@ const I18n = useI18n()
 const { $bus }: any = useNuxtApp()
 
 // Store
-const disabled = computed(() => useSubtitlesStore().getDisabled)
+const disabled = computed(() => useSubtitlesStore().disabled)
 const setDisabled = (val: boolean) => useSubtitlesStore().setDisabled(val)
 const isMuted = ref(true)
 

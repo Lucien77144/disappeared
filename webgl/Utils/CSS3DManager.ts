@@ -61,9 +61,9 @@ export default class CSS3DManager {
     const d = this.list[id]
     if (!d) return
 
+    this._store.css3DList = this._store.css3DList.filter((el) => el.id != id)
     d.parent?.remove(d.obj)
     d.el?.remove()
-    this._store.css3DList = this._store.css3DList.filter((el) => el.id != id)
 
     delete this.list[id]
   }

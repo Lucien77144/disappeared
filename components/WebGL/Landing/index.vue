@@ -1,5 +1,5 @@
 <template>
-  <div ref="landingRef" v-if="landing" class="start">
+  <div ref="landingRef" class="start">
     <div class="start__content">
       <p>
         {{ $t('LANDING') }}
@@ -27,9 +27,6 @@ const { $bus }: any = useNuxtApp()
 
 // Refs
 const landingRef = ref<HTMLElement | null>(null)
-
-// Store
-const landing = computed(() => useExperienceStore().getLanding)
 
 /**
  * Start the experience

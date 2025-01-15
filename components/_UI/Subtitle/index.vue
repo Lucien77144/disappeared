@@ -12,11 +12,11 @@
 
 <script lang="ts" setup>
 // Store
-const disabled = computed(() => useSubtitlesStore().getDisabled)
+const disabled = computed(() => useSubtitlesStore().disabled)
 
 // Cues
 const subtitles = computed(() =>
-  Object.values({ ...useSubtitlesStore().getCues })
+  Object.values({ ...useSubtitlesStore().cues })
 ) as Ref<VTTCue[]>
 </script>
 

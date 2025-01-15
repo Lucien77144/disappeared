@@ -172,9 +172,9 @@ export default class SceneManager {
    * Init scene
    * @param {*} baseScene If set, initial scene name to load
    */
-  public init(baseScene?: string): Promise<void> {
+  public init(baseScene?: string | false): Promise<void> {
     // Set the scene name
-    const name = baseScene ?? this.scenes.default.name
+    const name = !!baseScene ? baseScene : this.scenes.default.name
 
     // Debug
     if (this._debug && name) this._setDebug(name)
@@ -208,7 +208,13 @@ export default class SceneManager {
       const camera = this.active?.camera.instance
       const renderer = this._renderer?.instance
 
-      if (!scene || !renderer || !camera) return resolve()
+      if (!scene || !renderer || !camera) {
+        return console.error('Scene, camera or renderer not found', {
+          scene,
+          camera,
+          renderer,
+        })
+      }
 
       scene.onAfterRender = () => {
         scene.onAfterRender = scene.onAfterRender

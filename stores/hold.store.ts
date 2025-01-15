@@ -1,25 +1,26 @@
 import type { THold } from '~/models/stores/hold.store.model'
+import type { TStore } from '~/models/stores/store.model'
 
 export const useHoldStore = defineStore('hold', {
-  state: (): THold => ({
-    progress: 0 as THold['progress'], // 0-100
-    complete: false,
+  state: (): TStore<THold> => ({
+    _progress: 0 as THold['progress'], // 0-100
+    _complete: false,
   }),
   getters: {
-    getProgress(): THold['progress'] {
-      return this.progress
+    progress(): THold['progress'] {
+      return this._progress
     },
-    getComplete(): THold['complete'] {
-      return this.complete
+    complete(): THold['complete'] {
+      return this._complete
     },
   },
   actions: {
     setProgress(val: THold['progress']) {
-      this.progress = val
+      this._progress = val
       if (val >= 100) {
-        this.complete = true
+        this._complete = true
       } else if (!val) {
-        this.complete = false
+        this._complete = false
       }
     },
   },

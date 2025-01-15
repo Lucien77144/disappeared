@@ -34,8 +34,8 @@ const offset = ref<number>(0)
 const cursor = ref<Vector2>(new Vector2(0))
 
 // Progression
-const progress = computed(() => useHoldStore().getProgress)
-const complete = computed(() => useHoldStore().getComplete)
+const progress = computed(() => useHoldStore().progress)
+const complete = computed(() => useHoldStore().complete)
 
 // Params of the progress
 const stroke = 8

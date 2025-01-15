@@ -1,23 +1,25 @@
+import type { TStore } from '~/models/stores/store.model'
 import type { TSubtitle } from '~/models/stores/subtitles.store.model'
 
 export const useSubtitlesStore = defineStore('subtitles', {
-  state: (): TSubtitle => ({
-    disabled: false,
+  state: (): TStore<TSubtitle> => ({
+    _cues: null,
+    _disabled: false,
   }),
   getters: {
-    getCues(): TSubtitle['cues'] {
-      return this.cues
+    cues(): TSubtitle['cues'] {
+      return this._cues
     },
-    getDisabled(): TSubtitle['disabled'] {
-      return this.disabled
+    disabled(): TSubtitle['disabled'] {
+      return this._disabled
     },
   },
   actions: {
     setCues(val: TSubtitle['cues']) {
-      this.cues = val
+      this._cues = val
     },
     setDisabled(val: TSubtitle['disabled']) {
-      this.disabled = val
+      this._disabled = val
     },
   },
 })

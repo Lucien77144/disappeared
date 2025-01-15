@@ -1,7 +1,7 @@
 <template>
   <!-- Loader & Landing -->
   <WebGLLoader />
-  <WebGLLanding v-if="!active && landing" />
+  <WebGLLanding v-if="isLanding" />
   <!--/ Loader & Landing -->
 
   <!-- Content front of the experience -->
@@ -31,6 +31,7 @@ import Experience from '~/webgl/Experience'
 // Shallow Refs
 const exp = shallowRef<Experience | null>(null)
 // Refs
+const isStarted = ref<boolean>(false)
 const canvasRef = ref<HTMLCanvasElement>()
 const debugRef = ref<HTMLElement>()
 
@@ -38,8 +39,12 @@ const debugRef = ref<HTMLElement>()
 const route = useRoute()
 
 // Store
-const active = computed(() => useExperienceStore().getActive)
-const landing = computed(() => useExperienceStore().getLanding)
+const active = computed(() => useExperienceStore().active)
+const landing = computed(() => useExperienceStore().landing)
+
+const isLanding = computed(() => {
+  return !isStarted.value && landing.value
+})
 
 // On component mounted, create the experience
 onMounted(() => {
@@ -49,12 +54,16 @@ onMounted(() => {
   }
 
   // Create the experience
-  exp.value = new Experience({
+  const experience = new Experience({
     canvas: canvasRef.value,
     debug: debugRef.value,
     defaultScene: route.query.scene as string,
-    name: 'template',
+    name: 'Everything disappears',
   })
+  exp.value = experience
+
+  // Get the experience active status
+  isStarted.value = experience.active // Get the status of active in the store when loading the component
 
   // On component unmounted, dispose the experience
   onUnmounted(() => {

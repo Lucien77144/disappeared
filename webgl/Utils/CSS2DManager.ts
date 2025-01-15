@@ -60,9 +60,9 @@ export default class CSS2DManager {
     const d = this.list[id]
     if (!d) return
 
+    this._store.css2DList = this._store.css2DList.filter((el) => el.id != id)
     d.el?.remove()
     d.parent?.remove(d.obj)
-    this._store.css2DList = this._store.css2DList.filter((el) => el.id != id)
 
     delete this.list[id]
   }

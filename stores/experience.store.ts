@@ -1,44 +1,45 @@
 import type { TExperienceStore } from '~/models/stores/experience.store.model'
+import type { TStore } from '~/models/stores/store.model'
 
 type TParam<T extends keyof TExperienceStore> = TExperienceStore[T]
 
 export const useExperienceStore = defineStore('experience', {
-  state: (): TExperienceStore => ({
-    active: false,
-    landing: true,
-    scroll: 0, // 0-100,
-    navigation: {
+  state: (): TStore<TExperienceStore> => ({
+    _active: false,
+    _landing: true,
+    _scroll: 0, // 0-100,
+    _navigation: {
       scene: undefined,
       start: 0,
       scale: 0,
     },
   }),
   getters: {
-    getActive(): TParam<'active'> {
-      return this.active
+    active(): TParam<'active'> {
+      return this._active
     },
-    getLanding(): TParam<'landing'> {
-      return this.landing
+    landing(): TParam<'landing'> {
+      return this._landing
     },
-    getScroll(): TParam<'scroll'> {
-      return this.scroll
+    scroll(): TParam<'scroll'> {
+      return this._scroll
     },
-    getNavigation(): TParam<'navigation'> {
-      return this.navigation
+    navigation(): TParam<'navigation'> {
+      return this._navigation
     },
   },
   actions: {
     setActive(val: TParam<'active'>) {
-      this.active = val
+      this._active = val
     },
     setLanding(val: TParam<'landing'>) {
-      this.landing = val
+      this._landing = val
     },
     setScroll(val: TParam<'scroll'>) {
-      this.scroll = val
+      this._scroll = val
     },
     setNavigation(val: TParam<'navigation'>) {
-      this.navigation = { ...this.navigation, ...val }
+      this._navigation = { ...this._navigation, ...val }
     },
   },
 })

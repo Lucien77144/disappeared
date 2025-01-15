@@ -23,7 +23,7 @@ import type { ICSS3DRendererStore } from '~/models/stores/cssRenderer.store.mode
 const { $bus }: any = useNuxtApp()
 
 // Dialogs list
-const list = computed(() => useCSSRendererStore().get3DList)
+const list = computed(() => useCSSRendererStore().css3DList)
 
 // Add dialog to css renderer
 const add = (d: ICSS3DRendererStore) => $bus.emit('CSS3D:add', d)
