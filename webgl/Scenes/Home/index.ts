@@ -13,8 +13,8 @@ export default class Home
   constructor() {
     super()
     this.components = {
-      // cube: new Cube(),
-      garland: new Garland(),
+      cube: new Cube(),
+      // garland: new Garland(),
     }
 
     // Init the scene

@@ -12,13 +12,13 @@ export default class Debug {
   // Public
   public name: string
   public panel?: TDebugPanel
+  public stats?: Stats
 
   // Private
   private _experience: Experience
   private _viewport?: Experience['viewport']
   private _scrollManager?: Experience['scrollManager']
   private _dragManager?: DragManager
-  private _stats?: Stats
   private _offset: { x: number; y: number }
   private _preset: Dictionary<Object>
 
@@ -131,7 +131,7 @@ export default class Debug {
    * Update the debug
    */
   public update(): void {
-    this._stats?.update()
+    this.stats?.update()
   }
 
   /**
@@ -139,7 +139,7 @@ export default class Debug {
    */
   public dispose(): void {
     this.panel?.dispose()
-    this._stats?.dispose()
+    this.stats?.dispose()
   }
 
   /**
@@ -185,7 +185,7 @@ export default class Debug {
    */
   private _init(): void {
     this.name = `debug-${this._experience.name}`
-    this._stats = new Stats(!!this._viewport?.debug)
+    this.stats = new Stats(!!this._viewport?.debug)
     this._setPreset()
 
     // Init tweakpane
