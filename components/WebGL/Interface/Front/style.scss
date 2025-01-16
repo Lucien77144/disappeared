@@ -1,15 +1,15 @@
 #webgl-front-interface {
-  z-index: 10;
-  position: fixed;
+	z-index: 10;
+	position: fixed;
 }
 
 .panel {
-  position: fixed;
-  width: 100vw;
-  height: 100vh;
-  pointer-events: none;
+	position: fixed;
+	width: 100vw;
+	height: 100vh;
+	pointer-events: none;
 
-  * {
-    pointer-events: all !important;
-  }
+	* {
+		pointer-events: all !important;
+	}
 }

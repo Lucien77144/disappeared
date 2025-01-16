@@ -1,21 +1,21 @@
 #experience {
-  position: fixed;
-  z-index: 1;
-  top: 0;
-  left: 0;
-  height: 100vh !important;
-  width: 100vw !important;
+	position: fixed;
+	z-index: 1;
+	top: 0;
+	left: 0;
+	height: 100vh !important;
+	width: 100vw !important;
 }
 
 #webgl-css-wrapper {
-  z-index: 2;
-  position: relative;
-  pointer-events: none;
+	z-index: 2;
+	position: relative;
+	pointer-events: none;
 }
 
 #debug {
-  position: fixed;
-  z-index: 3;
-  top: .5rem;
-  right: .5rem;
+	position: fixed;
+	z-index: 3;
+	top: 0.5rem;
+	right: 0.5rem;
 }

@@ -1,3 +1,3 @@
 <template>
-  <WebGL />
+	<WebGL />
 </template>

@@ -1,9 +1,9 @@
 <template>
-  <select @input="change($event)" v-model="I18n.locale.value">
-    <option v-for="i in options" :value="i">
-      {{ $t('LANG.' + i.toUpperCase()) + '.LABEL' }}
-    </option>
-  </select>
+	<select @input="change($event)" v-model="I18n.locale.value">
+		<option v-for="i in options" :value="i">
+			{{ $t('LANG.' + i.toUpperCase()) + '.LABEL' }}
+		</option>
+	</select>
 </template>
 
 <script lang="ts" setup>
@@ -15,7 +15,7 @@ const I18n = useI18n()
 
 // Refs
 const options = ref<string[]>(
-  Object.values(I18n.locales.value).map(({ code }) => code)
+	Object.values(I18n.locales.value).map(({ code }) => code)
 )
 
 /**
@@ -23,8 +23,8 @@ const options = ref<string[]>(
  * @param target Target element to get value from
  */
 const change = ({ target }: any) => {
-  I18n.setLocale(target.value)
-  $bus.emit('lang:change', target.value)
+	I18n.setLocale(target.value)
+	$bus.emit('lang:change', target.value)
 }
 </script>
 

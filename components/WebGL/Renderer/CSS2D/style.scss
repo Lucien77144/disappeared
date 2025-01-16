@@ -1,12 +1,12 @@
 .renderer {
-  position: absolute;
-  top: 0;
+	position: absolute;
+	top: 0;
 
-  &__item {
-    pointer-events: all;
+	&__item {
+		pointer-events: all;
 
-    &:not(.renderer__item--active) {
-      display: none;
-    }
-  }
+		&:not(.renderer__item--active) {
+			display: none;
+		}
+	}
 }

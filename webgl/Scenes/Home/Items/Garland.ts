@@ -1,7 +1,7 @@
 import { Group } from 'three'
 import ExtendableItem from '~/webgl/Modules/Extendables/ExtendableItem/'
 import { ExtendableItemEvents } from '~/webgl/Modules/Extendables/ExtendableItem/ExtendableItemEvents'
-import type ScrollManager from '~/utils/class/ScrollManager'
+import type ScrollManager from '~/utils/ScrollManager'
 
 export default class Garland
   extends ExtendableItem

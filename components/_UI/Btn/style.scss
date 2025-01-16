@@ -1,15 +1,15 @@
 button {
-  padding: 10px 20px;
-  border: 1px solid $primary;
-  border-radius: 5px;
-  background-color: $white;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  pointer-events: all;
-  color: $primary;
+	padding: 10px 20px;
+	border: 1px solid $primary;
+	border-radius: 5px;
+	background-color: $white;
+	cursor: pointer;
+	transition: background-color 0.3s;
+	pointer-events: all;
+	color: $primary;
 
-  &:hover {
-    background-color: $primary;
-    color: $white;
-  }
+	&:hover {
+		background-color: $primary;
+		color: $white;
+	}
 }

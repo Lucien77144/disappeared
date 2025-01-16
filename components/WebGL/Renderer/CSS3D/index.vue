@@ -1,19 +1,19 @@
 <template>
-  <div id="css-3d-renderer" class="renderer">
-    <div
-      class="renderer__item"
-      v-for="(d, i) in list"
-      :key="i"
-      :id="d?.id.toLowerCase()"
-      :ref="(el) => add({ ...d, el: el as HTMLElement })"
-    >
-      <component
-        v-if="d?.template"
-        :is="{ ...d?.template }"
-        :data="d?.data"
-      ></component>
-    </div>
-  </div>
+	<div id="css-3d-renderer" class="renderer">
+		<div
+			class="renderer__item"
+			v-for="(d, i) in list"
+			:key="i"
+			:id="d?.id.toLowerCase()"
+			:ref="(el: HTMLElement) => add({ ...d, el })"
+		>
+			<component
+				v-if="d?.template"
+				:is="{ ...d?.template }"
+				:data="d?.data"
+			></component>
+		</div>
+	</div>
 </template>
 
 <script lang="ts" setup>

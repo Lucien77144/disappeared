@@ -1,7 +1,7 @@
 <template>
-  <!-- WebGL Back interface to insert components -->
-  <!-- <div id="webgl-b-interface">
-  </div> -->
+	<!-- WebGL Back interface to insert components -->
+	<div id="webgl-b-interface">
+  </div>
 </template>
 
 <script setup lang="ts"></script>

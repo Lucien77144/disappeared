@@ -2,6 +2,10 @@
 
 This template provides a starting point for building applications using Nuxt 3 and Three.js. It combines the powerful features of Nuxt for server-side rendering and routing with the 3D capabilities of Three.js.
 
+## Credits
+
+- **FlanB**: Some features are inspired by [flanb starter](https://github.com/flanb/threejs-vite-starter/tree/main).
+
 ## Overview
 
 - **Nuxt 3**: A powerful framework for building Vue.js applications with server-side rendering, static site generation, and more. Look at the [Nuxt 3 documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.

@@ -1,8 +1,8 @@
-import { AudioListener, PerspectiveCamera, Vector3 } from 'three'
+import { AudioListener, PerspectiveCamera } from 'three'
 import Experience from '../../Experience'
 import type { TAudioParams } from '~/models/utils/AudioManager.model'
-import type { TDebugFolder } from '~/models/utils/Debug.model'
 import ExtendableItem from './ExtendableItem'
+import type { FolderApi } from 'tweakpane'
 
 /**
  * @class Extend Camera
@@ -19,201 +19,203 @@ import ExtendableItem from './ExtendableItem'
  * @param {Array} pendingAudios Queue of audio to be added when listener is ready
  */
 export default class ExtendableCamera {
-  // Public
-  public instance!: PerspectiveCamera
-  public listener?: AudioListener
-  public debugFolder: TDebugFolder
-  public pendingAudios: {
-    audios: ExtendableItem['audios']
-    parent: TAudioParams['parent']
-  }[]
+	// Public
+	public name: string
+	public listener?: AudioListener
+	public debugFolder?: FolderApi
+	public pendingAudios: {
+		audios: ExtendableItem['audios']
+		parent: TAudioParams['parent']
+	}[]
 
-  // Private
-  private _experience: Experience
-  private $bus: Experience['$bus']
-  private _viewport: Experience['viewport']
-  private _debug: Experience['debug']
-  private _audioManager: Experience['audioManager']
+	// Private
+	private _instance!: PerspectiveCamera
+	private _experience: Experience
+	private $bus: Experience['$bus']
+	private _viewport: Experience['viewport']
+	private _debug: Experience['debug']
+	private _audioManager: Experience['audioManager']
 
-  /**
-   * Constructor
-   */
-  constructor() {
-    // Public
-    this.pendingAudios = []
+	/**
+	 * Constructor
+	 */
+	constructor(name: string) {
+		// Public
+		this.name = name
+		this.pendingAudios = []
 
-    // Private
-    this._experience = new Experience()
-    this.$bus = this._experience.$bus
-    this._viewport = this._experience.viewport
-    this._debug = this._experience.debug
-    this._audioManager = this._experience.audioManager
+		// Private
+		this._experience = new Experience()
+		this.$bus = this._experience.$bus
+		this._viewport = this._experience.viewport
+		this._debug = this._experience.debug
+		this._audioManager = this._experience.audioManager
 
-    // Init
-    this._init()
-  }
+		// Init
+		this._init()
+	}
 
-  // --------------------------------
-  // Public
-  // --------------------------------
+	/**
+	 * Get the camera instance
+	 */
+	public get instance() {
+		return this._instance
+	}
 
-  /**
-   * Add a audio to the scene
-   * @param {*} audios Object of audios
-   * @param {*} parent Parent of the audio
-   */
-  public addAudios(
-    audios: ExtendableItem['audios'] = {},
-    parent: TAudioParams['parent']
-  ): void {
-    if (!this.listener) {
-      this.pendingAudios = [...this.pendingAudios, { audios, parent }]
-      return
-    }
+	/**
+	 * Set the camera instance
+	 */
+	public set instance(instance: PerspectiveCamera) {
+		this._instance = instance
+	}
 
-    Object.keys(audios).forEach((name) => {
-      const audioParams = audios[name]
-      if (audioParams && this.listener) {
-        this._audioManager.add({
-          ...audioParams,
-          ...(parent && audioParams.parent !== undefined ? { parent } : {}),
-          listener: this.listener as AudioListener,
-        })
-      }
-    })
-  }
+	// --------------------------------
+	// Public
+	// --------------------------------
 
-  /**
-   * Remove audios from the scene
-   * @param {*} audios Object of audios
-   * @param {*} force Force remove
-   */
-  public removeAudios(
-    audios: ExtendableItem['audios'] = {},
-    force: boolean = false
-  ) {
-    // Filter by persist and no parents
-    Object.keys(audios)
-      .filter((name) => !audios[name]?.persist || force)
-      ?.forEach((name) => this._audioManager.remove(name))
-  }
+	/**
+	 * Add a audio to the scene
+	 * @param {*} audios Object of audios
+	 * @param {*} parent Parent of the audio
+	 */
+	public addAudios(
+		audios: ExtendableItem['audios'] = {},
+		parent: TAudioParams['parent']
+	): void {
+		if (!this.listener) {
+			this.pendingAudios = [...this.pendingAudios, { audios, parent }]
+			return
+		}
 
-  /**
-   * Update the camera
-   * @warn super.update() is needed in the extending class
-   */
-  public update() {
-    if (!this.instance) return
+		Object.keys(audios).forEach((name) => {
+			const audioParams = audios[name]
+			if (audioParams && this.listener) {
+				this._audioManager.add({
+					...audioParams,
+					...(parent && audioParams.parent !== undefined ? { parent } : {}),
+					listener: this.listener as AudioListener,
+				})
+			}
+		})
+	}
 
-    this.instance.updateMatrixWorld()
-  }
+	/**
+	 * Remove audios from the scene
+	 * @param {*} audios Object of audios
+	 * @param {*} force Force remove
+	 */
+	public removeAudios(
+		audios: ExtendableItem['audios'] = {},
+		force: boolean = false
+	) {
+		// Filter by persist and no parents
+		Object.keys(audios)
+			.filter((name) => !audios[name]?.persist || force)
+			?.forEach((name) => this._audioManager.remove(name))
+	}
 
-  /**
-   * Resize the camera
-   * @warn super.resize() is needed in the extending class
-   */
-  public resize() {
-    if (!this.instance) return
+	/**
+	 * Update the camera
+	 * @warn super.update() is needed in the extending class
+	 */
+	public update() {
+		if (!this._instance) return
 
-    this.instance.aspect = this._viewport.width / this._viewport.height
-    this.instance.updateProjectionMatrix()
-  }
+		this._instance.updateMatrixWorld()
+	}
 
-  /**
-   * Dispose the camera
-   * @warn super.dispose() is needed in the extending class
-   */
-  public dispose() {
-    if (!this.instance) return
+	/**
+	 * Resize the camera
+	 * @warn super.resize() is needed in the extending class
+	 */
+	public resize() {
+		if (!this._instance) return
 
-    // Audios
-    this.pendingAudios.forEach(({ audios }) => this.removeAudios(audios))
+		this._instance.aspect = this._viewport.width / this._viewport.height
+		this._instance.updateProjectionMatrix()
+	}
 
-    // Debug
-    this.debugFolder && this._debug?.panel?.remove(this.debugFolder)
+	/**
+	 * Dispose the camera
+	 * @warn super.dispose() is needed in the extending class
+	 */
+	public dispose() {
+		if (!this._instance) return
 
-    // Instance & listener
-    delete this.listener
-  }
+		// Audios
+		this.pendingAudios.forEach(({ audios }) => this.removeAudios(audios))
 
-  // --------------------------------
-  // Private Functions
-  // --------------------------------
+		// Debug
+		this.debugFolder && this._debug?.panel?.remove(this.debugFolder)
 
-  /**
-   * Set listener
-   */
-  private _setInstance(): void {
-    this.instance = new PerspectiveCamera(
-      20,
-      this._viewport.width / this._viewport.height,
-      0.1,
-      500
-    )
-    this.instance.position.z = 10
-  }
+		// Instance & listener
+		delete this.listener
+	}
 
-  /**
-   * Set listener
-   */
-  private _setListener() {
-    this.$bus.on('audio:mute', () => {
-      this.listener?.setMasterVolume(0)
-    })
+	// --------------------------------
+	// Private Functions
+	// --------------------------------
 
-    this.$bus.on('audio:unmute', () => {
-      if (!this.listener) {
-        this.listener = new AudioListener()
-        !this.instance && this._setInstance()
-        this.instance.add(this.listener)
+	/**
+	 * Set listener
+	 */
+	private _setInstance(): void {
+		this._instance = new PerspectiveCamera(
+			20,
+			this._viewport.width / this._viewport.height,
+			0.1,
+			500
+		)
+		this.instance.position.z = 10
+	}
 
-        this.pendingAudios.forEach(({ audios, parent }) =>
-          this.addAudios(audios, parent)
-        )
-        this.pendingAudios = []
-      }
-      this.listener.setMasterVolume(1)
-    })
-  }
+	/**
+	 * Set listener
+	 */
+	private _setListener() {
+		this.$bus.on('audio:mute', () => {
+			this.listener?.setMasterVolume(0)
+		})
 
-  /**
-   * Set debug
-   */
-  private _setDebug() {
-    this.debugFolder = this._debug?.panel.addFolder({
-      expanded: false,
-      title: 'Camera',
-    })
+		this.$bus.on('audio:unmute', () => {
+			if (!this.listener) {
+				this.listener = new AudioListener()
+				!this._instance && this._setInstance()
+				this._instance.add(this.listener)
 
-    const position = this.instance.position
-    this.debugFolder
-      .addBinding(
-        {
-          camera: {
-            x: position.x,
-            y: position.y,
-            z: position.z,
-          },
-        },
-        'camera',
-        { label: 'Position' },
-        {
-          x: { min: -20, max: 20, step: 0.01, value: position.x },
-          y: { min: -20, max: 20, step: 0.01, value: position.y },
-          z: { min: -20, max: 20, step: 0.01, value: position.z },
-        }
-      )
-      .on('change', ({ value }: { value: Vector3 }) => {
-        this.instance.position.set(value.x, value.y, value.z)
-      })
-  }
+				this.pendingAudios.forEach(({ audios, parent }) =>
+					this.addAudios(audios, parent)
+				)
+				this.pendingAudios = []
+			}
+			this.listener.setMasterVolume(1)
+		})
+	}
 
-  /**
-   * Init the camera
-   */
-  private _init() {
-    this._setInstance()
-    this._setListener()
-    this._debug && this._setDebug()
-  }
+	/**
+	 * Set debug
+	 */
+	private _setDebug() {
+		this.debugFolder = this._debug?.panel.addFolder({
+			expanded: false,
+			title: 'Camera - ' + this.name,
+		})
+
+		this.debugFolder?.addBinding(this.instance, 'position', {
+			label: 'Position',
+			tag: `cam_position_${this.name}`,
+			x: { label: 'X', step: 0.5 },
+			y: { label: 'Y', step: 0.5 },
+			z: { label: 'Z', step: 0.5 },
+		})
+	}
+
+	/**
+	 * Init the camera
+	 */
+	private _init() {
+		this._setInstance()
+		this._setListener()
+		this._debug && this._setDebug()
+	}
 }

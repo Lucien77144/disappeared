@@ -4,23 +4,23 @@ import type { Audio, AudioListener, Object3D, PositionalAudio } from 'three'
  * Audio object
  */
 export type TAudio = Omit<
-  PositionalAudio | Audio,
-  'play' | 'pause' | 'stop' | 'setVolume' | 'setLoop' | 'source'
+	PositionalAudio | Audio,
+	'play' | 'pause' | 'stop' | 'setVolume' | 'setLoop' | 'source'
 > & {
-  play: (delay?: number) => void
-  pause: () => void
-  stop: () => void
-  setVolume: (volume: number) => void
-  setLoop: (loop: boolean) => void
-  setRefDistance: (distance: number) => void
-  isPlaying: boolean
-  isSingle?: boolean
-  volume?: number
-  source?:
-    | (Audio['source'] & {
-        mediaElement?: HTMLMediaElement
-      })
-    | null
+	play: (delay?: number) => void
+	pause: () => void
+	stop: () => void
+	setVolume: (volume: number) => void
+	setLoop: (loop: boolean) => void
+	setRefDistance: (distance: number) => void
+	isPlaying: boolean
+	isSingle?: boolean
+	volume?: number
+	source?:
+		| (Audio['source'] & {
+				mediaElement?: HTMLMediaElement
+		  })
+		| null
 }
 
 /**
@@ -36,13 +36,13 @@ export type TAudio = Omit<
  * @param {number} volume - Volume of the audio
  */
 export type TAudioParams = {
-  name: string
-  listener: AudioListener
-  isSingle: boolean
-  parent: Object3D
-  distance: number
-  play: boolean
-  loop: boolean
-  persist: boolean
-  volume: number
+	name: string
+	listener: AudioListener
+	isSingle: boolean
+	parent: Object3D
+	distance: number
+	play: boolean
+	loop: boolean
+	persist: boolean
+	volume: number
 }

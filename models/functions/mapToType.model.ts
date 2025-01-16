@@ -6,5 +6,5 @@ import type { Dictionary } from './dictionary.model'
  * @template S Type to map to.
  */
 export type MapToType<T extends Dictionary<unknown>, S> = {
-  [P in keyof T]: T[P] extends Dictionary<unknown> ? MapToType<T[P], S> : S
+	[P in keyof T]: T[P] extends Dictionary<unknown> ? MapToType<T[P], S> : S
 }

@@ -15,7 +15,7 @@ import type {
   TResourceItem,
 } from '~/models/utils/Resources.model.js'
 import type { Dictionary } from '~/models/functions/dictionary.model.js'
-import EventEmitter from '~/utils/class/EventEmitter.js'
+import EventEmitter from '~/utils/EventEmitter.js'
 import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader.js'
 import {
   DoubleSide,

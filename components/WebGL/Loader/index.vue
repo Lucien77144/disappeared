@@ -1,36 +1,29 @@
 <template>
-  <div ref="loader" class="loader t-25">
-    <client-only>
-      <Vue3Lottie ref="lottieAnimation" :animationData="loadingLottie" />
-    </client-only>
-  </div>
+	<div class="loader t-25" :class="{ disabled: progress === 100 }">
+		<client-only>
+			<Vue3Lottie ref="lottieAnimation" :animationData="loadingLottie" />
+		</client-only>
+	</div>
 </template>
 
 <script lang="ts" setup>
 import { Vue3Lottie } from 'vue3-lottie'
 import loadingLottie from '~/assets/data/lottie/loader.json'
 
-// Refs
-const loader = ref<HTMLElement>()
-const loadValue = ref<number>(0)
-const lottieAnimation = ref<InstanceType<typeof Vue3Lottie>>()
+// Computed
+const progress = computed(() => {
+	const value = useExperienceStore().loadingProgress
 
-// Plugins
-const { $bus }: any = useNuxtApp()
-$bus.on('resources:loading', (value: number) => {
-  loadValue.value = value
+	// If the loading value increases, increase the animation time
+	const animationDuration = lottieAnimation?.value?.getDuration() || 0
+	const newFrame = (value / 100) * animationDuration
+	lottieAnimation.value?.goToAndStop(newFrame, true)
 
-  // If the loading value increases, increase the animation time
-  const animationDuration = lottieAnimation?.value?.getDuration() || 0
-  const newFrame = (loadValue.value / 100) * animationDuration
-  lottieAnimation.value?.goToAndStop(newFrame, true)
-
-  // On loading end
-  if (loadValue.value === 100) {
-    loader.value?.classList.add('disabled')
-    setTimeout(() => loader.value?.remove(), 500)
-  }
+	return value
 })
+
+// Refs
+const lottieAnimation = ref<InstanceType<typeof Vue3Lottie>>()
 </script>
 
 <style src="./style.scss" lang="scss" scoped></style>
