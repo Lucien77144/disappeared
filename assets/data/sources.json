@@ -7,17 +7,10 @@
         "name": "introMountain",
         "source": "/img/icons/countries/fr.png",
         "type": "texture"
-      }
-    ]
-  },
-  {
-    "name": "Main2",
-    "data": {},
-    "items": [
+      },
       {
-        "name": "introMountain",
-        "source": "/img/icons/countries/fr.png",
-        "type": "texture"
+        "name": "garland",
+        "source": "/img/svg-models/pictures-garland.model.svg"
       }
     ]
   }

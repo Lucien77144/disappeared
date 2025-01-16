@@ -207,14 +207,6 @@ export default class Resources extends EventEmitter {
   private _onLoadingFileEnd(file: TResourceFile): void {
     let data = file.data
 
-    // Convert to texture
-    if (file.resource.type === 'texture') {
-      if (!(data instanceof Texture)) {
-        data = new Texture(file.data as HTMLImageElement)
-      }
-      data.needsUpdate = true
-    }
-
     this.items[file.resource.name] = data
     this.loadedSources[file.resource.source] = file.resource.name
 

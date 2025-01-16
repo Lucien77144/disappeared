@@ -95,6 +95,8 @@ export default class Cube
     this.setMesh()
     this.setItem()
 
+    console.log(this.item)
+
     this.addCSS3D({
       id: 'test',
       template: UIBtn,

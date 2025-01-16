@@ -1,6 +1,7 @@
 import ExtendableScene from '../../Modules/Extendables/ExtendableScene'
 import type { ExtendableSceneEvents } from '../../Modules/Extendables/ExtendableScene/ExtendableSceneEvents'
 import Cube from './Items/Cube'
+import Garland from './Items/Garland'
 
 export default class Home
   extends ExtendableScene
@@ -12,7 +13,8 @@ export default class Home
   constructor() {
     super()
     this.components = {
-      cube: new Cube(),
+      // cube: new Cube(),
+      garland: new Garland(),
     }
 
     // Init the scene

@@ -13,7 +13,10 @@ export type TExtension =
   | 'jpg'
   | 'png'
   | 'svg'
+  | 'model.svg'
   | 'json'
+  | 'lottie.json'
+  | 'font.json'
   | 'webp'
   | 'exr'
   | 'drc'
@@ -26,8 +29,6 @@ export type TExtension =
   | 'mp3'
   | 'ogg'
   | 'wav'
-  | 'lottie'
-  | 'font'
 
 export type TResourceData =
   | HTMLImageElement
@@ -45,7 +46,7 @@ export type TResourceData =
  * Type for the resource item
  */
 export type TResourceItem = {
-  source: string
+  source: `${string}.${TExtension}`
   name: string
   type: string
   id: string

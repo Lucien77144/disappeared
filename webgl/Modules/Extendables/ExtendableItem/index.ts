@@ -83,6 +83,10 @@ export default class ExtendableItem implements Partial<ExtendableItemEvents> {
    */
   protected experience: Experience
   /**
+   * Resources reference
+   */
+  protected resources: Experience['resources']['items']
+  /**
    * Tweakpane debug reference
    */
   protected debug: Experience['debug']
@@ -96,6 +100,7 @@ export default class ExtendableItem implements Partial<ExtendableItemEvents> {
   constructor() {
     // Protected
     this.experience = new Experience()
+    this.resources = this.experience.resources.items
     this.debug = this.experience.debug
 
     // Public

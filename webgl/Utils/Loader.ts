@@ -16,6 +16,15 @@ import type {
 } from '~/models/utils/Resources.model.js'
 import type { Dictionary } from '~/models/functions/dictionary.model.js'
 import EventEmitter from '~/utils/class/EventEmitter.js'
+import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader.js'
+import {
+  DoubleSide,
+  Group,
+  Mesh,
+  MeshBasicMaterial,
+  ShapeGeometry,
+  Texture,
+} from 'three'
 
 export default class Loader extends EventEmitter {
   // Static
@@ -89,18 +98,48 @@ export default class Loader extends EventEmitter {
     this._loaders.push({
       extensions: ['jpg', 'png', 'svg', 'webp'],
       action: (resource) => {
-        const image = new Image()
-        image.name = resource.name
+        const data = new Image()
 
-        image.addEventListener('load', () => {
-          this._fileLoadEnd(resource, image)
+        data.addEventListener('load', () => {
+          const res = this._imageToTexture({ resource, data }) as Texture
+          this._fileLoadEnd(resource, res)
         })
 
-        image.addEventListener('error', () => {
-          this._fileLoadEnd(resource, image)
+        data.addEventListener('error', () => {
+          const res = this._imageToTexture({ resource, data }) as Texture
+          this._fileLoadEnd(resource, res)
         })
 
-        image.src = resource.source
+        data.src = resource.source
+      },
+    })
+
+    // 3D SVG
+    const svgLoader = new SVGLoader()
+    this._loaders.push({
+      extensions: ['model.svg'],
+      action: (resource) => {
+        svgLoader.load(resource.source, (data) => {
+          const paths = data.paths
+          const group = new Group()
+
+          paths.forEach((path) => {
+            const material = new MeshBasicMaterial({
+              color: path.color,
+              side: DoubleSide,
+              depthWrite: false,
+            })
+
+            const shapes = SVGLoader.createShapes(path)
+            shapes.forEach((shape) => {
+              const geometry = new ShapeGeometry(shape)
+              const mesh = new Mesh(geometry, material)
+              group.add(mesh)
+            })
+          })
+
+          this._fileLoadEnd(resource, group)
+        })
       },
     })
 
@@ -218,7 +257,7 @@ export default class Loader extends EventEmitter {
     const lottieLoader = new LottieLoader()
 
     this._loaders.push({
-      extensions: ['lottie'],
+      extensions: ['lottie.json'],
       action: (resource) => {
         lottieLoader.load(resource.source, (animation) => {
           this._fileLoadEnd(resource, animation)
@@ -226,12 +265,11 @@ export default class Loader extends EventEmitter {
       },
     })
 
-    //Font
-
+    // Font
     const fontLoader = new FontLoader()
 
     this._loaders.push({
-      extensions: ['font'],
+      extensions: ['font.json'],
       action: (ressource) => {
         fontLoader.load(ressource.source, (font) => {
           this._fileLoadEnd(ressource, font)
@@ -246,18 +284,39 @@ export default class Loader extends EventEmitter {
    * @returns extension for loader uses
    */
   private _getExtension(source: TResourceItem['source']): TExtension | void {
-    const res = source.match(/\.([a-z0-9]+)$/i)?.[1] as TExtension | void
-    if (!res) return
+    const ext = source.match(/\.([a-z0-9]+)$/i)?.[1] as TExtension | void
+    if (!ext) return
 
-    if (res === 'json') {
-      if (source.includes('lottie')) {
-        return 'lottie'
-      } else if (source.includes('font')) {
-        return 'font'
+    if (ext === 'svg') {
+      if (source.includes('model.svg')) {
+        return 'model.svg'
       }
     }
 
-    return res
+    if (ext === 'json') {
+      if (source.includes('lottie.json')) {
+        return 'lottie.json'
+      } else if (source.includes('font.json')) {
+        return 'font.json'
+      }
+    }
+
+    return ext
+  }
+
+  /**
+   * Check the resource type
+   * @param file File to check
+   * @returns Resource data
+   */
+  private _imageToTexture(file: TResourceFile): TResourceData {
+    // Convert to texture
+    if (!(file.data instanceof Texture)) {
+      file.data = new Texture(file.data as HTMLImageElement)
+      file.data.needsUpdate = true
+    }
+
+    return file.data
   }
 
   /**
@@ -327,7 +386,7 @@ export default class Loader extends EventEmitter {
    */
   private _fileLoadEnd(
     resource: TResourceFile['resource'],
-    data: TResourceFile['data']
+    data: TResourceData
   ): void {
     this.loaded++
     this.items[resource.name] = data
