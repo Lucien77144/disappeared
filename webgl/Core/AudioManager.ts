@@ -128,7 +128,7 @@ export default class AudioManager {
 		delete this.audios[name]
 
 		if (Object.keys(this.audios).length == 0 && this.debugFolder) {
-			this._debug?.panel.remove(this.debugFolder)
+			this._debug?.remove(this.debugFolder)
 			this.debugFolder = undefined
 		}
 	}
@@ -137,7 +137,7 @@ export default class AudioManager {
 	 * Dispose the audio manager
 	 */
 	public dispose(): void {
-		this.debugFolder && this._debug?.panel.remove(this.debugFolder)
+		this.debugFolder && this._debug?.remove(this.debugFolder)
 		Object.keys(this.audios).forEach((name) => this.remove(name))
 	}
 

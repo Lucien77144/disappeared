@@ -93,26 +93,18 @@ export default class Renderer {
 
 		this.debugFolder
 			.addBinding(this.clearColor, 'color', { view: 'color' })
-			.on('change', () => {
-				this.instance.setClearColor(
-					new Color(this.clearColor.color),
-					this.clearColor.alpha
-				)
-			})
+			.on('change', () =>
+				this.instance.setClearColor(new Color(this.clearColor.color))
+			)
 
 		this.debugFolder
 			.addBinding(this.clearColor, 'alpha', {
-				label: '',
+				label: 'Alpha',
 				min: 0,
 				max: 1,
 				step: 0.01,
 			})
-			.on('change', () => {
-				this.instance.setClearColor(
-					new Color(this.clearColor.color),
-					this.clearColor.alpha
-				)
-			})
+			.on('change', () => this.instance.setClearAlpha(this.clearColor.alpha))
 
 		this.debugFolder.addBinding(this.instance, 'toneMappingExposure', {
 			label: 'Tone Mapping Exposure',

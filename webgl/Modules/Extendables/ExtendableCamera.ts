@@ -146,7 +146,7 @@ export default class ExtendableCamera {
 		this.pendingAudios.forEach(({ audios }) => this.removeAudios(audios))
 
 		// Debug
-		this.debugFolder && this._debug?.panel?.remove(this.debugFolder)
+		this.debugFolder && this._debug?.remove(this.debugFolder)
 
 		// Instance & listener
 		delete this.listener

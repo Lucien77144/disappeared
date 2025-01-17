@@ -3,7 +3,13 @@ import * as TweakpanePluginMedia from 'tweakpane-plugin-media'
 // @ts-ignore // @TODO: Fix the ts error on import
 import * as TweakpaneFileImportPlugin from 'tweakpane-plugin-file-import'
 import Experience from '../Experience'
-import type { BladeState, FolderController, PluginPool } from '@tweakpane/core'
+import type {
+	BladeApi,
+	BladeState,
+	FolderApi,
+	FolderController,
+	PluginPool,
+} from '@tweakpane/core'
 import Stats from './Stats'
 import { Pane } from 'tweakpane'
 
@@ -52,11 +58,13 @@ export default class Debug {
 	private _statsValues?: TStatsValues
 	private _monitoring!: HTMLElement
 	private _self: any
+	private _activeDebugs: { folders: Array<string>; bindings: Array<string> }
 
 	constructor() {
 		// Private
 		this._experience = new Experience()
 		this._viewport = this._experience.viewport
+		this._activeDebugs = { folders: [], bindings: [] }
 
 		// Public
 		this._setPanel()
@@ -100,6 +108,51 @@ export default class Debug {
 	}
 
 	/**
+	 * Remove a folder from the panel
+	 * @param debug Debug folder
+	 */
+	public remove(debug: FolderApi | BladeApi) {
+		const state = debug.exportState()
+
+		// Check if this is a folder
+		if ((debug as FolderApi).controller.foldable) {
+			const key = (state.title as string)?.toLowerCase().replace(/ /g, '-')
+			const id: `f_${string}` = `f_${key}`
+
+			this._activeDebugs.folders = this._activeDebugs.folders.filter(
+				(tag) => tag !== id
+			)
+
+			const childs = (debug as FolderApi).children
+			childs.forEach((child: BladeApi) => this.remove(child))
+		} else {
+			this._activeDebugs.bindings = this._activeDebugs.bindings.filter(
+				(tag) => tag !== state.tag
+			)
+		}
+
+		this.panel.remove(debug)
+	}
+
+	/**
+	 * Unset the stats panel
+	 */
+	public dispose() {
+		this.panel.dispose()
+		this._activeDebugs.folders = []
+		this._activeDebugs.bindings = []
+		this.stats?.dispose()
+		this._monitoring?.remove()
+	}
+
+	/**
+	 * Update the debug panel
+	 */
+	public update() {
+		if (this.debugParams.Stats) this._statsValues?.update()
+	}
+
+	/**
 	 * Set the panel
 	 */
 	private _setPanel() {
@@ -122,13 +175,14 @@ export default class Debug {
 	 * Save the folder state
 	 */
 	private _saveFolderState() {
-		const foldersList: Array<`f_${string}`> = []
 		const handleSave = (state: BladeState, key: string) => {
 			return this._handleLocalSave(state, key)
 		}
 		const getDefaultState = (state: BladeState, key: string) => {
 			return this._handleLocalValue(state, key)
 		}
+		const isActive = (tag: string) => this._activeDebugs.folders.includes(tag)
+		const addToList = (tag: string) => this._activeDebugs.folders.push(tag)
 
 		this._pool.createApi = (function (original) {
 			return function (bc) {
@@ -139,13 +193,13 @@ export default class Debug {
 					const key = (state.title as string)?.toLowerCase().replace(/ /g, '-')
 					const id: `f_${string}` = `f_${key}`
 
-					if (foldersList.includes(id)) {
+					if (isActive(id)) {
 						console.warn(
 							`The tag "${id}" is already used in the session storage`,
 							bc
 						)
 					} else {
-						foldersList.push(id)
+						addToList(id)
 					}
 
 					bc.view.element.addEventListener('click', () => {
@@ -355,7 +409,8 @@ export default class Debug {
 
 		const handleSave = (state: BladeState) => this._handleLocalSave(state)
 		const getDefaultState = (state: BladeState) => this._handleLocalValue(state)
-		const tagsList: string[] = []
+		const isActive = (tag: string) => this._activeDebugs.bindings.includes(tag)
+		const addToList = (tag: string) => this._activeDebugs.bindings.push(tag)
 		const getStateTag = (state: BladeState) => this._getStateTag(state)
 
 		this._pool.createBindingApi = (function (original) {
@@ -370,13 +425,13 @@ export default class Debug {
 				const initialState: any = bc.exportState()
 				bc.tag = getStateTag(initialState)
 
-				if (tagsList.includes(bc.tag)) {
+				if (isActive(bc.tag)) {
 					console.warn(
 						`The tag "${bc.tag}" is already used in the session storage`,
 						bc
 					)
 				} else {
-					tagsList.push(bc.tag)
+					addToList(bc.tag)
 				}
 
 				bc.value.emitter.on('change', (e) => {
@@ -390,7 +445,11 @@ export default class Debug {
 				})
 
 				const defaultState = getDefaultState(initialState)
-				if (defaultState) bc.importState(defaultState)
+				if (defaultState) {
+					window.requestAnimationFrame(() => {
+						bc.importState(defaultState)
+					})
+				}
 
 				clonedResetButton.addEventListener('click', () => {
 					bc.valueController.value.setRawValue(initialValue)
@@ -413,7 +472,7 @@ export default class Debug {
 			const parsedLabel = state.label?.toLowerCase().replace(/ /g, '-')
 
 			if (key !== state.label) {
-				return `${state.binding?.key}-${parsedLabel}`
+				return `${state.binding?.key}${parsedLabel ? '-' + parsedLabel : ''}`
 			} else {
 				return `${key}`
 			}
@@ -434,6 +493,8 @@ export default class Debug {
 		if (tag) {
 			res[tag] = state
 			sessionStorage.setItem('debugParams', JSON.stringify(res))
+		} else {
+			console.warn('The tag is not defined', state)
 		}
 	}
 
@@ -564,21 +625,5 @@ export default class Debug {
 				})
 			},
 		}
-	}
-
-	/**
-	 * Unset the stats panel
-	 */
-	public dispose() {
-		this.panel.dispose()
-		this.stats?.dispose()
-		this._monitoring?.remove()
-	}
-
-	/**
-	 * Update the debug panel
-	 */
-	public update() {
-		if (this.debugParams.Stats) this._statsValues?.update()
 	}
 }

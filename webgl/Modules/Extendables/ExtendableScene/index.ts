@@ -350,7 +350,7 @@ export default class ExtendableScene implements Partial<ExtendableSceneEvents> {
 		this._css3dManager?.dispose()
 
 		// Debug
-		this.debugFolder && this.debug?.panel.remove(this.debugFolder)
+		this.debugFolder && this.debug?.remove(this.debugFolder)
 
 		// Events
 		this.$bus.off('mousedown', this._handleMouseDownEvt)
