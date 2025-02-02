@@ -1,15 +1,15 @@
 import { BoxGeometry, MathUtils, Mesh, MeshNormalMaterial } from 'three'
 import { UIBtn } from '#components'
 import type ScrollManager from '~/utils/ScrollManager'
-import ExtendableItem from '~/webgl/Modules/Extendables/ExtendableItem/'
+import ExtendableItem from '~/webgl/Modules/Extendables/ExtendableItem/ExtendableItem'
 import { ExtendableItemEvents } from '~/webgl/Modules/Extendables/ExtendableItem/ExtendableItemEvents'
-import DebugObject from '~/webgl/Modules/Debug/DebugObject'
-import type ExtendableScene from '~/webgl/Modules/Extendables/ExtendableScene'
+import type Home from '../Home'
 
 export default class Cube
-	extends ExtendableItem
+	extends ExtendableItem<Home>
 	implements ExtendableItemEvents
 {
+	// Private
 	private _scrollManager: ScrollManager
 	private _geometry?: BoxGeometry
 	private _material?: MeshNormalMaterial
@@ -36,28 +36,28 @@ export default class Cube
 	/**
 	 * Set geometry
 	 */
-	public setGeometry() {
+	private _setGeometry() {
 		this._geometry = new BoxGeometry(4, 4, 4)
 	}
 
 	/**
 	 * Set material
 	 */
-	public setMaterial() {
+	private _setMaterial() {
 		this._material = new MeshNormalMaterial()
 	}
 
 	/**
 	 * Set mesh
 	 */
-	public setMesh() {
+	private _setMesh() {
 		this._mesh = new Mesh(this._geometry, this._material)
 	}
 
 	/**
 	 * Set item
 	 */
-	public setItem() {
+	private _setItem() {
 		this.item.add(this._mesh as Mesh)
 	}
 
@@ -94,10 +94,10 @@ export default class Cube
 	}
 
 	public OnInit(): void {
-		this.setGeometry()
-		this.setMaterial()
-		this.setMesh()
-		this.setItem()
+		this._setGeometry()
+		this._setMaterial()
+		this._setMesh()
+		this._setItem()
 
 		this.addCSS3D({
 			id: 'test',

@@ -1,6 +1,6 @@
 import type { TSceneInfos } from '~/models/utils/SceneManager.model'
-import Home from '~/webgl/Scenes/Home'
-import Sandbox from '~/webgl/Scenes/Sandbox'
+import Home from '~/webgl/Scenes/Home/Home'
+import Sandbox from '~/webgl/Scenes/Sandbox/Sandbox'
 
 // Scene list
 const SCENES: Partial<TSceneInfos>[] = [

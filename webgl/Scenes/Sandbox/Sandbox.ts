@@ -1,4 +1,4 @@
-import ExtendableScene from '../../Modules/Extendables/ExtendableScene'
+import ExtendableScene from '../../Modules/Extendables/ExtendableScene/ExtendableScene'
 import { ExtendableSceneEvents } from '../../Modules/Extendables/ExtendableScene/ExtendableSceneEvents'
 import Cube2 from './Items/Cube2'
 

@@ -1,38 +1,40 @@
 import {
 	DoubleSide,
-	Euler,
 	Mesh,
-	MeshNormalMaterial,
+	MeshStandardMaterial,
 	PlaneGeometry,
+	Texture,
 	Vector3,
 } from 'three'
 import { lerp } from 'three/src/math/MathUtils.js'
-import ExtendableItem from '~/webgl/Modules/Extendables/ExtendableItem/'
+import ExtendableItem from '~/webgl/Modules/Extendables/ExtendableItem/ExtendableItem'
 import {
 	ExtendableItemEvents,
 	type TMouseHoverProps,
 } from '~/webgl/Modules/Extendables/ExtendableItem/ExtendableItemEvents'
+import type Home from '../Home'
 
 export default class Picture
-	extends ExtendableItem
+	extends ExtendableItem<Home>
 	implements ExtendableItemEvents
 {
 	// Public
 	public position: Vector3
+	public hdri!: Texture
 
 	// Private
 	private _geometry?: PlaneGeometry
-	private _material?: MeshNormalMaterial
+	private _material?: MeshStandardMaterial
 	private _mesh!: Mesh
-	private _savedRotation!: Euler
-	private _targetRotation!: Euler
+	private _savedPosition!: Vector3
+	private _targetPosition!: Vector3
 	/**
 	 * Constructor
 	 */
 	constructor({ position }: { position: Vector3 }) {
 		super()
 		// Private
-		this._targetRotation = new Euler()
+		this._targetPosition = new Vector3()
 
 		// Set position, rotation and scale
 		this.position = position
@@ -42,25 +44,42 @@ export default class Picture
 	}
 
 	/**
+	 * Set HDRI
+	 */
+	private _setHDRI() {
+		this.hdri = (this.scene as Home).hdri
+	}
+
+	/**
 	 * Set geometry
 	 */
-	public setGeometry() {
-		this._geometry = new PlaneGeometry(6, 12)
+	private _setGeometry() {
+		this._geometry = new PlaneGeometry(8, 12)
 	}
 
 	/**
 	 * Set material
 	 */
-	public setMaterial() {
-		this._material = new MeshNormalMaterial({
+	private _setMaterial() {
+		const map = this.resources.picture_col as Texture
+		this._material = new MeshStandardMaterial({
+			color: 0xffffff,
+			roughness: 1,
+			aoMapIntensity: 1,
 			side: DoubleSide,
+			map,
+			envMap: this.scene?.hdriTexture,
+			roughnessMap: map,
+			normalMap: map,
+			aoMap: map,
+			envMapIntensity: 1.5,
 		})
 	}
 
 	/**
 	 * Set mesh
 	 */
-	public setMesh() {
+	private _setMesh() {
 		this._mesh = new Mesh(this._geometry, this._material)
 		this._mesh.rotation.x = Math.PI / 2 // Rotate 90 degrees (π/2 radians) around the X-axis
 	}
@@ -68,7 +87,7 @@ export default class Picture
 	/**
 	 * Set item
 	 */
-	public setItem() {
+	private _setItem() {
 		this.item.add(this._mesh)
 		this.item.position.copy(this.position)
 
@@ -76,48 +95,43 @@ export default class Picture
 			this.item.lookAt(this.parent.item.position)
 		}
 		this._mesh.rotation.y = Math.PI / 2
-		this.item.position.z += 0.35
+		this.item.position.z += 0.1
 
-		this._savedRotation = this.item.rotation.clone()
-		this._targetRotation = this.item.rotation.clone()
+		this._savedPosition = this.item.position.clone()
+		this._targetPosition = this._savedPosition.clone()
 	}
 
+	/**
+	 * On mouse hover
+	 * @param event Mouse hover event
+	 */
 	public OnMouseHover(event: TMouseHoverProps): void {
-		const uv = event.target.uv ?? { x: 0, y: 0 }
-
-		uv.x -= 0.5
-		uv.y -= 0.5
-		uv.x *= -1
-
-		const factor = (Math.PI / 2) * 0.35
-		const newZ = this._savedRotation.z + uv.x * factor
-		const newX = this._savedRotation.x + uv.y * factor
-
-		this._targetRotation.set(newX, this._savedRotation.y, newZ)
+		this._targetPosition.set(
+			this._savedPosition.x,
+			this._savedPosition.y,
+			this._savedPosition.z + 1
+		)
 	}
 
 	/**
 	 * On mouse leave
 	 */
 	public OnMouseLeave(): void {
-		this._targetRotation.set(
-			this._savedRotation.x,
-			this._savedRotation.y,
-			this._savedRotation.z
+		this._targetPosition.set(
+			this._savedPosition.x,
+			this._savedPosition.y,
+			this._savedPosition.z
 		)
 	}
 
 	public OnUpdate() {
-		this.item.rotation.x = lerp(
-			this.item.rotation.x,
-			this._targetRotation.x,
-			0.1
-		)
-		this.item.rotation.z = lerp(
-			this.item.rotation.z,
-			this._targetRotation.z,
-			0.1
-		)
+		if (this.item.position.z !== this._targetPosition.z) {
+			this.item.position.z = lerp(
+				this.item.position.z,
+				this._targetPosition.z,
+				0.1
+			)
+		}
 	}
 
 	/**
@@ -142,9 +156,10 @@ export default class Picture
 	}
 
 	public OnInit(): void {
-		this.setGeometry()
-		this.setMaterial()
-		this.setMesh()
-		this.setItem()
+		this._setHDRI()
+		this._setGeometry()
+		this._setMaterial()
+		this._setMesh()
+		this._setItem()
 	}
 }

@@ -1,15 +1,16 @@
 import { Group, Mesh, Object3D, Vector3 } from 'three'
-import ExtendableItem from '~/webgl/Modules/Extendables/ExtendableItem/'
+import ExtendableItem from '~/webgl/Modules/Extendables/ExtendableItem/ExtendableItem'
 import { ExtendableItemEvents } from '~/webgl/Modules/Extendables/ExtendableItem/ExtendableItemEvents'
 import Picture from './Picture'
 import { get3DSize } from '~/utils/functions/getSize'
 import type Experience from '~/webgl/Experience'
 import gsap from 'gsap'
+import type Home from '../Home'
 
 const DEFAULT_ROTATION = new Vector3(-0.5, -0.5, 0)
 
 export default class Garland
-	extends ExtendableItem
+	extends ExtendableItem<Home>
 	implements ExtendableItemEvents
 {
 	// Public
@@ -62,13 +63,6 @@ export default class Garland
 	}
 
 	/**
-	 * Set the item
-	 */
-	public setItem() {
-		this._setScale()
-	}
-
-	/**
 	 * On scroll
 	 * @param event Scroll event
 	 */
@@ -87,7 +81,7 @@ export default class Garland
 	 */
 	public OnInit(): void {
 		this.setComponents()
-		this.setItem()
+		this._setScale()
 	}
 
 	/**

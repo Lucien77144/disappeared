@@ -9,7 +9,7 @@ import type {
 } from '~/models/utils/SceneManager.model'
 import type Renderer from '../Modules/Renderer/Renderer'
 import runMethod from '~/utils/functions/runMethod'
-import type ExtendableScene from '../Modules/Extendables/ExtendableScene'
+import type ExtendableScene from '../Modules/Extendables/ExtendableScene/ExtendableScene'
 import type { BindingApi } from '@tweakpane/core'
 
 const SCENES = scenes as TScenes

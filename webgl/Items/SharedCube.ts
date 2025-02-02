@@ -1,7 +1,7 @@
 import { BoxGeometry, MathUtils, Mesh, MeshNormalMaterial } from 'three'
 import { UIBtn } from '#components'
 import type ScrollManager from '~/utils/ScrollManager'
-import ExtendableItem from '~/webgl/Modules/Extendables/ExtendableItem/'
+import ExtendableItem from '~/webgl/Modules/Extendables/ExtendableItem/ExtendableItem'
 import { ExtendableItemEvents } from '~/webgl/Modules/Extendables/ExtendableItem/ExtendableItemEvents'
 
 export default class SharedCube

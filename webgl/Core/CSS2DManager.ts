@@ -6,7 +6,7 @@ import {
 import Experience from '~/webgl/Experience'
 import type { Dictionary } from '~/models/functions/dictionary.model'
 import type { ICSS2DRendererStore } from '~/models/stores/cssRenderer.store.model'
-import type ExtendableScene from '../Modules/Extendables/ExtendableScene'
+import type ExtendableScene from '../Modules/Extendables/ExtendableScene/ExtendableScene'
 import type ExtendableCamera from '../Modules/Extendables/ExtendableCamera'
 
 /**

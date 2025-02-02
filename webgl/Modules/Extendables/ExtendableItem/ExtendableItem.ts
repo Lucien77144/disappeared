@@ -11,7 +11,7 @@ import type { Dictionary } from '~/models/functions/dictionary.model'
 import type { TAudioParams } from '~/models/utils/AudioManager.model'
 import type { ICSS2DRendererStore } from '~/models/stores/cssRenderer.store.model'
 import type { ExtendableItemEvents } from './ExtendableItemEvents'
-import type ExtendableScene from '../ExtendableScene'
+import type ExtendableScene from '../ExtendableScene/ExtendableScene'
 import type { FolderApi, Pane } from 'tweakpane'
 import {
 	DebugMaterial,
@@ -40,7 +40,9 @@ export type TItemsEvents = keyof ExtendableItemEvents
  * @param { Experience } experience Experience reference
  * @param { Experience['debug'] } debug Tweakpane debug reference
  */
-export default class ExtendableItem implements Partial<ExtendableItemEvents> {
+export default class ExtendableItem<T extends ExtendableScene = ExtendableScene>
+	implements Partial<ExtendableItemEvents>
+{
 	// --------------------------------
 	// Public properties
 	// --------------------------------
@@ -48,7 +50,7 @@ export default class ExtendableItem implements Partial<ExtendableItemEvents> {
 	 * Parent scene of the item
 	 * @warning this is null in the constructor
 	 */
-	public scene?: ExtendableScene
+	public scene?: T
 	/**
 	 * Parent component of the item
 	 * @warning this is null in the constructor

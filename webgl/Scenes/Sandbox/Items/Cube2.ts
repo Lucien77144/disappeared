@@ -1,9 +1,10 @@
 import { BoxGeometry, Mesh, MeshToonMaterial } from 'three'
-import ExtendableItem from '~/webgl/Modules/Extendables/ExtendableItem'
+import ExtendableItem from '~/webgl/Modules/Extendables/ExtendableItem/ExtendableItem'
 import { ExtendableItemEvents } from '~/webgl/Modules/Extendables/ExtendableItem/ExtendableItemEvents'
+import type Sandbox from '../Sandbox'
 
 export default class Cube2
-	extends ExtendableItem
+	extends ExtendableItem<Sandbox>
 	implements ExtendableItemEvents
 {
 	// Public
@@ -43,7 +44,7 @@ export default class Cube2
 		this._mesh = new Mesh(this._geometry, this._material)
 		this._mesh.position.set(this.position.x, this.position.y, this.position.z)
 		this._mesh.scale.set(0.5, 0.5, 0.5)
-		this.item = this._mesh as Mesh
+		this.item.add(this._mesh as Mesh)
 	}
 
 	/**

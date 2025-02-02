@@ -13,8 +13,8 @@ import gsap from 'gsap'
 import CSS2DManager from '~/webgl/Core/CSS2DManager'
 import CSS3DManager from '~/webgl/Core/CSS3DManager'
 import type { Dictionary } from '~/models/functions/dictionary.model'
-import type ExtendableItem from '../ExtendableItem'
-import type { TItemsEvents } from '../ExtendableItem'
+import type ExtendableItem from '../ExtendableItem/ExtendableItem'
+import type { TItemsEvents } from '../ExtendableItem/ExtendableItem'
 import type { TAudioParams } from '~/models/utils/AudioManager.model'
 import type {
 	ICSS2DRendererStore,

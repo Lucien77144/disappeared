@@ -4,8 +4,13 @@
 		"data": {},
 		"items": [
 			{
+				"name": "hdri",
+				"source": "/textures/hdr/empty_play_room_hdri.hdr",
+				"data": {}
+			},
+			{
 				"name": "garland",
-				"source": "/img/svg-models/garland.model.svg",
+				"source": "/models/svg-models/garland.model.svg",
 				"data": {
 					"drawFillShapes": true,
 					"fillShapesWireframe": false,
@@ -14,14 +19,8 @@
 				}
 			},
 			{
-				"name": "tiger",
-				"source": "/img/svg-models/tiger.model.svg",
-				"data": {
-					"drawFillShapes": true,
-					"fillShapesWireframe": false,
-					"drawStrokes": true,
-					"strokesWireframe": false
-				}
+				"name": "picture_col",
+				"source": "/textures/picture/picture_col.png"
 			}
 		]
 	}

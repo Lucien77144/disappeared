@@ -1,7 +1,7 @@
 import { AudioListener, PerspectiveCamera } from 'three'
 import Experience from '../../Experience'
 import type { TAudioParams } from '~/models/utils/AudioManager.model'
-import ExtendableItem from './ExtendableItem'
+import ExtendableItem from './ExtendableItem/ExtendableItem'
 import type { FolderApi } from 'tweakpane'
 
 /**
