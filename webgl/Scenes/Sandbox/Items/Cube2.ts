@@ -1,12 +1,8 @@
 import { BoxGeometry, Mesh, MeshToonMaterial } from 'three'
-import ExtendableItem from '~/webgl/Modules/Extendables/ExtendableItem/ExtendableItem'
-import { ExtendableItemEvents } from '~/webgl/Modules/Extendables/ExtendableItem/ExtendableItemEvents'
+import ExtendableItem from '~/webgl/Modules/Extendables/ExtendableItem'
 import type Sandbox from '../Sandbox'
 
-export default class Cube2
-	extends ExtendableItem<Sandbox>
-	implements ExtendableItemEvents
-{
+export default class Cube2 extends ExtendableItem<Sandbox> {
 	// Public
 	public position: { x: number; y: number; z: number }
 

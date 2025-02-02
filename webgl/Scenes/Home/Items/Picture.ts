@@ -1,23 +1,18 @@
 import {
 	DoubleSide,
-	Group,
 	Mesh,
 	MeshStandardMaterial,
 	PlaneGeometry,
 	Texture,
 	Vector3,
 } from 'three'
-import ExtendableItem from '~/webgl/Modules/Extendables/ExtendableItem/ExtendableItem'
-import {
-	ExtendableItemEvents,
-	type TMouseHoverProps,
-} from '~/webgl/Modules/Extendables/ExtendableItem/ExtendableItemEvents'
+import ExtendableItem, {
+	type TItemsEvents,
+} from '~/webgl/Modules/Extendables/ExtendableItem'
 import type Home from '../Home'
+import type { ArgumentTypes } from '~/models/functions/argumentTypes.model'
 
-export default class Picture
-	extends ExtendableItem<Home>
-	implements ExtendableItemEvents
-{
+export default class Picture extends ExtendableItem<Home> {
 	// Public
 	public position: Vector3
 	public hdri!: Texture
@@ -41,6 +36,13 @@ export default class Picture
 
 		// Inherit from ExtendableItem
 		this.holdDuration = 2000
+
+		// Events
+		this.on('load', this._onLoad)
+		this.on('click', this._onClick)
+		this.on('update', this._onUpdate)
+		this.on('mouseleave', this._onMouseLeave)
+		this.on('mousehover', (event) => this._onMouseHover(event))
 	}
 
 	/**
@@ -107,7 +109,9 @@ export default class Picture
 	 * On mouse hover
 	 * @param event Mouse hover event
 	 */
-	public OnMouseHover(event: TMouseHoverProps): void {
+	private _onMouseHover(event: TCursorProps): void {
+		console.log(event)
+
 		// this._targetPosition.set(
 		// 	this._savedPosition.x,
 		// 	this._savedPosition.y,
@@ -118,7 +122,7 @@ export default class Picture
 	/**
 	 * On mouse leave
 	 */
-	public OnMouseLeave(): void {
+	private _onMouseLeave(): void {
 		// this._targetPosition.set(
 		// 	this._savedPosition.x,
 		// 	this._savedPosition.y,
@@ -126,7 +130,7 @@ export default class Picture
 		// )
 	}
 
-	public OnUpdate() {
+	private _onUpdate() {
 		if (this.item.position.z !== this._targetPosition.z) {
 			// this.item.position.z = lerp(
 			// 	this.item.position.z,
@@ -139,7 +143,7 @@ export default class Picture
 	/**
 	 * On click item
 	 */
-	public OnClick() {
+	private _onClick() {
 		// console.log(this.item)
 
 		console.log({
@@ -149,7 +153,7 @@ export default class Picture
 		})
 	}
 
-	public OnInit(): void {
+	private _onLoad(): void {
 		this._setHDRI()
 		this._setGeometry()
 		this._setMaterial()

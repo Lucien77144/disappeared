@@ -19,7 +19,11 @@ export type TScrollEvent = {
 	target: number
 }
 
-export default class ScrollManager extends EventEmitter {
+export type TScrollManagerEvents = {
+	scroll: (event: TScrollEvent) => void
+}
+
+export default class ScrollManager extends EventEmitter<TScrollManagerEvents> {
 	// Public
 	public disabled: boolean
 	public speed: number
@@ -117,13 +121,12 @@ export default class ScrollManager extends EventEmitter {
 		let prev = -1
 		const firefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1
 		const isMobile = isDeviceMobile()
-		console.log(isMobile)
 
 		if (isMobile) {
 			this._handleScroll = (e: TDragEvent) => {
 				if (this.disabled) return
 
-				this.delta = e.delta.y * 10
+				this.delta = (e.delta?.y ?? 0) * 10
 
 				this._updateTarget()
 				this._emit()
@@ -163,11 +166,12 @@ export default class ScrollManager extends EventEmitter {
 	 * Scroll function to override
 	 */
 	private _emit() {
-		this.trigger('scroll', {
+		const event = {
 			delta: this.delta,
 			current: this.current,
 			target: this.target,
-		})
+		}
+		this.trigger('scroll', event)
 	}
 
 	/**

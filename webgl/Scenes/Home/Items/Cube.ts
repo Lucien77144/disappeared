@@ -1,14 +1,10 @@
 import { BoxGeometry, MathUtils, Mesh, MeshNormalMaterial } from 'three'
 import { UIBtn } from '#components'
 import type ScrollManager from '~/utils/ScrollManager'
-import ExtendableItem from '~/webgl/Modules/Extendables/ExtendableItem/ExtendableItem'
-import { ExtendableItemEvents } from '~/webgl/Modules/Extendables/ExtendableItem/ExtendableItemEvents'
+import ExtendableItem from '~/webgl/Modules/Extendables/ExtendableItem'
 import type Home from '../Home'
 
-export default class Cube
-	extends ExtendableItem<Home>
-	implements ExtendableItemEvents
-{
+export default class Cube extends ExtendableItem<Home> {
 	// Private
 	private _scrollManager: ScrollManager
 	private _geometry?: BoxGeometry
@@ -93,7 +89,7 @@ export default class Cube
 		)
 	}
 
-	public OnInit(): void {
+	private _onInit(): void {
 		this._setGeometry()
 		this._setMaterial()
 		this._setMesh()
@@ -109,9 +105,5 @@ export default class Cube
 				onClick: () => this.OnClick(),
 			},
 		})
-	}
-
-	public override OnDispose(): void {
-		super.OnDispose()
 	}
 }

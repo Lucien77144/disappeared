@@ -33,9 +33,9 @@ export class ExtendableSceneEvents {
 
 	/**
 	 * On scroll function
-	 * @param {TCursorProps} event - Event of the scroll
+	 * @param {TScrollEvent} event - Event of the scroll
 	 */
-	public OnScroll?(event: TCursorProps): any
+	public OnScroll?(event: TScrollEvent): any
 
 	/**
 	 * On mouse down

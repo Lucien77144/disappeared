@@ -5,23 +5,36 @@ import {
 	Material,
 	Mesh,
 	Object3D,
+	type Intersection,
 } from 'three'
 import Experience from '~/webgl/Experience'
 import type { Dictionary } from '~/models/functions/dictionary.model'
 import type { TAudioParams } from '~/models/utils/AudioManager.model'
 import type { ICSS2DRendererStore } from '~/models/stores/cssRenderer.store.model'
-import type { ExtendableItemEvents } from './ExtendableItemEvents'
-import type ExtendableScene from '../ExtendableScene/ExtendableScene'
+import type ExtendableScene from './ExtendableScene/ExtendableScene'
 import type { FolderApi, Pane } from 'tweakpane'
 import {
 	DebugMaterial,
 	type TMaterialDebugOptions,
-} from '../../Debug/DebugMaterial'
+} from '../Debug/DebugMaterial'
 
 /**
- * Item functions type
+ * Item events type
  */
-export type TItemsEvents = keyof ExtendableItemEvents
+export type TItemsEvents = {
+	load: () => void // OnInit
+	ready: () => void // OnSceneInitComplete
+	update: () => void // OnUpdate
+	resize: () => void // OnResize
+	dispose: () => void // OnDispose
+	mousemove: (event: TCursorProps) => void // OnMouseMove
+	mouseenter: () => void // OnMouseEnter
+	mousehover: (event: TCursorProps & { target: Intersection }) => void // OnMouseHover
+	mouseleave: () => void // OnMouseLeave
+	scroll: (event: TScrollEvent) => void // OnScroll
+	click: () => void // OnClick
+	hold: (success: boolean) => void // OnHold
+}
 
 /**
  * @class BasicItem
@@ -40,9 +53,9 @@ export type TItemsEvents = keyof ExtendableItemEvents
  * @param { Experience } experience Experience reference
  * @param { Experience['debug'] } debug Tweakpane debug reference
  */
-export default class ExtendableItem<T extends ExtendableScene = ExtendableScene>
-	implements Partial<ExtendableItemEvents>
-{
+export default class ExtendableItem<
+	T extends ExtendableScene = ExtendableScene
+> extends EventEmitter<TItemsEvents> {
 	// --------------------------------
 	// Public properties
 	// --------------------------------
@@ -81,12 +94,12 @@ export default class ExtendableItem<T extends ExtendableScene = ExtendableScene>
 	 * Disable any functions of the item
 	 * @description Array of functions to disable
 	 */
-	public disabledFn: TItemsEvents[]
+	public disabledFn: (keyof TItemsEvents)[]
 	/**
 	 * Ignore any functions of the item
 	 * @description Array of functions to disable, instead of disabledFn, this will not disable the function for child components.
 	 */
-	public ignoredFn: TItemsEvents[]
+	public ignoredFn: (keyof TItemsEvents)[]
 
 	// --------------------------------
 	// Protected properties
@@ -104,13 +117,12 @@ export default class ExtendableItem<T extends ExtendableScene = ExtendableScene>
 	 */
 	protected debug: Experience['debug']
 
-	// --------------------------------
-	// Public methods
-	// --------------------------------
 	/**
 	 * Constructor
 	 */
 	constructor() {
+		super()
+
 		// Protected
 		this.experience = new Experience()
 		this.resources = this.experience.resources.items
@@ -122,6 +134,9 @@ export default class ExtendableItem<T extends ExtendableScene = ExtendableScene>
 		this.holdDuration = 1000
 		this.disabledFn = []
 		this.ignoredFn = []
+
+		// Events
+		this.on('dispose', () => this.offAll())
 	}
 
 	/**
@@ -252,10 +267,4 @@ export default class ExtendableItem<T extends ExtendableScene = ExtendableScene>
 
 		return item
 	}
-
-	/**
-	 * After transition init function
-	 * Automatically called after the scene has been switched
-	 */
-	public OnDispose(): void {}
 }

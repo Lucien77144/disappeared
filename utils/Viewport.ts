@@ -7,7 +7,11 @@ import dpr from '~/utils/functions/dpr'
 import isTouch from '~/utils/functions/isTouch'
 import EventEmitter from './EventEmitter'
 
-export default class Viewport extends EventEmitter {
+export type TViewportEvents = {
+	resize: () => void
+}
+
+export default class Viewport extends EventEmitter<TViewportEvents> {
 	// Singleton
 	static _instance: Viewport
 

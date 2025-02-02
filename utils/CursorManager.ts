@@ -1,17 +1,18 @@
 import type Experience from '~/webgl/Experience'
 import Viewport from './Viewport'
-import { Object3D, Vector2, type Intersection } from 'three'
+import { Vector2 } from 'three'
 import EventEmitter from './EventEmitter'
 
-type Vector2Events =
-	| 'mousedown'
-	| 'mousemove'
-	| 'mouseup'
-	| 'mouseenter'
-	| 'mouseleave'
-	| 'touchstart'
-	| 'touchmove'
-	| 'touchend'
+export type TCursorManagerEvents = {
+	mousedown: (event: TCursorProps) => void
+	mousemove: (event: TCursorProps) => void
+	mouseup: (event: TCursorProps) => void
+	mouseenter: (event: TCursorProps) => void
+	mouseleave: (event: TCursorProps) => void
+	touchstart: (event: TCursorProps) => void
+	touchmove: (event: TCursorProps) => void
+	touchend: (event: TCursorProps) => void
+}
 
 export type TCursorProps = {
 	centered: Vector2
@@ -20,7 +21,7 @@ export type TCursorProps = {
 	delta?: Vector2
 }
 
-export default class CursorManager extends EventEmitter {
+export default class CursorManager extends EventEmitter<TCursorManagerEvents> {
 	// Public
 	public el: HTMLElement | Window
 	public enabled: boolean
@@ -211,7 +212,7 @@ export default class CursorManager extends EventEmitter {
 	 * @param event Event type
 	 */
 	private _handleEvent(
-		event: Vector2Events,
+		event: keyof TCursorManagerEvents,
 		params: {
 			position: Vector2
 			delta?: Vector2

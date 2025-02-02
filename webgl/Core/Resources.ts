@@ -14,10 +14,16 @@ import EventEmitter from '~/utils/EventEmitter.js'
 
 const SOURCES = sources as TResourceGroup[]
 
+export type TResourcesEvents = {
+	groupEnd: (group: TResourceGroup) => void
+	loadingGroupEnd: (group: TResourceGroup) => void
+	ready: VoidFunction
+}
+
 /**
  * Resources
  */
-export default class Resources extends EventEmitter {
+export default class Resources extends EventEmitter<TResourcesEvents> {
 	// Static
 	public static items: Dictionary<TResourceData>
 	public static loadedSources: Dictionary<keyof Resources['items']>
@@ -205,7 +211,7 @@ export default class Resources extends EventEmitter {
 	 */
 	private _groupEnd(): void {
 		// Trigger
-		this.trigger('groupEnd', [this.groups.current])
+		this.trigger('groupEnd', this.groups.current)
 
 		if (this.sources.length > 0) {
 			this._loadNextGroup()

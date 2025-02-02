@@ -18,21 +18,25 @@ import type { Dictionary } from '~/models/functions/dictionary.model.js'
 import EventEmitter from '~/utils/EventEmitter.js'
 import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader.js'
 import {
-	Box3,
 	Color,
 	DoubleSide,
-	Group,
 	Mesh,
 	MeshBasicMaterial,
 	Object3D,
 	ShapeGeometry,
 	Texture,
-	Vector3,
 } from 'three'
-import { defined } from '~/utils/functions/defined.js'
 import { get3DSize } from '~/utils/functions/getSize.js'
 
-export default class Loader extends EventEmitter {
+export type TLoaderEvents = {
+	loadingFileEnd: (event: {
+		resource: TResourceFile['resource']
+		data: TResourceData
+	}) => void
+	loadingGroupEnd: () => void
+}
+
+export default class Loader extends EventEmitter<TLoaderEvents> {
 	// Static
 	static _i18n: ReturnType<typeof useI18n>
 

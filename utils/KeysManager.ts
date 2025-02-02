@@ -1,6 +1,11 @@
 import EventEmitter from './EventEmitter'
 
-export default class KeysManager extends EventEmitter {
+export type TKeysManagerEvents = {
+	keydown: (event: KeyboardEvent) => void
+	keyup: (event: KeyboardEvent) => void
+}
+
+export default class KeysManager extends EventEmitter<TKeysManagerEvents> {
 	// Public
 	public el: HTMLElement | Window
 	public enabled: boolean

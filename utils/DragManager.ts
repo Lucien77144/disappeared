@@ -2,18 +2,23 @@ import { Vector2 } from 'three'
 import Viewport from './Viewport'
 import EventEmitter from './EventEmitter'
 
-type TDragEvents = 'dragstart' | 'drag' | 'dragend' | 'tap'
-
 export type TDragEvent = {
 	position: Vector2
-	delta: Vector2
 	normalized: Vector2
 	centered: Vector2
+	delta?: Vector2
+}
+
+export type TDragManagerEvents = {
+	dragstart: (event: TDragEvent) => void
+	drag: (event: TDragEvent) => void
+	dragend: (event: TDragEvent) => void
+	tap: (event: TDragEvent) => void
 }
 
 const TAP_TRESHOLD: number = 2
 
-export default class DragManager extends EventEmitter {
+export default class DragManager extends EventEmitter<TDragManagerEvents> {
 	// Public
 	public el: HTMLElement | Window
 	public enabled: boolean
@@ -181,7 +186,7 @@ export default class DragManager extends EventEmitter {
 	 * @param event Event type
 	 */
 	private _handleEvent(
-		event: TDragEvents,
+		event: keyof TDragManagerEvents,
 		params: {
 			position: Vector2
 			delta?: Vector2
@@ -201,13 +206,11 @@ export default class DragManager extends EventEmitter {
 		this.centered.y = -(this.position.y / this._viewport.height) * 2 + 1
 
 		// Emit event and pass the position, normalized and centered values
-		this.trigger(event, [
-			{
-				normalized: this.normalized,
-				centered: this.centered,
-				...params,
-			},
-		])
+		this.trigger(event, {
+			normalized: this.normalized,
+			centered: this.centered,
+			...params,
+		})
 	}
 
 	/**

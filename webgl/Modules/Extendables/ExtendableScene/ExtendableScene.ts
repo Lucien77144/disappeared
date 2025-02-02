@@ -1,20 +1,12 @@
-import {
-	Box3,
-	Camera,
-	Group,
-	Object3D,
-	Scene,
-	Vector3,
-	type Intersection,
-} from 'three'
+import { Camera, Group, Object3D, Scene, type Intersection } from 'three'
 import ExtendableCamera from '../ExtendableCamera'
 import Experience from '~/webgl/Experience'
 import gsap from 'gsap'
 import CSS2DManager from '~/webgl/Core/CSS2DManager'
 import CSS3DManager from '~/webgl/Core/CSS3DManager'
 import type { Dictionary } from '~/models/functions/dictionary.model'
-import type ExtendableItem from '../ExtendableItem/ExtendableItem'
-import type { TItemsEvents } from '../ExtendableItem/ExtendableItem'
+import type ExtendableItem from '../ExtendableItem'
+import type { TItemsEvents } from '../ExtendableItem'
 import type { TAudioParams } from '~/models/utils/AudioManager.model'
 import type {
 	ICSS2DRendererStore,
@@ -24,14 +16,8 @@ import type { TCursorProps } from '~/utils/CursorManager'
 import runMethod from '~/utils/functions/runMethod'
 import getMethod from '~/utils/functions/getMethod'
 import type { ExtendableSceneEvents } from './ExtendableSceneEvents'
-import type {
-	TMouseHoverProps,
-	TSuccessProp,
-} from '../ExtendableItem/ExtendableItemEvents'
 import type { FolderApi } from 'tweakpane'
-import { defined } from '~/utils/functions/defined'
 
-export type TFnProps = TCursorProps | TMouseHoverProps | TSuccessProp
 export type TSceneEvents = keyof ExtendableSceneEvents
 
 /**
@@ -152,7 +138,7 @@ export default class ExtendableScene implements Partial<ExtendableSceneEvents> {
 	private _handleMouseDownEvt: (e: TCursorProps) => void
 	private _handleMouseUpEvt: (e: TCursorProps) => void
 	private _handleMouseMoveEvt: (e: TCursorProps) => void
-	private _handleScrollEvt: (e: TCursorProps) => void
+	private _handleScrollEvt: (e: TScrollEvent) => void
 
 	/**
 	 * Constructor
@@ -241,11 +227,11 @@ export default class ExtendableScene implements Partial<ExtendableSceneEvents> {
 	 */
 	public OnMouseDown(event: TCursorProps): void {
 		// Clicked item
-		const clicked = this._getRaycastedItem(event.centered, ['OnClick'])?.item
-		this._triggerFn(clicked, 'OnClick')
+		const clicked = this._getRaycastedItem(event.centered, ['click'])?.item
+		clicked?.trigger('click')
 
 		// Holded item
-		this.holded = this._getRaycastedItem(event.centered, ['OnHold'])?.item
+		this.holded = this._getRaycastedItem(event.centered, ['hold'])?.item
 		this.holded && this._handleHold()
 	}
 
@@ -266,30 +252,30 @@ export default class ExtendableScene implements Partial<ExtendableSceneEvents> {
 	public OnMouseMove(event: TCursorProps): void {
 		// Get hovered item
 		const hovered = this._getRaycastedItem(event.centered, [
-			'OnMouseEnter',
-			'OnMouseLeave',
+			'mouseenter',
+			'mouseleave',
 		])?.item
 
 		// On mouse move event
 		Object.values(this.allComponents).forEach((c) =>
-			this._triggerFn(c, 'OnMouseMove', event)
+			c.trigger('mousemove', event)
 		)
 
 		// On mouse hover event
-		const mouseHover = this._getRaycastedItem(event.centered, ['OnMouseHover'])
-		this._triggerFn(mouseHover?.item, 'OnMouseHover', {
+		const mouseHover = this._getRaycastedItem(event.centered, ['mousehover'])
+		mouseHover?.item?.trigger('mousehover', {
 			...event,
 			target: mouseHover?.target,
 		})
 
 		// If mouse leave the hovered item, refresh the hovered item
 		if (this.hovered?.item?.id !== hovered?.item?.id) {
-			this._triggerFn(this.hovered, 'OnMouseLeave')
+			this.hovered?.trigger('mouseleave')
 			this.hovered = hovered
-			this._triggerFn(this.hovered, 'OnMouseEnter')
+			this.hovered?.trigger('mouseenter')
 		}
 		// Get holded item hovered
-		const holded = this._getRaycastedItem(event.centered, ['OnHold'])?.item
+		const holded = this._getRaycastedItem(event.centered, ['hold'])?.item
 		// If user leave the hold item, reset the holded item
 		if (this.holded?.item?.id !== holded?.item?.id) {
 			this._resetHoldedItem()
@@ -301,10 +287,8 @@ export default class ExtendableScene implements Partial<ExtendableSceneEvents> {
 	 * @param event Scroll event
 	 * @warn super.OnScroll(event) is needed in the extending class
 	 */
-	public OnScroll(event: TCursorProps): void {
-		Object.values(this.allComponents).forEach((c) =>
-			this._triggerFn(c, 'OnScroll', event)
-		)
+	public OnScroll(event: TScrollEvent): void {
+		Object.values(this.allComponents).forEach((c) => c.trigger('scroll', event))
 	}
 
 	/**
@@ -313,9 +297,7 @@ export default class ExtendableScene implements Partial<ExtendableSceneEvents> {
 	 */
 	public OnInitComplete(): void {
 		// Trigger onInitComplete on all components
-		Object.values(this.allComponents).forEach((c) =>
-			this._triggerFn(c, 'OnSceneInitComplete')
-		)
+		Object.values(this.allComponents).forEach((c) => c.trigger('ready'))
 	}
 
 	/**
@@ -323,9 +305,7 @@ export default class ExtendableScene implements Partial<ExtendableSceneEvents> {
 	 * @warn super.OnUpdate() is needed in the extending class
 	 */
 	public OnUpdate(): void {
-		Object.values(this.allComponents).forEach((c) =>
-			this._triggerFn(c, 'OnUpdate')
-		)
+		Object.values(this.allComponents).forEach((c) => c.trigger('update'))
 
 		this.camera.update()
 		this._css2dManager?.update()
@@ -340,9 +320,7 @@ export default class ExtendableScene implements Partial<ExtendableSceneEvents> {
 		this.camera.resize()
 		this._css2dManager?.resize()
 		this._css3dManager?.resize()
-		Object.values(this.allComponents).forEach((c) =>
-			this._triggerFn(c, 'OnResize')
-		)
+		Object.values(this.allComponents).forEach((c) => c.trigger('resize'))
 	}
 
 	/**
@@ -355,7 +333,7 @@ export default class ExtendableScene implements Partial<ExtendableSceneEvents> {
 
 		// Items
 		Object.values(this.allComponents).forEach((c) => {
-			this._triggerFn(c, 'OnDispose')
+			c.trigger('dispose')
 			this.scene.remove(c.item)
 			this.camera.removeAudios(c.audios, true)
 		})
@@ -433,7 +411,7 @@ export default class ExtendableScene implements Partial<ExtendableSceneEvents> {
 	 */
 	private _getRaycastedItem(
 		centered: TCursorProps['centered'],
-		fn: TItemsEvents[] = []
+		fn: (keyof TItemsEvents)[] = []
 	): { item: ExtendableItem; target: Intersection } | void {
 		if (!this.raycaster) return
 
@@ -518,7 +496,7 @@ export default class ExtendableScene implements Partial<ExtendableSceneEvents> {
 				this.store.progress = progress.value
 			},
 			onComplete: () => {
-				this._triggerFn(this.holded, 'OnHold', true)
+				this.holded?.trigger('hold', true)
 				this._resetHoldedItem()
 			},
 		})
@@ -529,7 +507,7 @@ export default class ExtendableScene implements Partial<ExtendableSceneEvents> {
 	 */
 	private _resetHoldedItem(): void {
 		this.holdProgress?.kill()
-		this._triggerFn(this.holded, 'OnHold', false)
+		this.holded?.trigger('hold', false)
 		delete this.holded
 
 		const progress = { value: this.store.progress }
@@ -548,16 +526,6 @@ export default class ExtendableScene implements Partial<ExtendableSceneEvents> {
 				})
 			},
 		})
-	}
-
-	/**
-	 * Trigger item function (if not false)
-	 * @param {*} item Item to trigger
-	 * @param {*} fn Function to trigger
-	 * @param {*} props Properties to send to the function
-	 */
-	private _triggerFn(item: any, fn: TItemsEvents, props?: TFnProps): void {
-		getMethod(item, fn)?.(props)
 	}
 
 	/**

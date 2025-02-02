@@ -1,13 +1,9 @@
 import { BoxGeometry, MathUtils, Mesh, MeshNormalMaterial } from 'three'
 import { UIBtn } from '#components'
 import type ScrollManager from '~/utils/ScrollManager'
-import ExtendableItem from '~/webgl/Modules/Extendables/ExtendableItem/ExtendableItem'
-import { ExtendableItemEvents } from '~/webgl/Modules/Extendables/ExtendableItem/ExtendableItemEvents'
+import ExtendableItem from '~/webgl/Modules/Extendables/ExtendableItem'
 
-export default class SharedCube
-	extends ExtendableItem
-	implements ExtendableItemEvents
-{
+export default class SharedCube extends ExtendableItem {
 	private _scrollManager: ScrollManager
 	private _geometry?: BoxGeometry
 	private _material?: MeshNormalMaterial
@@ -56,7 +52,7 @@ export default class SharedCube
 	 * Set item
 	 */
 	public setItem() {
-		this.item = this._mesh as Mesh
+		this.item.add(this._mesh as Mesh)
 	}
 
 	public OnHold(success: boolean) {
@@ -105,9 +101,5 @@ export default class SharedCube
 				onClick: () => this.OnClick(),
 			},
 		})
-	}
-
-	public override OnDispose(): void {
-		super.OnDispose()
 	}
 }

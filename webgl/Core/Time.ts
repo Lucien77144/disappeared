@@ -1,10 +1,14 @@
 import EventEmitter from '~/utils/EventEmitter'
 import Experience from '../Experience'
 
+export type TTimeEvents = {
+	tick: VoidFunction
+}
+
 /**
  * Time class
  */
-export default class Time extends EventEmitter {
+export default class Time extends EventEmitter<TTimeEvents> {
 	// Public
 	public current: number
 	public elapsed: number
