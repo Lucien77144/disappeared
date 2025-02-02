@@ -112,20 +112,27 @@ export type TItemsEvents = {
 
 /**
  * @class BasicItem
- *
  * @description Extandable class for items
- * @method TItemsFn Events can be implemented with ItemEvents
  *
- * @param { ExtendScene } parent Parent scene of the item
- * @param { ExtendableItem } parentComponent Parent component of the item
- * @param { Group | InstancedMesh | Object3D } item Item that will be added to the three scene
- * @param { Dictionary<ExtendableItem> } components Child components of the item
- * @param { Dictionary<TAudioParams> } audios Object of audios to add to the item (positionnal audio)
- * @param { TDebugFolder } debugFolder Debug folder
- * @param { number } holdDuration Duration after hold event is triggered
- * @param { TItemsEvents[] } disabledFn Disable any functions of the item
- * @param { Experience } experience Experience reference
- * @param { Experience['debug'] } debug Tweakpane debug reference
+ * @param {ExtendableScene} scene Parent scene of the item
+ * @param {ExtendableItem} parent Parent component of the item
+ * @param {Group} item Item that will be added to the three scene
+ * @param {Dictionary<ExtendableItem>} components Child components of the item
+ * @param {Dictionary<TAudioParams>} audios Object of audios to add to the item
+ * @param {FolderApi} debugFolder Debug folder
+ * @param {number} holdDuration Duration after hold event is triggered
+ * @param {(keyof TItemsEvents)[]} disabledFn Array of functions to disable
+ * @param {(keyof TItemsEvents)[]} ignoredFn Array of functions to ignore
+ *
+ * @method setDebugFolder Set the debug folder of the item
+ * @method addDebugMaterial Add debug material to the item
+ * @method addDebugObject3D Add debug object3D to the item
+ * @method addDebug Add debug to the item
+ * @method addCSS2D Add CSS2D to the item
+ * @method addCSS3D Add CSS3D to the item
+ * @method removeCSS2D Remove CSS2D from the item
+ * @method removeCSS3D Remove CSS3D from the item
+ * @method buildInstancedMesh Build instanced mesh
  */
 export default class ExtendableItem<
 	T extends ExtendableScene = ExtendableScene

@@ -6,21 +6,24 @@ import type { FolderApi } from 'tweakpane'
 
 /**
  * @class Extend Camera
- *
  * @description Base camera class that handles perspective camera setup and audio listener
  *
- * @function addAudios Adds audio to the scene with the camera's listener
- * @function removeAudios Removes audio from the scene
- * @function dispose Cleans up camera resources
- *
+ * @param {string} name Camera name
  * @param {PerspectiveCamera} instance Three.js camera instance
  * @param {AudioListener} listener Audio listener for 3D audio
- * @param {TDebugFolder} debugFolder Debug controls folder
+ * @param {FolderApi} debugFolder Debug controls folder
  * @param {Array} pendingAudios Queue of audio to be added when listener is ready
+ *
+ * @method addAudios Add audios to the camera
+ * @method removeAudios Remove audios from the camera
+ * @method update Update the camera
+ * @method resize Resize the camera
+ * @method dispose Dispose the camera
  */
 export default class ExtendableCamera {
 	// Public
 	public name: string
+	public instance!: PerspectiveCamera
 	public listener?: AudioListener
 	public debugFolder?: FolderApi
 	public pendingAudios: {
@@ -32,7 +35,6 @@ export default class ExtendableCamera {
 	protected $bus: Experience['$bus']
 
 	// Private
-	#instance!: PerspectiveCamera
 	#experience: Experience
 	#viewport: Experience['viewport']
 	#debug: Experience['debug']
@@ -55,20 +57,6 @@ export default class ExtendableCamera {
 
 		// Init
 		this.#init()
-	}
-
-	/**
-	 * Get the camera instance
-	 */
-	public get instance() {
-		return this.#instance
-	}
-
-	/**
-	 * Set the camera instance
-	 */
-	public set instance(instance: PerspectiveCamera) {
-		this.#instance = instance
 	}
 
 	// --------------------------------
@@ -121,9 +109,9 @@ export default class ExtendableCamera {
 	 * @warn super.update() is needed in the extending class
 	 */
 	public update() {
-		if (!this.#instance) return
+		if (!this.instance) return
 
-		this.#instance.updateMatrixWorld()
+		this.instance.updateMatrixWorld()
 	}
 
 	/**
@@ -131,10 +119,10 @@ export default class ExtendableCamera {
 	 * @warn super.resize() is needed in the extending class
 	 */
 	public resize() {
-		if (!this.#instance) return
+		if (!this.instance) return
 
-		this.#instance.aspect = this.#viewport.width / this.#viewport.height
-		this.#instance.updateProjectionMatrix()
+		this.instance.aspect = this.#viewport.width / this.#viewport.height
+		this.instance.updateProjectionMatrix()
 	}
 
 	/**
@@ -142,7 +130,7 @@ export default class ExtendableCamera {
 	 * @warn super.dispose() is needed in the extending class
 	 */
 	public dispose() {
-		if (!this.#instance) return
+		if (!this.instance) return
 
 		// Audios
 		this.pendingAudios.forEach(({ audios }) => this.removeAudios(audios))
@@ -162,7 +150,7 @@ export default class ExtendableCamera {
 	 * Set listener
 	 */
 	#setInstance(): void {
-		this.#instance = new PerspectiveCamera(
+		this.instance = new PerspectiveCamera(
 			20,
 			this.#viewport.width / this.#viewport.height,
 			0.1,
@@ -182,8 +170,8 @@ export default class ExtendableCamera {
 		this.$bus.on('audio:unmute', () => {
 			if (!this.listener) {
 				this.listener = new AudioListener()
-				!this.#instance && this.#setInstance()
-				this.#instance.add(this.listener)
+				!this.instance && this.#setInstance()
+				this.instance.add(this.listener)
 
 				this.pendingAudios.forEach(({ audios, parent }) =>
 					this.addAudios(audios, parent)

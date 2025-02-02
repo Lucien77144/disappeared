@@ -97,26 +97,24 @@ export type TSceneEvents = {
 
 /**
  * @class BasicScene
- *
  * @description Extendable class for scenes
- * @method TSceneFn Events can be implemented with SceneEvents
  *
+ * @param {string} name Scene name
  * @param {Scene} scene Three.js scene
- * @param {ExtendCamera} camera Camera instance
+ * @param {ExtendableCamera} camera Camera instance
  * @param {Dictionary<ExtendableItem>} components Scene components
  * @param {Dictionary<ExtendableItem>} allComponents Flattened components including nested ones
  * @param {Dictionary<TAudioParams>} audios Object of audios to add to the scene
- * @param {string} name Scene name
  * @param {boolean} wireframe Wireframe mode
  * @param {ExtendableItem} hovered Currently hovered item
  * @param {ExtendableItem} holded Currently held item
- * @param {gsap.core.Tween} holdProgress Hold progress animation
- * @param {Experience} experience Experience reference
- * @param {Experience['cursorManager']} cursorManager Cursor manager reference
- * @param {Experience['store']} store Store reference
- * @param {Experience['raycaster']} raycaster Raycaster reference
- * @param {Experience['$bus']} $bus Event bus reference
- * @param {Experience['debug']} debug Debug reference
+ * @param {gsap.core.Tween} holdProgress Hold progress duration
+ * @param {FolderApi} debugFolder Debug folder
+ *
+ * @method addCSS2D Add CSS2D to the item
+ * @method addCSS3D Add CSS3D to the item
+ * @method removeCSS2D Remove CSS2D from the item
+ * @method removeCSS3D Remove CSS3D from the item
  */
 export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 	// --------------------------------
