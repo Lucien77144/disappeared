@@ -6,11 +6,8 @@ import {
 	Texture,
 	Vector3,
 } from 'three'
-import ExtendableItem, {
-	type TItemsEvents,
-} from '~/webgl/Modules/Extendables/ExtendableItem'
+import ExtendableItem from '~/webgl/Modules/Extendables/ExtendableItem'
 import type Home from '../Home'
-import type { ArgumentTypes } from '~/models/functions/argumentTypes.model'
 
 export default class Picture extends ExtendableItem<Home> {
 	// Public
@@ -28,14 +25,12 @@ export default class Picture extends ExtendableItem<Home> {
 	 */
 	constructor({ position }: { position: Vector3 }) {
 		super()
+		// Public
+		this.position = position
+		this.holdDuration = 2000
+
 		// Private
 		this._targetPosition = new Vector3()
-
-		// Set position, rotation and scale
-		this.position = position
-
-		// Inherit from ExtendableItem
-		this.holdDuration = 2000
 
 		// Events
 		this.on('load', this._onLoad)
@@ -44,6 +39,76 @@ export default class Picture extends ExtendableItem<Home> {
 		this.on('mouseleave', this._onMouseLeave)
 		this.on('mousehover', (event) => this._onMouseHover(event))
 	}
+
+	// --------------------------------
+	// Events
+	// --------------------------------
+
+	/**
+	 * On mouse hover
+	 * @param event Mouse hover event
+	 */
+	private _onMouseHover(event: TCursorProps): void {
+		console.log(event)
+
+		// this._targetPosition.set(
+		// 	this._savedPosition.x,
+		// 	this._savedPosition.y,
+		// 	this._savedPosition.z + 1
+		// )
+	}
+
+	/**
+	 * On mouse leave
+	 */
+	private _onMouseLeave(): void {
+		// this._targetPosition.set(
+		// 	this._savedPosition.x,
+		// 	this._savedPosition.y,
+		// 	this._savedPosition.z
+		// )
+	}
+
+	/**
+	 * On update
+	 */
+	private _onUpdate() {
+		if (this.item.position.z !== this._targetPosition.z) {
+			// this.item.position.z = lerp(
+			// 	this.item.position.z,
+			// 	this._targetPosition.z,
+			// 	0.1
+			// )
+		}
+	}
+
+	/**
+	 * On click item
+	 */
+	private _onClick() {
+		// console.log(this.item)
+
+		console.log({
+			x: this.item.rotation.x,
+			y: this.item.rotation.y,
+			z: this.item.rotation.z,
+		})
+	}
+
+	/**
+	 * On load
+	 */
+	private _onLoad(): void {
+		this._setHDRI()
+		this._setGeometry()
+		this._setMaterial()
+		this._setMesh()
+		this._setItem()
+	}
+
+	// --------------------------------
+	// Private methods
+	// --------------------------------
 
 	/**
 	 * Set HDRI
@@ -103,61 +168,5 @@ export default class Picture extends ExtendableItem<Home> {
 
 		this._savedPosition = this.item.position.clone()
 		this._targetPosition = this._savedPosition.clone()
-	}
-
-	/**
-	 * On mouse hover
-	 * @param event Mouse hover event
-	 */
-	private _onMouseHover(event: TCursorProps): void {
-		console.log(event)
-
-		// this._targetPosition.set(
-		// 	this._savedPosition.x,
-		// 	this._savedPosition.y,
-		// 	this._savedPosition.z + 1
-		// )
-	}
-
-	/**
-	 * On mouse leave
-	 */
-	private _onMouseLeave(): void {
-		// this._targetPosition.set(
-		// 	this._savedPosition.x,
-		// 	this._savedPosition.y,
-		// 	this._savedPosition.z
-		// )
-	}
-
-	private _onUpdate() {
-		if (this.item.position.z !== this._targetPosition.z) {
-			// this.item.position.z = lerp(
-			// 	this.item.position.z,
-			// 	this._targetPosition.z,
-			// 	0.1
-			// )
-		}
-	}
-
-	/**
-	 * On click item
-	 */
-	private _onClick() {
-		// console.log(this.item)
-
-		console.log({
-			x: this.item.rotation.x,
-			y: this.item.rotation.y,
-			z: this.item.rotation.z,
-		})
-	}
-
-	private _onLoad(): void {
-		this._setHDRI()
-		this._setGeometry()
-		this._setMaterial()
-		this._setMesh()
-		this._setItem()
 	}
 }

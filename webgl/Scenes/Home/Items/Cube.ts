@@ -17,17 +17,87 @@ export default class Cube extends ExtendableItem<Home> {
 	constructor() {
 		super()
 
-		// Get elements from experience
-		this._scrollManager = this.experience.scrollManager
-
-		// New elements
+		// Public
 		this.holdDuration = 2000
 		// this.components = {
 		//   cube2: new Cube2({
 		//     position: { x: 0, y: 0.5, z: 0 },
 		//   }),
 		// }
+
+		// Private
+		this._scrollManager = this.experience.scrollManager
+
+		// Events
+		this.on('load', () => this._onLoad())
+		this.on('update', () => this._onUpdate())
+		this.on('click', () => this._onClick())
+		this.on('hold', (success: boolean) => this._onHold(success))
 	}
+
+	// --------------------------------
+	// Events
+	// --------------------------------
+
+	/**
+	 * On hold
+	 */
+	private _onHold(success: boolean) {
+		if (success) {
+			console.log(
+				'hold successfull with a duration of ',
+				this.holdDuration,
+				'ms'
+			)
+		} else {
+			console.log('hold canceled')
+		}
+	}
+
+	/**
+	 * On click item
+	 */
+	private _onClick() {
+		console.log('clicked')
+	}
+
+	/**
+	 * Update the cube
+	 */
+	private _onUpdate() {
+		this.item.position.set(0, 0, 0)
+		this.item.scale.set(0.05, 0.05, 0.05)
+		this.item.rotation.y = MathUtils.lerp(
+			this.item.rotation.y,
+			this._scrollManager.current * 0.1,
+			0.1
+		)
+	}
+
+	/**
+	 * On load
+	 */
+	private _onLoad(): void {
+		this._setGeometry()
+		this._setMaterial()
+		this._setMesh()
+		this._setItem()
+
+		this.addCSS3D({
+			id: 'test',
+			template: UIBtn,
+			parent: this.item,
+			position: this.item.position,
+			data: {
+				text: 'Click me',
+				onClick: () => this._onClick(),
+			},
+		})
+	}
+
+	// --------------------------------
+	// Private methods
+	// --------------------------------
 
 	/**
 	 * Set geometry
@@ -55,55 +125,5 @@ export default class Cube extends ExtendableItem<Home> {
 	 */
 	private _setItem() {
 		this.item.add(this._mesh as Mesh)
-	}
-
-	public OnHold(success: boolean) {
-		if (success) {
-			console.log(
-				'hold successfull with a duration of ',
-				this.holdDuration,
-				'ms'
-			)
-		} else {
-			console.log('hold canceled')
-		}
-	}
-
-	/**
-	 * On click item
-	 */
-	public OnClick() {
-		console.log('clicked')
-	}
-
-	/**
-	 * Update the cube
-	 */
-	public OnUpdate() {
-		this.item.position.set(0, 0, 0)
-		this.item.scale.set(0.05, 0.05, 0.05)
-		this.item.rotation.y = MathUtils.lerp(
-			this.item.rotation.y,
-			this._scrollManager.current * 0.1,
-			0.1
-		)
-	}
-
-	private _onInit(): void {
-		this._setGeometry()
-		this._setMaterial()
-		this._setMesh()
-		this._setItem()
-
-		this.addCSS3D({
-			id: 'test',
-			template: UIBtn,
-			parent: this.item,
-			position: this.item.position,
-			data: {
-				text: 'Click me',
-				onClick: () => this.OnClick(),
-			},
-		})
 	}
 }

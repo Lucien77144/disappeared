@@ -127,7 +127,7 @@ export default class EventEmitter<
 	/**
 	 * Off all events
 	 */
-	public offAll(): void {
+	public disposeEvents(): void {
 		Object.keys(this.callbacks.all).forEach((key) =>
 			this.off(key as TEventNames<K>)
 		)

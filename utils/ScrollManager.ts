@@ -223,6 +223,7 @@ export default class ScrollManager extends EventEmitter<TScrollManagerEvents> {
 	 * Destroy the scroll manager
 	 */
 	public dispose() {
+		this.disposeEvents()
 		this._dragManager.dispose()
 		window.removeEventListener('DOMMouseScroll', this._handleScroll)
 		window.removeEventListener('wheel', this._handleScroll)

@@ -253,6 +253,8 @@ export default class CursorManager extends EventEmitter<TCursorManagerEvents> {
 	 * Destroy the cursor and remove all events
 	 */
 	public dispose(): void {
+		this.disposeEvents()
+
 		// Desktop
 		this.el.removeEventListener('mousedown', this._handleMouseDown)
 		this.el.removeEventListener('mousemove', this._handleMouseMove)

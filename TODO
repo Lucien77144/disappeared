@@ -3,8 +3,6 @@ Il y a un problème de refs dans le debug, les enfants des folders sont pas remo
 Chaque scene a une fonction de transition qui se trigger à chaque tick de la transition avec en entrée la renderTarget de la scène suivante ainsi que la progression dans la transition (qui peut être paramètree aussi dans la scene d’ailleurs)
 > Permet de clean tout plein de fichiers et d’enfin rajouter le fxaa 🥳
 
-Remplacer tous les 'OnStart' etc par le EventListener (voir si ça colle avec le typage, ajouter des fonctions avec T ?)
-
 Ranger les debugs en folders selon les scenes
 
 Ajouter l'orbit control
@@ -14,5 +12,3 @@ Ajouter un debug sur les audios
 Couper les interactions si l'object est un debugobject
 
 Ajouter du typage sur les data des sources (En tous cas il faut une doc sur l'utilisation des sources.)
-
-Réparer le scroll manager (qui a tendance à casser son lerp)

@@ -4,7 +4,7 @@ import * as THREE from 'three'
 import DebugTransformControls from './DebugTransformControls'
 import { DebugMaterial } from './DebugMaterial'
 import Experience from '~/webgl/Experience'
-import type ExtendableScene from '../Extendables/ExtendableScene/ExtendableScene'
+import type ExtendableScene from '../Extendables/ExtendableScene'
 
 const objectParams = {
 	visible: { type: 'boolean' },

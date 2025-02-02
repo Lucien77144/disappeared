@@ -25,6 +25,11 @@ export default class SharedCube extends ExtendableItem {
 		//     position: { x: 0, y: 0.5, z: 0 },
 		//   }),
 		// }
+
+		this.on('hold', (success: boolean) => this._onHold(success))
+		this.on('click', () => this._onClick())
+		this.on('update', () => this._onUpdate())
+		this.on('load', () => this._onLoad())
 	}
 
 	/**
@@ -55,7 +60,7 @@ export default class SharedCube extends ExtendableItem {
 		this.item.add(this._mesh as Mesh)
 	}
 
-	public OnHold(success: boolean) {
+	private _onHold(success: boolean) {
 		if (success) {
 			console.log(
 				'hold successfull with a duration of ',
@@ -70,14 +75,14 @@ export default class SharedCube extends ExtendableItem {
 	/**
 	 * On click item
 	 */
-	public OnClick() {
+	private _onClick() {
 		console.log('clicked')
 	}
 
 	/**
 	 * Update the cube
 	 */
-	public OnUpdate() {
+	private _onUpdate() {
 		this.item.rotation.y = MathUtils.lerp(
 			this.item.rotation.y,
 			this._scrollManager.current * 0.1,
@@ -85,7 +90,7 @@ export default class SharedCube extends ExtendableItem {
 		)
 	}
 
-	public OnInit(): void {
+	private _onLoad(): void {
 		this.setGeometry()
 		this.setMaterial()
 		this.setMesh()
@@ -98,7 +103,7 @@ export default class SharedCube extends ExtendableItem {
 			position: this.item.position,
 			data: {
 				text: 'Click me',
-				onClick: () => this.OnClick(),
+				onClick: () => this._onClick(),
 			},
 		})
 	}

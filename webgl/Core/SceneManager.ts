@@ -8,8 +8,7 @@ import type {
 	TScenes,
 } from '~/models/utils/SceneManager.model'
 import type Renderer from '../Modules/Renderer/Renderer'
-import runMethod from '~/utils/functions/runMethod'
-import type ExtendableScene from '../Modules/Extendables/ExtendableScene/ExtendableScene'
+import type ExtendableScene from '../Modules/Extendables/ExtendableScene'
 import type { BindingApi } from '@tweakpane/core'
 
 const SCENES = scenes as TScenes
@@ -108,8 +107,11 @@ export default class SceneManager {
 		const previous = this.active?.name
 		this.next = new nextInfos.Scene()
 
+		// Load the next scene
+		this.next.trigger('load')
+
 		// Switch function start on previous scene
-		runMethod(this.active, 'OnDisposeStart')
+		this.active?.trigger('disposestart')
 
 		// Update the store (and localstorage) with the new scene :
 		this.navigate({
@@ -195,8 +197,11 @@ export default class SceneManager {
 		// Init active scene
 		this.active = new scene.Scene()
 
+		// Load the scene
+		this.active.trigger('load')
+
 		// Switch complete function on the new scene
-		runMethod(this.active, 'OnInitComplete')
+		this.active?.trigger('ready')
 
 		// Start navigation
 		this.$bus?.on('scene:switch', (scene: TSceneInfos) => this.switch(scene))
@@ -230,24 +235,24 @@ export default class SceneManager {
 	 * Update
 	 */
 	public update(): void {
-		runMethod(this.active, 'OnUpdate')
-		runMethod(this.next, 'OnUpdate')
+		this.active?.trigger('update')
+		this.next?.trigger('update')
 	}
 
 	/**
 	 * Resize
 	 */
 	public resize(): void {
-		runMethod(this.active, 'OnResize')
-		runMethod(this.next, 'OnResize')
+		this.active?.trigger('resize')
+		this.next?.trigger('resize')
 	}
 
 	/**
 	 * Dispose
 	 */
 	public dispose(): void {
-		runMethod(this.active, 'OnDispose')
-		runMethod(this.next, 'OnDispose')
+		this.active?.trigger('dispose')
+		this.next?.trigger('dispose')
 	}
 
 	/**
@@ -273,13 +278,13 @@ export default class SceneManager {
 		if (this._debug && this._debugScene && this._debugScene) {
 			this._debugScene.disabled = false
 		}
-		runMethod(this.active, 'OnDispose')
+		this.active?.trigger('dispose')
 		this.active = this.next
 		delete this.next
 
 		// Switch complete function on the new scene
 		this._scrollManager?.setDisable(false)
-		runMethod(this.active, 'OnInitComplete')
+		this.active?.trigger('ready')
 	}
 
 	/**

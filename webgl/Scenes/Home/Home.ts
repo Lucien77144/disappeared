@@ -1,25 +1,19 @@
 import {
 	AmbientLight,
-	HemisphereLight,
 	Light,
-	MathUtils,
 	PMREMGenerator,
-	RectAreaLight,
 	Texture,
 	type WebGLRenderer,
 } from 'three'
-import ExtendableScene from '../../Modules/Extendables/ExtendableScene/ExtendableScene'
-import type { ExtendableSceneEvents } from '../../Modules/Extendables/ExtendableScene/ExtendableSceneEvents'
+import ExtendableScene from '../../Modules/Extendables/ExtendableScene'
 import Garland from './Items/Garland'
 import type { Dictionary } from '~/models/functions/dictionary.model'
 
-export default class Home
-	extends ExtendableScene
-	implements ExtendableSceneEvents
-{
+export default class Home extends ExtendableScene {
 	// Public
 	public hdri!: Texture
 	public hdriTexture!: Texture
+
 	// Private
 	private _renderer: WebGLRenderer
 
@@ -28,29 +22,39 @@ export default class Home
 	 */
 	constructor() {
 		super()
-		// Private
-		this._renderer = this.experience.renderer.instance
-
+		// Public
 		this.components = {
 			// cube: new Cube(),
 			garland: new Garland(),
 		}
 
+		// Private
+		this._renderer = this.experience.renderer.instance
+
 		// Init the scene
-		this.OnInit()
+		this.on('load', () => this._onLoad())
 	}
 
+	// --------------------------------
+	// Events
+	// --------------------------------
+
 	/**
-	 * On init
+	 * On load
 	 */
-	public override OnInit() {
+	private _onLoad() {
+		console.log('Home onLoad')
+
 		this.hdri = this.experience.resources.items.hdri as Texture
 		this._setupPMREMGenerator()
 		this._setupLights()
-		super.OnInit()
 
 		this.camera.instance.position.z = 30
 	}
+
+	// --------------------------------
+	// Private methods
+	// --------------------------------
 
 	/**
 	 * Setup PMREM Generator
@@ -62,6 +66,9 @@ export default class Home
 		pmremGenerator.dispose()
 	}
 
+	/**
+	 * Setup lights
+	 */
 	private _setupLights() {
 		const lights: Dictionary<Light> = {}
 

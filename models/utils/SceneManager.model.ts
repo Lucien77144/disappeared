@@ -1,4 +1,4 @@
-import type ExtendableScene from '~/webgl/Modules/Extendables/ExtendableScene/ExtendableScene'
+import type ExtendableScene from '~/webgl/Modules/Extendables/ExtendableScene'
 import type { TExperienceStore } from '../stores/experience.store.model'
 
 /**

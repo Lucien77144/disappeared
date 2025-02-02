@@ -11,7 +11,7 @@ import Experience from '~/webgl/Experience'
 import type { Dictionary } from '~/models/functions/dictionary.model'
 import type { TAudioParams } from '~/models/utils/AudioManager.model'
 import type { ICSS2DRendererStore } from '~/models/stores/cssRenderer.store.model'
-import type ExtendableScene from './ExtendableScene/ExtendableScene'
+import type ExtendableScene from './ExtendableScene'
 import type { FolderApi, Pane } from 'tweakpane'
 import {
 	DebugMaterial,
@@ -22,18 +22,92 @@ import {
  * Item events type
  */
 export type TItemsEvents = {
-	load: () => void // OnInit
-	ready: () => void // OnSceneInitComplete
-	update: () => void // OnUpdate
-	resize: () => void // OnResize
-	dispose: () => void // OnDispose
-	mousemove: (event: TCursorProps) => void // OnMouseMove
-	mouseenter: () => void // OnMouseEnter
-	mousehover: (event: TCursorProps & { target: Intersection }) => void // OnMouseHover
-	mouseleave: () => void // OnMouseLeave
-	scroll: (event: TScrollEvent) => void // OnScroll
-	click: () => void // OnClick
-	hold: (success: boolean) => void // OnHold
+	/**
+	 * On load
+	 * @description Called to load the item
+	 * @returns void
+	 */
+	load: () => void
+
+	/**
+	 * On ready
+	 * @description Called when the scene is ready and transition is complete
+	 * @returns void
+	 */
+	ready: () => void
+
+	/**
+	 * On update
+	 * @description Called on each frame
+	 * @returns void
+	 */
+	update: () => void
+
+	/**
+	 * On resize
+	 * @description Called when the window is resized
+	 * @returns void
+	 */
+	resize: () => void
+
+	/**
+	 * On dispose
+	 * @description Called when the item is disposed
+	 * @returns void
+	 */
+	dispose: () => void
+
+	/**
+	 * On scroll
+	 * @description Called when the mouse scroll over the scene
+	 * @param event Mouse scroll event
+	 * @returns void
+	 */
+	scroll: (event: TScrollEvent) => void
+
+	/**
+	 * On mouse move
+	 * @description Called on mouse move over the scene
+	 * @param event Mouse event
+	 * @returns void
+	 */
+	mousemove: (event: TCursorProps) => void
+
+	/**
+	 * On mouse enter
+	 * @description Called when the mouse enter the item
+	 * @returns void
+	 */
+	mouseenter: () => void
+
+	/**
+	 * On mouse hover
+	 * @description Called when the mouse is moving over the item
+	 * @returns void
+	 */
+	mousehover: (event: TCursorProps & { target: Intersection }) => void
+
+	/**
+	 * On mouse leave
+	 * @description Called when the mouse leave the item
+	 * @returns void
+	 */
+	mouseleave: () => void
+
+	/**
+	 * On click
+	 * @description Called when the mouse click on the item
+	 * @returns void
+	 */
+	click: () => void
+
+	/**
+	 * On hold
+	 * @description Called when the mouse hold on the item
+	 * @param success Success of the hold
+	 * @returns void
+	 */
+	hold: (success: boolean) => void
 }
 
 /**
@@ -136,7 +210,7 @@ export default class ExtendableItem<
 		this.ignoredFn = []
 
 		// Events
-		this.on('dispose', () => this.offAll())
+		this.on('dispose', () => this.disposeEvents())
 	}
 
 	/**

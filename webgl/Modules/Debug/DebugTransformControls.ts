@@ -3,7 +3,7 @@ import type { FolderApi } from 'tweakpane'
 import Experience from '~/webgl/Experience'
 import type ExtendableCamera from '../Extendables/ExtendableCamera'
 import { TransformControls } from 'three/addons/controls/TransformControls.js'
-import type ExtendableScene from '../Extendables/ExtendableScene/ExtendableScene'
+import type ExtendableScene from '../Extendables/ExtendableScene'
 
 // Type definition for Transform Controls parameters
 type TTransformControlsParams = {

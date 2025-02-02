@@ -24,11 +24,73 @@ export default class Garland extends ExtendableItem<Home> {
 		super()
 		// Public
 		this.wrapper = new Group()
-		this._rotationFactor = 1
 
 		// Private
+		this._rotationFactor = 1
 		this._viewport = this.experience.viewport
+
+		// Events
+		this.on('load', () => this._onLoad())
+		this.on('resize', () => this._onResize())
+		this.on('update', () => this._onUpdate())
+		this.on('scroll', (event: TScrollEvent) => this._onScroll(event))
+		this.on('ready', () => this._onReady())
 	}
+
+	// --------------------------------
+	// Events
+	// --------------------------------
+
+	/**
+	 * On scroll
+	 * @param event Scroll event
+	 */
+	private _onScroll(event: TScrollEvent) {
+		this._rotationFactor = 0
+		this.item.rotation.z += event.delta * 0.00025
+
+		this._scrollEndTimeout && clearTimeout(this._scrollEndTimeout)
+		this._scrollEndTimeout = setTimeout(() => {
+			gsap.to(this, { _rotationFactor: 1, duration: 2 })
+		}, 500)
+	}
+
+	/**
+	 * On load
+	 */
+	private _onLoad(): void {
+		this.setComponents()
+		this._setScale()
+	}
+
+	/**
+	 * On resize
+	 */
+	private _onResize() {
+		this._setScale()
+		this._setPosition()
+	}
+
+	/**
+	 * On ready
+	 */
+	private _onReady(): void {
+		this._setPosition()
+		this._setRotation()
+	}
+
+	/**
+	 * On update
+	 */
+	private _onUpdate(): void {
+		if (this._rotationFactor > 0) {
+			this.item.rotation.z += 0.001 * this._rotationFactor
+		}
+	}
+
+	// --------------------------------
+	// Public methods
+	// --------------------------------
 
 	/**
 	 * Set item
@@ -58,52 +120,9 @@ export default class Garland extends ExtendableItem<Home> {
 		})
 	}
 
-	/**
-	 * On scroll
-	 * @param event Scroll event
-	 */
-	public OnScroll(event: TScrollEvent) {
-		this._rotationFactor = 0
-		this.item.rotation.z += event.delta * 0.00025
-
-		this._scrollEndTimeout && clearTimeout(this._scrollEndTimeout)
-		this._scrollEndTimeout = setTimeout(() => {
-			gsap.to(this, { _rotationFactor: 1, duration: 2 })
-		}, 500)
-	}
-
-	/**
-	 * On init
-	 */
-	public OnInit(): void {
-		this.setComponents()
-		this._setScale()
-	}
-
-	/**
-	 * On resize
-	 */
-	public OnResize() {
-		this._setScale()
-		this._setPosition()
-	}
-
-	/**
-	 * On scene init complete
-	 */
-	public OnSceneInitComplete(): void {
-		this._setPosition()
-		this._setRotation()
-	}
-
-	/**
-	 * On update
-	 */
-	public OnUpdate(): void {
-		if (this._rotationFactor > 0) {
-			this.item.rotation.z += 0.001 * this._rotationFactor
-		}
-	}
+	// --------------------------------
+	// Private methods
+	// --------------------------------
 
 	/**
 	 * Set the scale of the item
