@@ -1,4 +1,4 @@
-import type { CanvasTexture, Texture } from 'three'
+import type { CanvasTexture, Object3D, Texture } from 'three'
 import type { Group } from 'three'
 import type { BufferGeometry } from 'three'
 import type { DataTexture } from 'three'
@@ -39,6 +39,7 @@ export type TResourceData =
 	| BufferGeometry
 	| GLTF
 	| Group
+	| Object3D
 	| CanvasTexture
 	| Font
 

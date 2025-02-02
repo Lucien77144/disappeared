@@ -23,6 +23,11 @@ export class ExtendableItemEvents {
 	OnUpdate?(): void
 
 	/**
+	 * If set, this function will be called on each resize
+	 */
+	OnResize?(): void
+
+	/**
 	 * After transition init function
 	 * Automatically called after the scene has been switched
 	 */
@@ -61,7 +66,7 @@ export class ExtendableItemEvents {
 	 * If false, the event will be ignored, even if parent is triggering it
 	 * @param {TCursorProps} event - Event of the scroll
 	 */
-	OnScroll?(event: TCursorProps): any
+	OnScroll?(event: TScrollEvent): any
 
 	/**
 	 * If set, this function will be called on click item

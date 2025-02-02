@@ -15,6 +15,7 @@ export default defineNuxtConfig({
 
 	modules: [
 		'@pinia/nuxt',
+		'@nuxtjs/i18n',
 		[
 			'@nuxtjs/google-fonts',
 			{
@@ -25,27 +26,27 @@ export default defineNuxtConfig({
 				},
 			},
 		],
-		[
-			'@nuxtjs/i18n',
+	],
+	i18n: {
+		locales: [
 			{
-				locales: [
-					{
-						code: 'en',
-						language: 'en-US',
-						file: 'en-US.ts',
-					},
-					{
-						code: 'fr',
-						language: 'fr-FR',
-						file: 'fr-FR.ts',
-					},
-				],
-				detectBrowserLanguage: true, // use default language of browser
-				langDir: './assets/data/lang/', // source of translations
-				strategy: 'no_prefix', // don't add language to url
+				code: 'en',
+				language: 'en-US',
+				file: 'en-US.ts',
+			},
+			{
+				code: 'fr',
+				language: 'fr-FR',
+				file: 'fr-FR.ts',
 			},
 		],
-	],
+		detectBrowserLanguage: {
+			useCookie: true,
+			cookieKey: 'i18n_redirected',
+			cookieSecure: false,
+		},
+		strategy: 'no_prefix', // don't add language to url
+	},
 
 	components: [
 		{

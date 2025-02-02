@@ -10,7 +10,7 @@ import type {
 import type Renderer from '../Modules/Renderer/Renderer'
 import runMethod from '~/utils/functions/runMethod'
 import type ExtendableScene from '../Modules/Extendables/ExtendableScene'
-import type { BindingApi, FolderApi } from '@tweakpane/core'
+import type { BindingApi } from '@tweakpane/core'
 
 const SCENES = scenes as TScenes
 
@@ -21,6 +21,7 @@ export default class SceneManager {
 	public start: number
 	public active?: ExtendableScene
 	public next?: ExtendableScene
+	public test?: ExtendableScene
 
 	// Private
 	private _experience: Experience
@@ -28,7 +29,6 @@ export default class SceneManager {
 	private _store: Experience['store']
 	private _scrollManager: Experience['scrollManager']
 	private _debug: Experience['debug']
-	private _debugNavigation?: FolderApi
 	private _debugScene?: BindingApi
 	private _renderMesh?: Renderer['renderMesh']
 	private _activeSceneName: { value: string }
@@ -97,8 +97,8 @@ export default class SceneManager {
 	 */
 	public switch(nextInfos: TSceneInfos): void {
 		if (this.next) return
-		if (this._debug && this._debugNavigation) {
-			this._debugNavigation.disabled = true // Disable the debug folder during the transition
+		if (this._debug && this._debugScene) {
+			this._debugScene.disabled = true // Disable the debug folder during the transition
 		}
 
 		// Disable scroll
@@ -270,8 +270,8 @@ export default class SceneManager {
 		}
 
 		// Reset params :
-		if (this._debug && this._debugNavigation && this._debugScene) {
-			this._debugNavigation.disabled = false
+		if (this._debug && this._debugScene && this._debugScene) {
+			this._debugScene.disabled = false
 		}
 		runMethod(this.active, 'OnDispose')
 		this.active = this.next
@@ -296,18 +296,13 @@ export default class SceneManager {
 	private _setDebug(): void {
 		if (!this._debug) return
 
-		this._debugNavigation = this._debug.panel.addFolder({
-			expanded: false,
-			title: 'Navigation',
-		})
-
 		// Debug scene
-		this._debugScene = this._debugNavigation.addBinding(
+		this._debugScene = this._debug.panel.addBinding(
 			this._activeSceneName,
 			'value',
 			{
 				view: 'list',
-				label: 'scene',
+				label: 'Scene',
 				options: this.scenes.list.map((i) => ({
 					text: i.Scene.name,
 					value: i.Scene.name,
@@ -316,14 +311,17 @@ export default class SceneManager {
 		)
 
 		// Persist the folder and enable it
-		this._debugNavigation.disabled = false
+		this._debugScene.disabled = false
 
 		// Add switch event on change scene
-		window.requestAnimationFrame(() =>
-			this._debugScene?.on('change', (evt) =>
-				this.switch(this._getSceneFromList(evt.value as string))
-			)
-		)
+		this._debugScene?.on('change', (evt) => {
+			this.switch(this._getSceneFromList(evt.value as string))
+		})
+
+		// Separator
+		this._debug.panel.addBlade({
+			view: 'separator',
+		})
 	}
 
 	/**

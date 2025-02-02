@@ -36,7 +36,7 @@ export default class Experience {
 	public debug?: Debug
 	public defaultScene?: string
 	public debugContainer?: HTMLElement
-	public canvas?: HTMLCanvasElement
+	public canvas!: HTMLCanvasElement
 	public name!: string
 	public $bus!: any
 	public store!: Store
@@ -56,6 +56,9 @@ export default class Experience {
 			return Experience._instance
 		}
 		Experience._instance = this
+
+		// Check if canvas
+		if (!canvas) throw Error('No canvas provided')
 
 		// Public
 		this.name = name || 'Experience'

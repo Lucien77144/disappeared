@@ -4,28 +4,24 @@
 		"data": {},
 		"items": [
 			{
-				"name": "introMountain",
-				"source": "/img/icons/countries/fr.png",
-				"type": "texture"
-			},
-			{
 				"name": "garland",
-				"source": "/img/svg-models/pictures-garland.model.svg"
-			}
-		]
-	},
-	{
-		"name": "Main2",
-		"data": {},
-		"items": [
-			{
-				"name": "introMountain3",
-				"source": "/img/icons/countries/fr.png",
-				"type": "texture"
+				"source": "/img/svg-models/garland.model.svg",
+				"data": {
+					"drawFillShapes": true,
+					"fillShapesWireframe": false,
+					"drawStrokes": true,
+					"strokesWireframe": false
+				}
 			},
 			{
-				"name": "garland1",
-				"source": "/img/svg-models/pictures-garland.model.svg"
+				"name": "tiger",
+				"source": "/img/svg-models/tiger.model.svg",
+				"data": {
+					"drawFillShapes": true,
+					"fillShapesWireframe": false,
+					"drawStrokes": true,
+					"strokesWireframe": false
+				}
 			}
 		]
 	}

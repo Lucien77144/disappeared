@@ -1,6 +1,5 @@
 import ExtendableScene from '../../Modules/Extendables/ExtendableScene'
 import type { ExtendableSceneEvents } from '../../Modules/Extendables/ExtendableScene/ExtendableSceneEvents'
-import Cube from './Items/Cube'
 import Garland from './Items/Garland'
 
 export default class Home
@@ -13,8 +12,8 @@ export default class Home
 	constructor() {
 		super()
 		this.components = {
-			cube: new Cube(),
-			// garland: new Garland(),
+			// cube: new Cube(),
+			garland: new Garland(),
 		}
 
 		// Init the scene
@@ -24,6 +23,6 @@ export default class Home
 	public override OnInit() {
 		super.OnInit()
 
-		this.camera.instance.position.z = 40
+		this.camera.instance.position.z = 30
 	}
 }

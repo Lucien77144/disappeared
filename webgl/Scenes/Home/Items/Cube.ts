@@ -3,6 +3,8 @@ import { UIBtn } from '#components'
 import type ScrollManager from '~/utils/ScrollManager'
 import ExtendableItem from '~/webgl/Modules/Extendables/ExtendableItem/'
 import { ExtendableItemEvents } from '~/webgl/Modules/Extendables/ExtendableItem/ExtendableItemEvents'
+import DebugObject from '~/webgl/Modules/Debug/DebugObject'
+import type ExtendableScene from '~/webgl/Modules/Extendables/ExtendableScene'
 
 export default class Cube
 	extends ExtendableItem
@@ -11,7 +13,7 @@ export default class Cube
 	private _scrollManager: ScrollManager
 	private _geometry?: BoxGeometry
 	private _material?: MeshNormalMaterial
-	private _mesh?: Mesh
+	private _mesh!: Mesh
 
 	/**
 	 * Constructor
@@ -56,7 +58,7 @@ export default class Cube
 	 * Set item
 	 */
 	public setItem() {
-		this.item = this._mesh as Mesh
+		this.item.add(this._mesh as Mesh)
 	}
 
 	public OnHold(success: boolean) {
@@ -82,6 +84,8 @@ export default class Cube
 	 * Update the cube
 	 */
 	public OnUpdate() {
+		this.item.position.set(0, 0, 0)
+		this.item.scale.set(0.05, 0.05, 0.05)
 		this.item.rotation.y = MathUtils.lerp(
 			this.item.rotation.y,
 			this._scrollManager.current * 0.1,

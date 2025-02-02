@@ -35,7 +35,7 @@ export default class ScrollManager extends EventEmitter {
 	private _dragManager: DragManager
 	private _handleScroll: any
 	private _handleUpdate: any
-
+	private _previousDelta: number
 	constructor({
 		limit,
 		speed,
@@ -57,6 +57,7 @@ export default class ScrollManager extends EventEmitter {
 		this.delta = 0
 
 		// Private
+		this._previousDelta = 0
 		this._time = new Time()
 		this._dragManager = new DragManager()
 
@@ -116,6 +117,7 @@ export default class ScrollManager extends EventEmitter {
 		let prev = -1
 		const firefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1
 		const isMobile = isDeviceMobile()
+		console.log(isMobile)
 
 		if (isMobile) {
 			this._handleScroll = (e: TDragEvent) => {
@@ -145,7 +147,9 @@ export default class ScrollManager extends EventEmitter {
 			this._handleScroll = (e: WheelEvent) => {
 				if (this.disabled) return
 
-				this.delta = e.deltaY
+				if (Math.abs(e.deltaY) > Math.abs(this.delta)) {
+					this.delta = this._previousDelta = e.deltaY
+				}
 
 				this._updateTarget()
 				this._emit()
@@ -202,6 +206,11 @@ export default class ScrollManager extends EventEmitter {
 		const prev = this.current
 		const current = MathUtils.lerp(this.current, this.target, this.speed)
 		this.current = Math.floor(current * this.decimal) / this.decimal
+
+		if (this.delta !== 0) {
+			this.delta = MathUtils.lerp(this.delta, 0, this.speed)
+			this._previousDelta = this.delta
+		}
 
 		if (this.current !== prev) this._emit()
 	}

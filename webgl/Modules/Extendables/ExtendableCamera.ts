@@ -198,7 +198,7 @@ export default class ExtendableCamera {
 	private _setDebug() {
 		this.debugFolder = this._debug?.panel.addFolder({
 			expanded: false,
-			title: 'Camera - ' + this.name,
+			title: '🎥 Camera - ' + this.name,
 		})
 
 		this.debugFolder?.addBinding(this.instance, 'position', {

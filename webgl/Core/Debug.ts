@@ -58,13 +58,13 @@ export default class Debug {
 	private _statsValues?: TStatsValues
 	private _monitoring!: HTMLElement
 	private _self: any
-	private _activeDebugs: { folders: Array<string>; bindings: Array<string> }
+	private _activeDebugs: string[]
 
 	constructor() {
 		// Private
 		this._experience = new Experience()
 		this._viewport = this._experience.viewport
-		this._activeDebugs = { folders: [], bindings: [] }
+		this._activeDebugs = []
 
 		// Public
 		this._setPanel()
@@ -114,21 +114,19 @@ export default class Debug {
 	public remove(debug: FolderApi | BladeApi) {
 		const state = debug.exportState()
 
+		const childs = (debug as FolderApi).children
+		childs?.forEach((child: BladeApi | FolderApi) => this.remove(child))
+
 		// Check if this is a folder
 		if ((debug as FolderApi).controller.foldable) {
 			const key = (state.title as string)?.toLowerCase().replace(/ /g, '-')
 			const id: `f_${string}` = `f_${key}`
 
-			this._activeDebugs.folders = this._activeDebugs.folders.filter(
-				(tag) => tag !== id
+			this._activeDebugs = this._activeDebugs.filter(
+				(tag) => tag !== (state.tag ?? id)
 			)
-
-			const childs = (debug as FolderApi).children
-			childs.forEach((child: BladeApi) => this.remove(child))
 		} else {
-			this._activeDebugs.bindings = this._activeDebugs.bindings.filter(
-				(tag) => tag !== state.tag
-			)
+			this._activeDebugs = this._activeDebugs.filter((tag) => tag !== state.tag)
 		}
 
 		this.panel.remove(debug)
@@ -139,8 +137,7 @@ export default class Debug {
 	 */
 	public dispose() {
 		this.panel.dispose()
-		this._activeDebugs.folders = []
-		this._activeDebugs.bindings = []
+		this._activeDebugs = []
 		this.stats?.dispose()
 		this._monitoring?.remove()
 	}
@@ -181,8 +178,8 @@ export default class Debug {
 		const getDefaultState = (state: BladeState, key: string) => {
 			return this._handleLocalValue(state, key)
 		}
-		const isActive = (tag: string) => this._activeDebugs.folders.includes(tag)
-		const addToList = (tag: string) => this._activeDebugs.folders.push(tag)
+		const isActive = (tag: string) => this._activeDebugs.includes(tag)
+		const addToList = (tag: string) => this._activeDebugs.push(tag)
 
 		this._pool.createApi = (function (original) {
 			return function (bc) {
@@ -193,14 +190,17 @@ export default class Debug {
 					const key = (state.title as string)?.toLowerCase().replace(/ /g, '-')
 					const id: `f_${string}` = `f_${key}`
 
-					if (isActive(id)) {
-						console.warn(
-							`The tag "${id}" is already used in the session storage`,
-							bc
-						)
-					} else {
-						addToList(id)
-					}
+					// Used to prevent issues on scene changes
+					window.requestAnimationFrame(() => {
+						if (isActive(id)) {
+							console.warn(
+								`The tag "${id}" is already used in the session storage`,
+								bc
+							)
+						} else {
+							addToList(id)
+						}
+					})
 
 					bc.view.element.addEventListener('click', () => {
 						const state = bc.exportState()
@@ -409,8 +409,8 @@ export default class Debug {
 
 		const handleSave = (state: BladeState) => this._handleLocalSave(state)
 		const getDefaultState = (state: BladeState) => this._handleLocalValue(state)
-		const isActive = (tag: string) => this._activeDebugs.bindings.includes(tag)
-		const addToList = (tag: string) => this._activeDebugs.bindings.push(tag)
+		const isActive = (tag: string) => this._activeDebugs.includes(tag)
+		const addToList = (tag: string) => this._activeDebugs.push(tag)
 		const getStateTag = (state: BladeState) => this._getStateTag(state)
 
 		this._pool.createBindingApi = (function (original) {
@@ -446,6 +446,7 @@ export default class Debug {
 
 				const defaultState = getDefaultState(initialState)
 				if (defaultState) {
+					bc.importState(defaultState)
 					window.requestAnimationFrame(() => {
 						bc.importState(defaultState)
 					})

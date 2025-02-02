@@ -1,4 +1,12 @@
-import { Camera, Group, Object3D, Scene, type Intersection } from 'three'
+import {
+	Box3,
+	Camera,
+	Group,
+	Object3D,
+	Scene,
+	Vector3,
+	type Intersection,
+} from 'three'
 import ExtendableCamera from '../ExtendableCamera'
 import Experience from '~/webgl/Experience'
 import gsap from 'gsap'
@@ -21,6 +29,7 @@ import type {
 	TSuccessProp,
 } from '../ExtendableItem/ExtendableItemEvents'
 import type { FolderApi } from 'tweakpane'
+import { defined } from '~/utils/functions/defined'
 
 export type TFnProps = TCursorProps | TMouseHoverProps | TSuccessProp
 export type TSceneEvents = keyof ExtendableSceneEvents
@@ -113,6 +122,10 @@ export default class ExtendableScene implements Partial<ExtendableSceneEvents> {
 	 */
 	protected cursorManager: Experience['cursorManager']
 	/**
+	 * Scroll manager reference
+	 */
+	protected scrollManager: Experience['scrollManager']
+	/**
 	 * Store reference
 	 */
 	protected store: Experience['store']
@@ -148,6 +161,7 @@ export default class ExtendableScene implements Partial<ExtendableSceneEvents> {
 		// Protected
 		this.experience = new Experience()
 		this.cursorManager = this.experience.cursorManager
+		this.scrollManager = this.experience.scrollManager
 		this.store = this.experience.store
 		this.raycaster = this.experience.raycaster
 		this.debug = this.experience.debug
@@ -223,7 +237,7 @@ export default class ExtendableScene implements Partial<ExtendableSceneEvents> {
 	/**
 	 * Raycast on mouse down
 	 * @param event Mouse down event
-	 * @warn super.onMouseDown() is needed in the extending class
+	 * @warn super.OnMouseDown() is needed in the extending class
 	 */
 	public OnMouseDown(event: TCursorProps): void {
 		// Clicked item
@@ -238,7 +252,7 @@ export default class ExtendableScene implements Partial<ExtendableSceneEvents> {
 	/**
 	 * Raycast on mouse up
 	 * @param event Mouse up event
-	 * @warn super.onMouseUp() is needed in the extending class
+	 * @warn super.OnMouseUp() is needed in the extending class
 	 */
 	public OnMouseUp(event: TCursorProps): void {
 		this._resetHoldedItem()
@@ -247,7 +261,7 @@ export default class ExtendableScene implements Partial<ExtendableSceneEvents> {
 	/**
 	 * Raycast on mouse move
 	 * @param event Mouse move event
-	 * @warn super.onMouseMove(event) is needed in the extending class
+	 * @warn super.OnMouseMove(event) is needed in the extending class
 	 */
 	public OnMouseMove(event: TCursorProps): void {
 		// Get hovered item
@@ -285,7 +299,7 @@ export default class ExtendableScene implements Partial<ExtendableSceneEvents> {
 	/**
 	 * On scroll event
 	 * @param event Scroll event
-	 * @warn super.onScroll(event) is needed in the extending class
+	 * @warn super.OnScroll(event) is needed in the extending class
 	 */
 	public OnScroll(event: TCursorProps): void {
 		Object.values(this.allComponents).forEach((c) =>
@@ -295,7 +309,7 @@ export default class ExtendableScene implements Partial<ExtendableSceneEvents> {
 
 	/**
 	 * On switch between scene complete and this scene is the new one
-	 * @warn super.onInitComplete() is needed in the extending class
+	 * @warn super.OnInitComplete() is needed in the extending class
 	 */
 	public OnInitComplete(): void {
 		// Trigger onInitComplete on all components
@@ -306,7 +320,7 @@ export default class ExtendableScene implements Partial<ExtendableSceneEvents> {
 
 	/**
 	 * Update the scene
-	 * @warn super.update() is needed in the extending class
+	 * @warn super.OnUpdate() is needed in the extending class
 	 */
 	public OnUpdate(): void {
 		Object.values(this.allComponents).forEach((c) =>
@@ -326,13 +340,19 @@ export default class ExtendableScene implements Partial<ExtendableSceneEvents> {
 		this.camera.resize()
 		this._css2dManager?.resize()
 		this._css3dManager?.resize()
+		Object.values(this.allComponents).forEach((c) =>
+			this._triggerFn(c, 'OnResize')
+		)
 	}
 
 	/**
 	 * Dispose the scene
-	 * @warn super.dispose() is needed in the extending class
+	 * @warn super.OnDispose() is needed in the extending class
 	 */
 	public OnDispose(): void {
+		// Remove the debug
+		this._removeDebug()
+
 		// Items
 		Object.values(this.allComponents).forEach((c) => {
 			this._triggerFn(c, 'OnDispose')
@@ -343,14 +363,10 @@ export default class ExtendableScene implements Partial<ExtendableSceneEvents> {
 		this.components = {}
 		this.audios = {}
 
-		// Camera
 		this.scene.clear()
 		this.camera.dispose()
 		this._css2dManager?.dispose()
 		this._css3dManager?.dispose()
-
-		// Debug
-		this.debugFolder && this.debug?.remove(this.debugFolder)
 
 		// Events
 		this.$bus.off('mousedown', this._handleMouseDownEvt)
@@ -362,7 +378,7 @@ export default class ExtendableScene implements Partial<ExtendableSceneEvents> {
 	/**
 	 * Init the scene
 	 * Automatically called after the constructor
-	 * @warn super.init() is needed in the extending class
+	 * @warn super.OnInit() is needed in the extending class
 	 */
 	public OnInit(): void {
 		this.allComponents = this._flattenComponents()
@@ -460,7 +476,7 @@ export default class ExtendableScene implements Partial<ExtendableSceneEvents> {
 	private _setDebug(): void {
 		this.debugFolder = this.debug?.panel?.addFolder({
 			expanded: false,
-			title: 'Scene - ' + this.name,
+			title: '🌏 Scene - ' + this.name,
 		})
 
 		this.debugFolder
@@ -483,7 +499,7 @@ export default class ExtendableScene implements Partial<ExtendableSceneEvents> {
 		this.cursorManager.on('mousedown', this._handleMouseDownEvt)
 		this.cursorManager.on('mouseup', this._handleMouseUpEvt)
 		this.cursorManager.on('mousemove', this._handleMouseMoveEvt)
-		this.cursorManager.on('scroll', this._handleScrollEvt)
+		this.scrollManager.on('scroll', this._handleScrollEvt)
 	}
 
 	/**
@@ -555,6 +571,18 @@ export default class ExtendableScene implements Partial<ExtendableSceneEvents> {
 	}
 
 	/**
+	 * Remove the debug panels of the scene
+	 */
+	private _removeDebug() {
+		Object.values(this.allComponents).forEach((e) => {
+			e.debugFolder && this.debug?.remove(e.debugFolder)
+		})
+
+		// Debug
+		this.debugFolder && this.debug?.remove(this.debugFolder)
+	}
+
+	/**
 	 * Get scene items
 	 * @param i - BasicItem to get the scene items
 	 * @returns Scene items
@@ -575,19 +603,19 @@ export default class ExtendableScene implements Partial<ExtendableSceneEvents> {
 		// If the item has components, add them to a group
 		const components = Object.values(i.components || {}) as ExtendableItem[]
 		if (components.length > 0) {
-			const res = new Group()
+			if (!i.item) return console.warn('⚠️ Missing item for', i)
 
 			// Add the item to the group
-			if (i.item) res.add(i.item)
+			const childsGroup = new Group()
 			components.forEach((child) => {
 				const item = this._getSceneItems(child)
-				item && res.add(item)
+				item && childsGroup.add(item)
 			})
+			i.item.add(childsGroup)
 
 			// Add audios to the item if no components
 			i.audios && this.camera.addAudios(i.audios, i.item)
 
-			i.item = res
 			return i.item
 		} else if (i.item) {
 			// Add audios to the item if no components
@@ -611,7 +639,7 @@ export default class ExtendableScene implements Partial<ExtendableSceneEvents> {
 		let res: Dictionary<ExtendableItem> = {}
 
 		Object.keys(c).forEach((key) => {
-			const value = c[key]
+			const value = c[key] as ExtendableItem
 
 			if (res[key]) {
 				const oldKey = key
@@ -627,9 +655,9 @@ export default class ExtendableScene implements Partial<ExtendableSceneEvents> {
 				return console.warn(warn_msg, c)
 			}
 
-			value.parentScene = this
+			value.scene = this
 			if (parent) {
-				value.parentComponent = parent
+				value.parent = parent
 			}
 
 			runMethod(value, 'OnInit')
