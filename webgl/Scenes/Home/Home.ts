@@ -46,6 +46,7 @@ export default class Home
 	public override OnInit() {
 		this.hdri = this.experience.resources.items.hdri as Texture
 		this._setupPMREMGenerator()
+		this._setupLights()
 		super.OnInit()
 
 		this.camera.instance.position.z = 30
@@ -63,22 +64,9 @@ export default class Home
 
 	private _setupLights() {
 		const lights: Dictionary<Light> = {}
-		const factor = 0.01
-
-		const lightPower = 10 // Watts
-		lights.light1 = new RectAreaLight(0xffffff, lightPower * factor, 1, 1)
-		lights.light1.rotation.set(-Math.PI * 0.5, 0, 0)
-		lights.light1.position.set(0, 0.86, 0)
-		this.scene.add(lights.light1)
-
-		const light2Power = 20 // Watts
-		lights.light2 = new RectAreaLight(0xffffff, light2Power * factor, 4, 4)
-		lights.light2.position.set(0, 1.14, 0)
-		lights.light2.rotation.set(-Math.PI * 0.5, 0, MathUtils.degToRad(-13.6))
-		this.scene.add(lights.light2)
 
 		// Ambient light
-		lights.ambient = new AmbientLight(0xffffff, 0.5)
+		lights.ambient = new AmbientLight(0x00ff00, 1)
 		this.scene.add(lights.ambient)
 	}
 }

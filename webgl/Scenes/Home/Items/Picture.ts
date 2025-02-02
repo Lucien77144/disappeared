@@ -1,12 +1,12 @@
 import {
 	DoubleSide,
+	Group,
 	Mesh,
 	MeshStandardMaterial,
 	PlaneGeometry,
 	Texture,
 	Vector3,
 } from 'three'
-import { lerp } from 'three/src/math/MathUtils.js'
 import ExtendableItem from '~/webgl/Modules/Extendables/ExtendableItem/ExtendableItem'
 import {
 	ExtendableItemEvents,
@@ -82,6 +82,7 @@ export default class Picture
 	private _setMesh() {
 		this._mesh = new Mesh(this._geometry, this._material)
 		this._mesh.rotation.x = Math.PI / 2 // Rotate 90 degrees (π/2 radians) around the X-axis
+		this._mesh.rotation.y = -Math.PI
 	}
 
 	/**
@@ -92,7 +93,8 @@ export default class Picture
 		this.item.position.copy(this.position)
 
 		if (this.parent) {
-			this.item.lookAt(this.parent.item.position)
+			const target = this.parent.item.position.clone()
+			this.item.lookAt(target)
 		}
 		this._mesh.rotation.y = Math.PI / 2
 		this.item.position.z += 0.1
@@ -106,31 +108,31 @@ export default class Picture
 	 * @param event Mouse hover event
 	 */
 	public OnMouseHover(event: TMouseHoverProps): void {
-		this._targetPosition.set(
-			this._savedPosition.x,
-			this._savedPosition.y,
-			this._savedPosition.z + 1
-		)
+		// this._targetPosition.set(
+		// 	this._savedPosition.x,
+		// 	this._savedPosition.y,
+		// 	this._savedPosition.z + 1
+		// )
 	}
 
 	/**
 	 * On mouse leave
 	 */
 	public OnMouseLeave(): void {
-		this._targetPosition.set(
-			this._savedPosition.x,
-			this._savedPosition.y,
-			this._savedPosition.z
-		)
+		// this._targetPosition.set(
+		// 	this._savedPosition.x,
+		// 	this._savedPosition.y,
+		// 	this._savedPosition.z
+		// )
 	}
 
 	public OnUpdate() {
 		if (this.item.position.z !== this._targetPosition.z) {
-			this.item.position.z = lerp(
-				this.item.position.z,
-				this._targetPosition.z,
-				0.1
-			)
+			// this.item.position.z = lerp(
+			// 	this.item.position.z,
+			// 	this._targetPosition.z,
+			// 	0.1
+			// )
 		}
 	}
 
@@ -138,21 +140,13 @@ export default class Picture
 	 * On click item
 	 */
 	public OnClick() {
-		console.log(this.item)
-	}
+		// console.log(this.item)
 
-	/**
-	 * On scroll
-	 * @param event Scroll event
-	 */
-	public OnScroll(event: TScrollEvent) {
-		// console.log(event)
-		// const factor = Math.cos(event.current)
-		const factor = event.delta * 0.001
-		// console.log(factor)
-
-		// console.log(factor)
-		// this.item.rotation.y += factor
+		console.log({
+			x: this.item.rotation.x,
+			y: this.item.rotation.y,
+			z: this.item.rotation.z,
+		})
 	}
 
 	public OnInit(): void {
