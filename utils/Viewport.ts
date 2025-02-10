@@ -89,16 +89,7 @@ export default class Viewport extends EventEmitter<TViewportEvents> {
 	 */
 	public resize(): void {
 		this.setData()
-
-		if (this.enableBus) this.$bus.emit('resize')
 		this.trigger('resize')
-	}
-
-	/**
-	 * Destroy viewport
-	 */
-	public dispose(): void {
-		this.$bus.off('resize', this.resize)
-		window.removeEventListener('resize', this._handleResize, false)
+		if (this.enableBus) this.$bus.emit('resize')
 	}
 }

@@ -39,7 +39,11 @@ export default class ScrollManager extends EventEmitter<TScrollManagerEvents> {
 	private _dragManager: DragManager
 	private _handleScroll: any
 	private _handleUpdate: any
-	private _previousDelta: number
+
+	/**
+	 * Constructor
+	 * @param options Options
+	 */
 	constructor({
 		limit,
 		speed,
@@ -61,7 +65,6 @@ export default class ScrollManager extends EventEmitter<TScrollManagerEvents> {
 		this.delta = 0
 
 		// Private
-		this._previousDelta = 0
 		this._time = new Time()
 		this._dragManager = new DragManager()
 
@@ -151,7 +154,7 @@ export default class ScrollManager extends EventEmitter<TScrollManagerEvents> {
 				if (this.disabled) return
 
 				if (Math.abs(e.deltaY) > Math.abs(this.delta)) {
-					this.delta = this._previousDelta = e.deltaY
+					this.delta = e.deltaY
 				}
 
 				this._updateTarget()
@@ -213,7 +216,6 @@ export default class ScrollManager extends EventEmitter<TScrollManagerEvents> {
 
 		if (this.delta !== 0) {
 			this.delta = MathUtils.lerp(this.delta, 0, this.speed)
-			this._previousDelta = this.delta
 		}
 
 		if (this.current !== prev) this._emit()
@@ -223,8 +225,16 @@ export default class ScrollManager extends EventEmitter<TScrollManagerEvents> {
 	 * Destroy the scroll manager
 	 */
 	public dispose() {
+		// Dispose events
 		this.disposeEvents()
+
+		// Dispose time
+		this._time.dispose()
+
+		// Remove event listener
 		this._dragManager.dispose()
+
+		// Remove event listener
 		window.removeEventListener('DOMMouseScroll', this._handleScroll)
 		window.removeEventListener('wheel', this._handleScroll)
 	}

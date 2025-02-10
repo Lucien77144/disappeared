@@ -67,6 +67,10 @@ export default class KeysManager extends EventEmitter<TKeysManagerEvents> {
 	 * Destroy the cursor and remove all events
 	 */
 	public dispose(): void {
+		// Dispose events
+		this.disposeEvents()
+
+		// Remove event listener
 		this.el.removeEventListener('keydown', this._handleKeyDown)
 		this.el.removeEventListener('keyup', this._handleKeyUp)
 	}

@@ -101,6 +101,14 @@ export default class Loader extends EventEmitter<TLoaderEvents> {
 	}
 
 	/**
+	 * Dispose the loader
+	 */
+	public dispose() {
+		// Dispose events
+		this.disposeEvents()
+	}
+
+	/**
 	 * Init loaders
 	 */
 	private _init(): void {

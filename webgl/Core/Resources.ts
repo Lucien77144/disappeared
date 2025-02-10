@@ -125,7 +125,10 @@ export default class Resources extends EventEmitter<TResourcesEvents> {
 	 * @param {*} groups Groups of resources to dispose
 	 */
 	public dispose(groups?: Array<TResourceGroup['name']>) {
+		// Dispose timeline
 		this._timeline?.kill()
+
+		// Dispose resources
 		this._getSources(groups)
 			.flatMap((s: TResourceGroup) => s.items.map((i) => i.name))
 			.forEach((name: TResourceItem['name']) => {
@@ -134,6 +137,12 @@ export default class Resources extends EventEmitter<TResourcesEvents> {
 				}
 				delete this.items[name]
 			})
+
+		// Dispose loader
+		this._loader.dispose()
+
+		// Dispose events
+		this.disposeEvents()
 	}
 
 	/**

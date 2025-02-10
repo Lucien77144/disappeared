@@ -128,6 +128,8 @@ export default class Picture extends ExtendableItem<Home> {
 	 * Set material
 	 */
 	private _setMaterial() {
+		// console.log(this.scene?.hdriTexture)
+
 		const map = this.resources.picture_col as Texture
 		this._material = new MeshStandardMaterial({
 			color: 0xffffff,
@@ -135,7 +137,7 @@ export default class Picture extends ExtendableItem<Home> {
 			aoMapIntensity: 1,
 			side: DoubleSide,
 			map,
-			envMap: this.scene?.hdriTexture,
+			// envMap: this.scene?.hdriTexture,
 			roughnessMap: map,
 			normalMap: map,
 			aoMap: map,

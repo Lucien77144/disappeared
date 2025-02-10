@@ -4,7 +4,4 @@ varying vec2 vUv;
 void main() {
     vec2 uv = vUv;
     gl_FragColor = texture2D(tDiffuse, uv);
-
-    #include <tonemapping_fragment>
-    #include <colorspace_fragment>
 }

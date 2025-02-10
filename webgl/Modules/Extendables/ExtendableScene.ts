@@ -1,4 +1,16 @@
-import { Camera, Group, Object3D, Scene, type Intersection } from 'three'
+import {
+	Camera,
+	ClampToEdgeWrapping,
+	Group,
+	LinearFilter,
+	MirroredRepeatWrapping,
+	Object3D,
+	RepeatWrapping,
+	RGBAFormat,
+	Scene,
+	WebGLRenderTarget,
+	type Intersection,
+} from 'three'
 import ExtendableCamera from './ExtendableCamera'
 import Experience from '~/webgl/Experience'
 import gsap from 'gsap'
@@ -15,6 +27,8 @@ import type { TCursorProps } from '~/utils/CursorManager'
 import getMethod from '~/utils/functions/getMethod'
 import type { FolderApi } from 'tweakpane'
 import type { TItemsEvents } from './ExtendableItem'
+import type ExtendableShader from './Shaders/ExtendableShader/ExtendableShader'
+import ExtendableShaderTransition from './Shaders/ExtendableShaderTransition/ExtendableShaderTransition'
 
 /**
  * Item events type
@@ -40,6 +54,20 @@ export type TSceneEvents = {
 	 * @returns void
 	 */
 	update: () => void
+
+	/**
+	 * On before render
+	 * @description Called before the scene is rendered
+	 * @returns void
+	 */
+	beforeRender: () => void
+
+	/**
+	 * On after render
+	 * @description Called after the scene is rendered
+	 * @returns void
+	 */
+	afterRender: () => void
 
 	/**
 	 * On resize
@@ -129,6 +157,10 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 	// Public properties
 	// --------------------------------
 	/**
+	 * Active state
+	 */
+	public isActive: boolean
+	/**
 	 * Three.js scene
 	 */
 	public scene!: Scene
@@ -168,6 +200,18 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 	 * Debug folder
 	 */
 	public debugFolder?: FolderApi
+	/**
+	 * Render target of the scene
+	 */
+	public rt: WebGLRenderTarget
+	/**
+	 * Shader applied to the scene
+	 */
+	public shader?: ExtendableShader
+	/**
+	 * Shader transition
+	 */
+	public transition?: ExtendableShaderTransition
 
 	// --------------------------------
 	// Protected properties
@@ -176,6 +220,10 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 	 * Experience reference
 	 */
 	protected experience: Experience
+	/**
+	 * Viewport reference
+	 */
+	protected viewport: Experience['viewport']
 	/**
 	 * Cursor manager reference
 	 */
@@ -215,6 +263,7 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 
 		// Protected
 		this.experience = new Experience()
+		this.viewport = this.experience.viewport
 		this.cursorManager = this.experience.cursorManager
 		this.scrollManager = this.experience.scrollManager
 		this.store = this.experience.store
@@ -223,11 +272,22 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 		this.$bus = this.experience.$bus
 
 		// Public
+		this.isActive = false
 		this.name = this.constructor.name
 		this.#setScene()
 		this.camera = new ExtendableCamera(this.name)
 		this.allComponents = {}
 		this.wireframe = false
+		this.transition = new ExtendableShaderTransition(this)
+		this.rt = new WebGLRenderTarget(this.viewport.width, this.viewport.height, {
+			generateMipmaps: false,
+			minFilter: LinearFilter,
+			magFilter: LinearFilter,
+			format: RGBAFormat,
+			samples: 1,
+			wrapS: MirroredRepeatWrapping,
+			wrapT: MirroredRepeatWrapping,
+		})
 
 		// Events
 		this.on('mousedown', this.#onMouseDown.bind(this))
@@ -242,6 +302,18 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 
 		this.components = {}
 		this.audios = {}
+	}
+
+	// --------------------------------
+	// Getters & Setters
+	// --------------------------------
+
+	/**
+	 * Get the renderer
+	 * @returns Renderer
+	 */
+	public get id(): number {
+		return this.scene.id
 	}
 
 	// --------------------------------
@@ -385,6 +457,9 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 	 * @warn super.resize() is needed in the extending class
 	 */
 	#onResize(): void {
+		this.rt.setSize(this.viewport.width, this.viewport.height)
+		this.shader?.resize()
+		this.transition?.resize()
 		this.camera.resize()
 		this.#css2dManager?.resize()
 		this.#css3dManager?.resize()
@@ -408,12 +483,16 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 		this.components = {}
 		this.audios = {}
 
+		// Dispose scene
 		this.scene.clear()
 		this.camera.dispose()
+		this.rt.dispose()
 		this.#css2dManager?.dispose()
 		this.#css3dManager?.dispose()
 		this.cursorManager?.dispose()
 		this.scrollManager?.dispose()
+
+		// Dispose events
 		this.disposeEvents()
 	}
 

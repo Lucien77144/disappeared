@@ -217,7 +217,7 @@ export default class ExtendableItem<
 		this.ignoredFn = []
 
 		// Events
-		this.on('dispose', () => this.disposeEvents())
+		this.on('dispose', () => this.#onDispose())
 	}
 
 	/**
@@ -347,5 +347,13 @@ export default class ExtendableItem<
 		item.instanceMatrix.needsUpdate = true
 
 		return item
+	}
+
+	/**
+	 * Dispose the item
+	 */
+	#onDispose() {
+		// Dispose events
+		this.disposeEvents()
 	}
 }

@@ -253,6 +253,7 @@ export default class CursorManager extends EventEmitter<TCursorManagerEvents> {
 	 * Destroy the cursor and remove all events
 	 */
 	public dispose(): void {
+		// Dispose events
 		this.disposeEvents()
 
 		// Desktop

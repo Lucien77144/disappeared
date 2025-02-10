@@ -97,15 +97,12 @@ export default class Experience {
 	 * Start the experience
 	 */
 	public start() {
-		this.sceneManager
-			.init(this.viewport?.debug ? this.defaultScene : undefined)
-			.then(() => {
-				this.active = true
+		this.sceneManager.init(this.viewport?.debug ? this.defaultScene : undefined)
+		this.active = true
 
-				// Events
-				this.time.on('tick', this._handleUpdate)
-				this.$bus.emit('experience:ready')
-			})
+		// Events
+		this.time.on('tick', this._handleUpdate)
+		this.$bus.emit('experience:ready')
 	}
 
 	/**
@@ -114,11 +111,9 @@ export default class Experience {
 	public dispose() {
 		this.$bus.off('ready', this._handleStart)
 		this.$bus.off('resize', this._handleResize)
-
 		this.time.off('tick')
-		this.time.stop()
+		this.time.dispose()
 
-		this.viewport?.dispose()
 		this.scrollManager?.dispose()
 		this.cursorManager?.dispose()
 		this.keysManager?.dispose()
@@ -150,11 +145,11 @@ export default class Experience {
 			limit: { min: 0, max: 100 },
 			decimal: 1000,
 		})
+		this.resources = new Resources()
 		this.renderer = new Renderer()
 		this.keysManager = new KeysManager()
 		this.sceneManager = new SceneManager()
 		this.raycaster = new Raycaster()
-		this.resources = new Resources()
 		this.audioManager = new AudioManager()
 
 		// Events

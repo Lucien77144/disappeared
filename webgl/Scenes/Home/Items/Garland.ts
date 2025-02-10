@@ -34,7 +34,6 @@ export default class Garland extends ExtendableItem<Home> {
 		this.on('resize', () => this._onResize())
 		this.on('update', () => this._onUpdate())
 		this.on('scroll', (event: TScrollEvent) => this._onScroll(event))
-		this.on('ready', () => this._onReady())
 	}
 
 	// --------------------------------
@@ -61,6 +60,8 @@ export default class Garland extends ExtendableItem<Home> {
 	private _onLoad(): void {
 		this.setComponents()
 		this._setScale()
+		this._setPosition()
+		this._setRotation()
 	}
 
 	/**
@@ -69,14 +70,6 @@ export default class Garland extends ExtendableItem<Home> {
 	private _onResize() {
 		this._setScale()
 		this._setPosition()
-	}
-
-	/**
-	 * On ready
-	 */
-	private _onReady(): void {
-		this._setPosition()
-		this._setRotation()
 	}
 
 	/**

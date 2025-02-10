@@ -1,24 +1,19 @@
 import {
 	ACESFilmicToneMapping,
 	Color,
-	LinearFilter,
-	Mesh,
 	PerspectiveCamera,
-	PlaneGeometry,
-	RGBAFormat,
-	SRGBColorSpace,
 	ShaderMaterial,
+	SRGBColorSpace,
 	Uniform,
-	Vector2,
-	WebGLRenderTarget,
 	WebGLRenderer,
 } from 'three'
 import Experience from '../../Experience'
-import vertexShader from './shaders/vertexShader.vert?raw'
-import fragmentShader from './shaders/fragmentShader.frag?raw'
-import type { TCursorProps } from '~/utils/CursorManager'
 import type { FolderApi } from '@tweakpane/core'
 import type Debug from '~/webgl/Core/Debug'
+import { EffectComposer, ShaderPass } from 'postprocessing'
+import vertexShader from './shaders/vertexShader.vert?raw'
+import fragmentShader from './shaders/fragmentShader.frag?raw'
+import { FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js'
 
 type TClearColor = {
 	color: string
@@ -33,22 +28,20 @@ const DEFAULT_CLEAR_COLOR: TClearColor = {
 export default class Renderer {
 	// Public
 	public instance!: WebGLRenderer
+	public composer!: EffectComposer
 	public camera!: PerspectiveCamera
-	public rt0!: WebGLRenderTarget
-	public rt1!: WebGLRenderTarget
-	public renderMesh!: Mesh & { material: ShaderMaterial }
 	public context!: WebGL2RenderingContext
 	public debugFolder?: FolderApi
 	public clearColor: TClearColor
+	public fullScreenQuad!: FullScreenQuad
+	public renderShader!: ShaderMaterial
+	public shaderPass!: ShaderPass
 
 	// Private
 	private _experience: Experience
 	private _viewport: Experience['viewport']
 	private _debug: Experience['debug']
 	private _stats?: Debug['stats']
-	private _time: Experience['time']
-	private $bus: Experience['$bus']
-	private _handleMouseMoveEvt: (evt: TCursorProps) => void
 
 	/**
 	 * Constructor
@@ -65,15 +58,17 @@ export default class Renderer {
 		this._experience = new Experience()
 		this._viewport = this._experience.viewport
 		this._debug = this._experience.debug
-		this._time = this._experience.time
 		this._stats = this._debug?.stats
-		this.$bus = this._experience.$bus
-
-		// Events
-		this._handleMouseMoveEvt = this._onMouseMoveEvt.bind(this)
 
 		// Init
 		this._init()
+	}
+
+	/**
+	 * Get the scene manager
+	 */
+	private get _sceneManager() {
+		return this._experience.sceneManager
 	}
 
 	// --------------------------------
@@ -138,46 +133,6 @@ export default class Renderer {
 	}
 
 	/**
-	 * Raycast on mouse move
-	 */
-	private _onMouseMoveEvt({ centered }: { centered: Vector2 }) {
-		this.renderMesh.material.uniforms.uCursor.value = new Vector2(
-			centered.x / 2,
-			centered.y / 2
-		)
-	}
-
-	/**
-	 * Set the render mesh
-	 */
-	private _setRenderMesh() {
-		this.renderMesh = new Mesh(
-			new PlaneGeometry(2, 2, 100, 100),
-			new ShaderMaterial({
-				uniforms: {
-					// Scene gesture
-					uScene0: new Uniform(this.rt0.texture),
-					uScene1: new Uniform(this.rt1.texture),
-					uTransition: new Uniform(0),
-					uDirection: new Uniform(1),
-
-					// Config
-					uTime: new Uniform(0),
-					uRatio: new Uniform(this._getVec2Ratio()),
-					uResolution: new Uniform(
-						new Vector2(this._viewport.width, this._viewport.height)
-					),
-					uCursor: new Uniform(new Vector2(0.5)),
-				},
-				vertexShader,
-				fragmentShader,
-			})
-		)
-
-		this.$bus.on('mousemove', this._handleMouseMoveEvt)
-	}
-
-	/**
 	 * Set the renderer instance
 	 */
 	private _setInstance(canvas?: HTMLCanvasElement) {
@@ -186,7 +141,7 @@ export default class Renderer {
 			canvas,
 			antialias: true,
 			stencil: false,
-			alpha: false,
+			alpha: true,
 			powerPreference: 'high-performance',
 		})
 
@@ -197,7 +152,7 @@ export default class Renderer {
 
 		// Options
 		this.instance.toneMapping = ACESFilmicToneMapping
-		this.instance.toneMappingExposure = 1.1
+		this.instance.toneMappingExposure = 1.5
 		this.instance.outputColorSpace = SRGBColorSpace
 
 		// Context
@@ -205,54 +160,72 @@ export default class Renderer {
 	}
 
 	/**
-	 * Set render targets and mesh
+	 * Set the post processing
 	 */
-	private _setRenderTargets() {
-		const size = this.instance.getDrawingBufferSize(new Vector2())
-		this.rt0 = new WebGLRenderTarget(size.width, size.height, {
-			generateMipmaps: false,
-			minFilter: LinearFilter,
-			magFilter: LinearFilter,
-			format: RGBAFormat,
-			samples: 1,
+	private _setPostProcessing() {
+		// Set render shader
+		this.renderShader = new ShaderMaterial({
+			uniforms: {
+				tDiffuse: new Uniform(null),
+			},
+			vertexShader,
+			fragmentShader,
+			transparent: true,
 		})
-		this.rt1 = this.rt0.clone()
-	}
 
-	/**
-	 * Get the vec2 ratio
-	 */
-	private _getVec2Ratio() {
-		const x = this._viewport.width / this._viewport.height
-		const y = this._viewport.height / this._viewport.width
+		// Set shader pass
+		this.shaderPass = new ShaderPass(this.renderShader)
 
-		const isH = x > y
-		return new Vector2(!isH ? 1 : x, isH ? 1 : y)
+		// Set composer
+		this.composer = new EffectComposer(this.instance, {
+			alpha: true,
+		})
+		this.composer.addPass(this.shaderPass)
 	}
 
 	/**
 	 * Render the targets and the mesh
 	 */
-	private _renderTargets() {
-		// Get elements from experience
-		const active = this._experience.sceneManager.active
-		const next = this._experience.sceneManager.next
-
-		// Scene1
-		if (active?.camera?.instance) {
-			this.instance.setRenderTarget(this.rt0)
-			this.instance.render(active.scene, active.camera.instance)
-		}
-
-		// Transition
-		if (next?.camera?.instance) {
-			this.instance.setRenderTarget(this.rt1)
-			this.instance.render(next.scene, next.camera.instance)
-		}
-
-		// RenderMesh
+	private _render() {
+		// Clear the render target
 		this.instance.setRenderTarget(null)
-		this.instance.render(this.renderMesh, this.camera)
+		this.instance.clear()
+
+		// Render each scene from the render list
+		this._sceneManager.renderList.forEach((instance) => {
+			if (instance.camera?.instance) {
+				// Trigger before render
+				instance.trigger('beforeRender')
+
+				// Set the render target & render scene
+				this.instance.setRenderTarget(instance.rt)
+				this.instance.clear()
+				this.instance.render(instance.scene, instance.camera.instance)
+
+				// Render shader of the scene
+				instance.shader?.render()
+
+				// Render transition
+				const transition = instance.transition
+				if (transition?.isActive) {
+					this.instance.clear()
+					transition.render()
+				}
+
+				// Trigger after render
+				instance.trigger('afterRender')
+			}
+		})
+
+		// Update shader uniforms with active scene render target
+		const active = this._sceneManager.active
+		if (active?.rt) {
+			this.renderShader.uniforms.tDiffuse.value = active.rt.texture
+		}
+
+		// Render final composition
+		this.instance.setRenderTarget(null)
+		this.composer.render()
 	}
 
 	// --------------------------------
@@ -265,8 +238,9 @@ export default class Renderer {
 	private _init() {
 		this._setCamera()
 		this._setInstance(this._experience.canvas)
-		this._setRenderTargets()
-		this._setRenderMesh()
+
+		// Set post processing
+		this._experience.resources.on('ready', () => this._setPostProcessing())
 
 		// Debug
 		if (this._debug) this._setDebug()
@@ -277,12 +251,7 @@ export default class Renderer {
 	 */
 	public update() {
 		this._stats?.beforeRender()
-
-		this._renderTargets()
-		if (this.renderMesh?.material.uniforms.uTime) {
-			this.renderMesh.material.uniforms.uTime.value = this._time.elapsed
-		}
-
+		this._render()
 		this._stats?.afterRender()
 	}
 
@@ -292,19 +261,8 @@ export default class Renderer {
 	public resize() {
 		this.camera.aspect = this._viewport.width / this._viewport.height
 		this.camera.updateProjectionMatrix()
-
 		this.instance.setSize(this._viewport.width, this._viewport.height)
 		this.instance.setPixelRatio(this._viewport.dpr)
-
-		const size = this.instance.getDrawingBufferSize(new Vector2())
-		this.rt0.setSize(size.width, size.height)
-		this.rt1.setSize(size.width, size.height)
-
-		this.renderMesh.material.uniforms.uResolution.value = new Vector2(
-			this._viewport.width,
-			this._viewport.height
-		)
-		this.renderMesh.material.uniforms.uRatio.value = this._getVec2Ratio()
 	}
 
 	/**
@@ -313,8 +271,5 @@ export default class Renderer {
 	public dispose() {
 		this.instance.renderLists.dispose()
 		this.instance.dispose()
-		this.rt0.dispose()
-		this.rt1.dispose()
-		this.$bus.off('mousemove', this._handleMouseMoveEvt)
 	}
 }

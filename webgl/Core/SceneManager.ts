@@ -1,26 +1,21 @@
-import { MathUtils } from 'three'
 import Experience from '../Experience'
-import gsap from 'gsap'
-import scenes from '~/const/scenes.const'
 import type {
 	TSceneInfos,
 	TSceneNavigation,
 	TScenes,
 } from '~/models/utils/SceneManager.model'
-import type Renderer from '../Modules/Renderer/Renderer'
 import type ExtendableScene from '../Modules/Extendables/ExtendableScene'
 import type { BindingApi } from '@tweakpane/core'
+import Scenes from '../Scenes'
 
-const SCENES = scenes as TScenes
+const SCENES = Scenes as TScenes
 
 export default class SceneManager {
 	// Public
 	public scenes: TScenes
 	public scale: number
 	public start: number
-	public active?: ExtendableScene
-	public next?: ExtendableScene
-	public test?: ExtendableScene
+	public renderList: ExtendableScene[]
 
 	// Private
 	private _experience: Experience
@@ -29,8 +24,9 @@ export default class SceneManager {
 	private _scrollManager: Experience['scrollManager']
 	private _debug: Experience['debug']
 	private _debugScene?: BindingApi
-	private _renderMesh?: Renderer['renderMesh']
 	private _activeSceneName: { value: string }
+	private _active?: ExtendableScene
+	private _next?: ExtendableScene
 	private $bus: Experience['$bus']
 
 	/**
@@ -38,6 +34,7 @@ export default class SceneManager {
 	 */
 	constructor() {
 		// Public
+		this.renderList = []
 		this.scenes = SCENES
 		this.scale = 0
 		this.start = 0
@@ -50,6 +47,58 @@ export default class SceneManager {
 		this._debug = this._experience.debug
 		this._activeSceneName = { value: this.scenes.default.name }
 		this.$bus = this._experience.$bus
+	}
+
+	/**
+	 * Get active scene
+	 */
+	public get active() {
+		return this._active
+	}
+
+	/**
+	 * Set active scene
+	 */
+	public set active(scene: ExtendableScene | undefined) {
+		// Remove the previous scene from the render list
+		if (this._active) {
+			this.renderList = this.renderList.filter((s) => s.id !== this._active?.id)
+			this._active.isActive = false
+		}
+
+		// Set the active scene
+		this._active = scene
+		// Add the active scene to the render list
+		if (scene) {
+			this.renderList.push(scene)
+			scene.isActive = true
+		}
+	}
+
+	/**
+	 * Get next scene
+	 */
+	public get next() {
+		return this._next
+	}
+
+	/**
+	 * Set next scene
+	 */
+	public set next(scene: ExtendableScene | undefined) {
+		// Remove the previous scene from the render list
+		if (this._next) {
+			this.renderList = this.renderList.filter((s) => s.id !== this._next?.id)
+			this._next.isActive = false
+		}
+
+		// Set the next scene
+		this._next = scene
+		// Add the next scene to the render list
+		if (scene) {
+			this.renderList.push(scene)
+			scene.isActive = true
+		}
 	}
 
 	/**
@@ -95,6 +144,8 @@ export default class SceneManager {
 	 * @param {TSceneInfos} nextInfos Destination scene
 	 */
 	public switch(nextInfos: TSceneInfos): void {
+		console.log(this.next)
+
 		if (this.next) return
 		if (this._debug && this._debugScene) {
 			this._debugScene.disabled = true // Disable the debug folder during the transition
@@ -104,7 +155,6 @@ export default class SceneManager {
 		this._scrollManager?.setDisable(true)
 
 		// Init next scene
-		const previous = this.active?.name
 		this.next = new nextInfos.Scene()
 
 		// Load the next scene
@@ -122,61 +172,20 @@ export default class SceneManager {
 			},
 		})
 
-		// Add render mesh if unset :
-		const transition = nextInfos.transition
-		this._renderMesh ??= this._renderer?.renderMesh
-		if (!this._renderMesh) return
-
-		// Get current scroll value
-		const scroll = this._scrollManager?.current ?? 0
-
-		// Smooth transition with gsap
-		const nextIndex = this._findIndexByName(nextInfos.name)
-		const previousIndex = this._findIndexByName(previous)
-		const diff = nextIndex - previousIndex
-		this._renderMesh.material.uniforms.uDirection.value = Math.sign(diff)
-
-		const isHalf = { value: false }
-		const duration = transition?.duration ? transition.duration / 1000 : 1000
-		gsap.to(this._renderMesh?.material.uniforms.uTransition, {
-			value: 1,
-			duration,
-			ease: 'power1.inOut',
-			onUpdate: () => {
-				// Progression of the transition :
-				const progress = this._renderMesh?.material.uniforms.uTransition.value
-
-				if (!isHalf.value && progress >= 0.5) {
-					isHalf.value = true
-					this.$bus?.emit('cssRender:toggle', nextInfos.name)
-				}
-
-				// Transition of values of progressBar
-				this.navigate({
-					navigation: {
-						start: MathUtils.lerp(
-							this.start,
-							nextInfos.nav?.start ?? 0,
-							progress
-						),
-						scale: MathUtils.lerp(
-							this.scale,
-							nextInfos.nav?.scale ?? 0,
-							progress
-						),
-					},
-					scroll: scroll * (1 - progress),
-				})
-			},
-			onComplete: () => this._onSwitchComplete(nextInfos),
-		})
+		const transition = this.active?.transition
+		if (transition) {
+			const tl = transition.start(this.next)
+			tl.then(() => this._onSwitchComplete(nextInfos))
+		} else {
+			this._onSwitchComplete(nextInfos)
+		}
 	}
 
 	/**
 	 * Init scene
 	 * @param {*} baseScene If set, initial scene name to load
 	 */
-	public init(baseScene: string = this.scenes.default.name): Promise<void> {
+	public init(baseScene: string = this.scenes.default.name): void {
 		// Debug
 		if (this._debug && baseScene) this._setDebug()
 		const name = this._activeSceneName.value || baseScene
@@ -205,54 +214,27 @@ export default class SceneManager {
 
 		// Start navigation
 		this.$bus?.on('scene:switch', (scene: TSceneInfos) => this.switch(scene))
-		this.$bus?.emit('cssRender:toggle', scene.name)
-
-		// Wait the scene to be built before starting the experience
-		return new Promise((resolve) => {
-			const scene = this.active?.scene
-			const camera = this.active?.camera.instance
-			const renderer = this._renderer?.instance
-
-			if (!scene || !renderer || !camera) {
-				return console.error('Scene, camera or renderer not found', {
-					scene,
-					camera,
-					renderer,
-				})
-			}
-
-			scene.onAfterRender = () => {
-				scene.onAfterRender = scene.onAfterRender
-				resolve()
-			}
-
-			renderer.render(scene, camera)
-			renderer.clear()
-		})
 	}
 
 	/**
 	 * Update
 	 */
 	public update(): void {
-		this.active?.trigger('update')
-		this.next?.trigger('update')
+		this.renderList.forEach((scene) => scene.trigger('update'))
 	}
 
 	/**
 	 * Resize
 	 */
 	public resize(): void {
-		this.active?.trigger('resize')
-		this.next?.trigger('resize')
+		this.renderList.forEach((scene) => scene.trigger('resize'))
 	}
 
 	/**
 	 * Dispose
 	 */
 	public dispose(): void {
-		this.active?.trigger('dispose')
-		this.next?.trigger('dispose')
+		this.renderList.forEach((scene) => scene.trigger('dispose'))
 	}
 
 	/**
@@ -261,26 +243,25 @@ export default class SceneManager {
 	 */
 	private _onSwitchComplete(infos: TSceneInfos): void {
 		// Reset navigation values
-		this.navigate({
-			navigation: {
-				start: infos.nav?.start ?? 0,
-				scale: infos.nav?.scale ?? 1,
-			},
-			scroll: 0,
-		})
+		// this.navigate({
+		// 	navigation: {
+		// 		start: infos.nav?.start ?? 0,
+		// 		scale: infos.nav?.scale ?? 1,
+		// 	},
+		// 	scroll: 0,
+		// })
 
-		// Reset transition uniform value :
-		if (this._renderMesh) {
-			this._renderMesh.material.uniforms.uTransition.value = 0
-		}
-
-		// Reset params :
+		// Enable debug scene
 		if (this._debug && this._debugScene && this._debugScene) {
 			this._debugScene.disabled = false
 		}
+
+		// Dispose active scene
 		this.active?.trigger('dispose')
+
+		// Switch to next scene
 		this.active = this.next
-		delete this.next
+		this.next = undefined
 
 		// Switch complete function on the new scene
 		this._scrollManager?.setDisable(false)
@@ -334,7 +315,7 @@ export default class SceneManager {
 	 * @param {TSceneInfos['name']} name Scene name
 	 */
 	private _findIndexByName(name?: string): number {
-		return scenes.list.findIndex((s) => s.name === name)
+		return this.scenes.list.findIndex((s) => s.name === name)
 	}
 
 	/**

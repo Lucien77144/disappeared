@@ -8,6 +8,7 @@ import {
 import ExtendableScene from '../../Modules/Extendables/ExtendableScene'
 import Garland from './Items/Garland'
 import type { Dictionary } from '~/models/functions/dictionary.model'
+import { HomeShader } from './Shaders/HomeMain'
 
 export default class Home extends ExtendableScene {
 	// Public
@@ -27,6 +28,8 @@ export default class Home extends ExtendableScene {
 			// cube: new Cube(),
 			garland: new Garland(),
 		}
+		this.shader = new HomeShader(this)
+		this.hdri = this.experience.resources.items.hdri as Texture
 
 		// Private
 		this._renderer = this.experience.renderer.instance
@@ -43,9 +46,6 @@ export default class Home extends ExtendableScene {
 	 * On load
 	 */
 	private _onLoad() {
-		console.log('Home onLoad')
-
-		this.hdri = this.experience.resources.items.hdri as Texture
 		this._setupPMREMGenerator()
 		this._setupLights()
 
