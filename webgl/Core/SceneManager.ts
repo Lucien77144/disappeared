@@ -120,22 +120,18 @@ export default class SceneManager {
 	 * @param {*} name If set, initial scene name to load
 	 */
 	public init(name: string = this.scenes.default.name): void {
-		// Debug
+		// Init debug
 		if (this._debug && name) {
 			name = this._setDebug(name)
 		}
 
-		// Get the scene from the store or the default one
-		const scene = this._getSceneFromList(name)
+		// Get the scene and init it
+		const { Scene } = this._getSceneFromList(name)
+		this.active = new Scene()
 
-		// Init active scene
-		this.active = new scene.Scene()
-
-		// Load the scene
+		// Trigger load and ready events
 		this.active.trigger('load')
-
-		// Switch complete function on the new scene
-		this.active?.trigger('ready')
+		this.active.trigger('ready')
 
 		// Start navigation
 		this.$bus?.on('scene:switch', (scene: TSceneInfos) => this.switch(scene))
