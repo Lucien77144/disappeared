@@ -18,7 +18,6 @@ export default class SceneManager {
 	private _store: Experience['store']
 	private _debug: Experience['debug']
 	private _debugScene?: BindingApi
-	private _activeSceneName: { value: string }
 	private _active?: ExtendableScene
 	private _next?: ExtendableScene
 	private $bus: Experience['$bus']
@@ -37,7 +36,6 @@ export default class SceneManager {
 		this._experience = new Experience()
 		this._store = this._experience.store
 		this._debug = this._experience.debug
-		this._activeSceneName = { value: this.scenes.default.name }
 		this.$bus = this._experience.$bus
 	}
 
@@ -91,31 +89,6 @@ export default class SceneManager {
 	}
 
 	/**
-	 * Set scene in storage and navigation stores
-	 * @param {TSceneInfos} scene Scene infos
-	 */
-	public setScene(scene: TSceneInfos): void {
-		if (!this._debug || !this._debugScene) return
-		this._activeSceneName.value = scene.name
-	}
-
-	/**
-	 * Set scale
-	 * @param {number} scale
-	 */
-	public setScale(scale: number): void {
-		this.scale = scale
-	}
-
-	/**
-	 * Set start
-	 * @param {number} start
-	 */
-	public setStart(start: number): void {
-		this.start = start
-	}
-
-	/**
 	 * Switch scene
 	 * @param {TSceneInfos} nextInfos Destination scene
 	 */
@@ -144,12 +117,11 @@ export default class SceneManager {
 
 	/**
 	 * Init scene
-	 * @param {*} baseScene If set, initial scene name to load
+	 * @param {*} name If set, initial scene name to load
 	 */
-	public init(baseScene: string = this.scenes.default.name): void {
+	public init(name: string = this.scenes.default.name): void {
 		// Debug
-		if (this._debug && baseScene) this._setDebug()
-		const name = this._activeSceneName.value || baseScene
+		if (this._debug && name) this._setDebug(name)
 
 		// Get the scene from the store or the default one
 		const scene = this._getSceneFromList(name)
@@ -212,22 +184,19 @@ export default class SceneManager {
 	/**
 	 * Set debug
 	 */
-	private _setDebug(): void {
+	private _setDebug(defaultScene: string): void {
 		if (!this._debug) return
 
 		// Debug scene
-		this._debugScene = this._debug.panel.addBinding(
-			this._activeSceneName,
-			'value',
-			{
-				view: 'list',
-				label: 'Scene',
-				options: this.scenes.list.map((i) => ({
-					text: i.Scene.name,
-					value: i.Scene.name,
-				})),
-			}
-		)
+		const scene = { value: defaultScene }
+		this._debugScene = this._debug.panel.addBinding(scene, 'value', {
+			view: 'list',
+			label: 'Scene',
+			options: this.scenes.list.map((i) => ({
+				text: i.Scene.name,
+				value: i.Scene.name,
+			})),
+		})
 
 		// Persist the folder and enable it
 		this._debugScene.disabled = false
