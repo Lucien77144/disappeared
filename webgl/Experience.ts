@@ -7,7 +7,6 @@ import { Raycaster } from 'three'
 import AudioManager from './Core/AudioManager'
 import Store from './Core/Store'
 import KeysManager from '~/utils/KeysManager'
-import ScrollManager, { type TScrollEvent } from '~/utils/ScrollManager'
 import Viewport from '~/utils/Viewport'
 import Debug from './Core/Debug'
 
@@ -29,7 +28,6 @@ export default class Experience {
 	public raycaster!: Raycaster
 	public sceneManager!: SceneManager
 	public keysManager!: KeysManager
-	public scrollManager!: ScrollManager
 	public audioManager!: AudioManager
 	public cursorManager!: CursorManager
 	public viewport!: Viewport
@@ -45,7 +43,6 @@ export default class Experience {
 	private _handleResize!: () => void
 	private _handleStart!: () => void
 	private _handleUpdate!: () => void
-	private _handleScroll!: (event: TScrollEvent) => void
 
 	/**
 	 * Constructor
@@ -72,7 +69,6 @@ export default class Experience {
 		this._handleResize = this._resize.bind(this)
 		this._handleStart = this.start.bind(this)
 		this._handleUpdate = this._update.bind(this)
-		this._handleScroll = this._scroll.bind(this)
 		this.$bus = useNuxtApp().$bus
 
 		// Init
@@ -114,7 +110,6 @@ export default class Experience {
 		this.time.off('tick')
 		this.time.dispose()
 
-		this.scrollManager?.dispose()
 		this.cursorManager?.dispose()
 		this.keysManager?.dispose()
 		this.renderer.dispose()
@@ -141,10 +136,6 @@ export default class Experience {
 		}
 
 		// Set elements
-		this.scrollManager = new ScrollManager({
-			limit: { min: 0, max: 100 },
-			decimal: 1000,
-		})
 		this.resources = new Resources()
 		this.renderer = new Renderer()
 		this.keysManager = new KeysManager()
@@ -155,7 +146,6 @@ export default class Experience {
 		// Events
 		this.resources.on('ready', this._handleStart)
 		this.viewport.on('resize', this._handleResize)
-		this.scrollManager.on('scroll', this._handleScroll)
 	}
 
 	/**
@@ -164,14 +154,6 @@ export default class Experience {
 	private _resize() {
 		this.renderer.resize()
 		this.sceneManager.resize()
-	}
-
-	/**
-	 * On scroll
-	 * @param {TScrollEvent} event
-	 */
-	private _scroll(event: TScrollEvent) {
-		this.store.scroll = event.current
 	}
 
 	/**

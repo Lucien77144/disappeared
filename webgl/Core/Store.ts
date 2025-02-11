@@ -37,21 +37,6 @@ export default class Store {
 	// -------------------------------------------------
 
 	/**
-	 * Set the scroll value in the experience store
-	 * @param {TExperienceStore['scroll']} value
-	 */
-	set scroll(value: TExperienceStore['scroll']) {
-		this._experience.setScroll(value)
-	}
-	/**
-	 * Get the scroll value in the experience store
-	 * @returns {TExperienceStore['scroll']}
-	 */
-	get scroll(): TExperienceStore['scroll'] {
-		return this._experience.scroll
-	}
-
-	/**
 	 * Set the active value in the experience store
 	 * @param {TExperienceStore['active']} value
 	 */
@@ -113,18 +98,18 @@ export default class Store {
 	}
 
 	/**
-	 * Set the navigation value in the experience store
-	 * @param {TExperienceStore['navigation']} value
+	 * Set the scene value in the experience store
+	 * @param {TExperienceStore['scene']} value
 	 */
-	set navigation(value: TExperienceStore['navigation']) {
-		this._experience.setNavigation(value)
+	set scene(value: TExperienceStore['scene']) {
+		this._experience.setScene(value)
 	}
 	/**
-	 * Get the navigation value in the experience store
-	 * @returns {TExperienceStore['navigation']}
+	 * Get the scene value in the experience store
+	 * @returns {TExperienceStore['scene']}
 	 */
-	get navigation(): TExperienceStore['navigation'] {
-		return this._experience.navigation
+	get scene(): TExperienceStore['scene'] {
+		return this._experience.scene
 	}
 
 	// -------------------------------------------------

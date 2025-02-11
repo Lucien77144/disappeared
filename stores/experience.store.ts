@@ -9,12 +9,7 @@ export const useExperienceStore = defineStore('experience', {
 		_loadingProgress: 0,
 		_loadingScreen: true,
 		_landing: true,
-		_scroll: 0, // 0-100,
-		_navigation: {
-			scene: undefined,
-			start: 0,
-			scale: 0,
-		},
+		_scene: undefined,
 	}),
 	getters: {
 		active(): TParam<'active'> {
@@ -29,11 +24,8 @@ export const useExperienceStore = defineStore('experience', {
 		landing(): TParam<'landing'> {
 			return this._landing
 		},
-		scroll(): TParam<'scroll'> {
-			return this._scroll
-		},
-		navigation(): TParam<'navigation'> {
-			return this._navigation
+		scene(): TParam<'scene'> {
+			return this._scene
 		},
 	},
 	actions: {
@@ -49,11 +41,8 @@ export const useExperienceStore = defineStore('experience', {
 		setLanding(val: TParam<'landing'>) {
 			this._landing = !!val
 		},
-		setScroll(val: TParam<'scroll'>) {
-			this._scroll = val
-		},
-		setNavigation(val: TParam<'navigation'>) {
-			this._navigation = { ...this._navigation, ...val }
+		setScene(val: TParam<'scene'>) {
+			this._scene = val
 		},
 	},
 })

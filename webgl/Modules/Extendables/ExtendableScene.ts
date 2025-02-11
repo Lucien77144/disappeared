@@ -26,6 +26,7 @@ import type { FolderApi } from 'tweakpane'
 import type { TItemsEvents } from './ExtendableItem'
 import type ExtendableShader from './Shaders/ExtendableShader/ExtendableShader'
 import ExtendableShaderTransition from './Shaders/ExtendableShaderTransition/ExtendableShaderTransition'
+import { ScrollManager } from '#imports'
 
 /**
  * Item events type
@@ -228,7 +229,7 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 	/**
 	 * Scroll manager reference
 	 */
-	protected scrollManager: Experience['scrollManager']
+	protected scrollManager: ScrollManager
 	/**
 	 * Store reference
 	 */
@@ -260,9 +261,12 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 
 		// Protected
 		this.experience = new Experience()
+		this.scrollManager = new ScrollManager({
+			limit: { min: 0, max: 100 },
+			decimal: 1000,
+		})
 		this.viewport = this.experience.viewport
 		this.cursorManager = this.experience.cursorManager
-		this.scrollManager = this.experience.scrollManager
 		this.store = this.experience.store
 		this.raycaster = this.experience.raycaster
 		this.debug = this.experience.debug
@@ -470,6 +474,9 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 		// Remove the debug
 		this.#removeDebug()
 
+		// Dispose events
+		this.disposeEvents()
+
 		// Items
 		Object.values(this.allComponents).forEach((c) => {
 			c.trigger('dispose')
@@ -482,14 +489,12 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 
 		// Dispose scene
 		this.scene.clear()
+		this.scrollManager.dispose()
 		this.camera.dispose()
 		this.rt.dispose()
 		this.#css2dManager?.dispose()
 		this.#css3dManager?.dispose()
 		this.cursorManager?.dispose()
-
-		// Dispose events
-		this.disposeEvents()
 	}
 
 	/**

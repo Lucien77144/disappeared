@@ -1,9 +1,5 @@
 import Experience from '../Experience'
-import type {
-	TSceneInfos,
-	TSceneNavigation,
-	TScenes,
-} from '~/models/utils/SceneManager.model'
+import type { TSceneInfos, TScenes } from '~/models/utils/SceneManager.model'
 import type ExtendableScene from '../Modules/Extendables/ExtendableScene'
 import type { BindingApi } from '@tweakpane/core'
 import Scenes from '../Scenes'
@@ -20,7 +16,6 @@ export default class SceneManager {
 	// Private
 	private _experience: Experience
 	private _store: Experience['store']
-	private _scrollManager: Experience['scrollManager']
 	private _debug: Experience['debug']
 	private _debugScene?: BindingApi
 	private _activeSceneName: { value: string }
@@ -41,7 +36,6 @@ export default class SceneManager {
 		// Private
 		this._experience = new Experience()
 		this._store = this._experience.store
-		this._scrollManager = this._experience.scrollManager
 		this._debug = this._experience.debug
 		this._activeSceneName = { value: this.scenes.default.name }
 		this.$bus = this._experience.$bus
@@ -66,6 +60,7 @@ export default class SceneManager {
 
 		// Set the active scene
 		this._active = scene
+		this._store.scene = scene?.name
 
 		// Add the active scene to the render list
 		if (scene) {
@@ -121,19 +116,6 @@ export default class SceneManager {
 	}
 
 	/**
-	 * Update scroll
-	 * @param {number} val Scroll value, from 0 to 100
-	 */
-	public navigate({ scroll, navigation }: TSceneNavigation): void {
-		scroll && this._scrollManager?.to(scroll)
-		navigation && this._setNavigation(navigation)
-
-		navigation?.scene && this.setScene(navigation.scene)
-		navigation?.scale && this.setScale(navigation.scale)
-		navigation?.start && this.setStart(navigation.start)
-	}
-
-	/**
 	 * Switch scene
 	 * @param {TSceneInfos} nextInfos Destination scene
 	 */
@@ -142,9 +124,6 @@ export default class SceneManager {
 		if (this._debug && this._debugScene) {
 			this._debugScene.disabled = true // Disable the debug folder during the transition
 		}
-
-		// Disable scroll
-		this._scrollManager?.setDisable(true)
 
 		// Init next scene
 		this.next = new nextInfos.Scene()
@@ -155,20 +134,11 @@ export default class SceneManager {
 		// Switch function start on previous scene
 		this.active?.trigger('disposestart')
 
-		// Update the store (and localstorage) with the new scene :
-		this.navigate({
-			navigation: {
-				scene: nextInfos,
-				start: this.start,
-				scale: this.scale,
-			},
-		})
-
 		if (this.active?.transition) {
 			const transition = this.active?.transition.start()
-			transition.then(() => this._onSwitchComplete(nextInfos))
+			transition.then(() => this._onSwitchComplete())
 		} else {
-			this._onSwitchComplete(nextInfos)
+			this._onSwitchComplete()
 		}
 	}
 
@@ -183,16 +153,6 @@ export default class SceneManager {
 
 		// Get the scene from the store or the default one
 		const scene = this._getSceneFromList(name)
-
-		// Set navigation
-		this.navigate({
-			navigation: {
-				scene,
-				start: scene.nav?.start ?? 0,
-				scale: scene.nav?.scale ?? 1,
-			},
-			scroll: 0,
-		})
 
 		// Init active scene
 		this.active = new scene.Scene()
@@ -232,16 +192,7 @@ export default class SceneManager {
 	 * On switch complete
 	 * @param infos Scene infos
 	 */
-	private _onSwitchComplete(infos: TSceneInfos): void {
-		// Reset navigation values
-		// this.navigate({
-		// 	navigation: {
-		// 		start: infos.nav?.start ?? 0,
-		// 		scale: infos.nav?.scale ?? 1,
-		// 	},
-		// 	scroll: 0,
-		// })
-
+	private _onSwitchComplete(): void {
 		// Enable debug scene
 		if (this._debug && this._debugScene && this._debugScene) {
 			this._debugScene.disabled = false
@@ -255,16 +206,7 @@ export default class SceneManager {
 		this.next = undefined
 
 		// Switch complete function on the new scene
-		this._scrollManager?.setDisable(false)
 		this.active?.trigger('ready')
-	}
-
-	/**
-	 * Set navigation in the store
-	 * @param navigation
-	 */
-	private _setNavigation(navigation: Experience['store']['navigation']): void {
-		this._store.navigation = navigation
 	}
 
 	/**
@@ -299,14 +241,6 @@ export default class SceneManager {
 		this._debug.panel.addBlade({
 			view: 'separator',
 		})
-	}
-
-	/**
-	 * Find index by name
-	 * @param {TSceneInfos['name']} name Scene name
-	 */
-	private _findIndexByName(name?: string): number {
-		return this.scenes.list.findIndex((s) => s.name === name)
 	}
 
 	/**

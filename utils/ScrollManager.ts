@@ -77,30 +77,6 @@ export default class ScrollManager extends EventEmitter<TScrollManagerEvents> {
 	// ---------------------
 
 	/**
-	 * Set the scroll speed
-	 * @param val Speed value
-	 */
-	public setSpeed(val: number) {
-		this.speed = val
-	}
-
-	/**
-	 * Set the scroll factor
-	 * @param val Factor value
-	 */
-	public setFactor(val: number) {
-		this.factor = val
-	}
-
-	/**
-	 * Disable/Enable the scroll manager
-	 * @param val Disable value
-	 */
-	public setDisable(val: boolean) {
-		this.disabled = val
-	}
-
-	/**
 	 * Go to a scroll position instantly
 	 * @param val Scroll position
 	 * @param instant If set to true, the scroll will be instant (default: true)

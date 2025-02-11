@@ -30,11 +30,3 @@ export type TScenes = {
 		total: number
 	}
 }
-
-/**
- * Represents scene navigation information.
- */
-export type TSceneNavigation = {
-	scroll?: number
-	navigation?: TExperienceStore['navigation']
-}
