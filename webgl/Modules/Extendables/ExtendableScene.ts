@@ -1,11 +1,9 @@
 import {
 	Camera,
-	ClampToEdgeWrapping,
 	Group,
 	LinearFilter,
 	MirroredRepeatWrapping,
 	Object3D,
-	RepeatWrapping,
 	RGBAFormat,
 	Scene,
 	WebGLRenderTarget,
@@ -24,7 +22,6 @@ import type {
 	ICSS3DRendererStore,
 } from '~/models/stores/cssRenderer.store.model'
 import type { TCursorProps } from '~/utils/CursorManager'
-import getMethod from '~/utils/functions/getMethod'
 import type { FolderApi } from 'tweakpane'
 import type { TItemsEvents } from './ExtendableItem'
 import type ExtendableShader from './Shaders/ExtendableShader/ExtendableShader'
@@ -490,7 +487,6 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 		this.#css2dManager?.dispose()
 		this.#css3dManager?.dispose()
 		this.cursorManager?.dispose()
-		this.scrollManager?.dispose()
 
 		// Dispose events
 		this.disposeEvents()
@@ -555,12 +551,14 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 	): { item: ExtendableItem; target: Intersection } | void {
 		if (!this.raycaster) return
 
-		this.raycaster.setFromCamera(centered, this.camera.instance as Camera)
+		this.raycaster.setFromCamera(centered, this.camera.instance!)
 
 		// Filter the components to only get the ones that have the functions in the fn array
 		const list = Object.values(this.allComponents).filter((c) => {
 			const funcs = fn.filter((f) => {
-				return getMethod(c, f) && !c.disabledFn?.includes(f)
+				const isActive = this.#hasActiveEventItem(c, f)
+				const isDisabled = c.disabledFn?.includes(f)
+				return isActive && !isDisabled
 			})
 			return funcs.length > 0
 		})
@@ -580,12 +578,28 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 				ids.push(i.id)
 			})
 
-			const isSet = fn.find((f) => !l.ignoredFn?.includes(f) && getMethod(l, f))
+			const isSet = fn.find((f) => {
+				const isIgnored = l.ignoredFn?.includes(f)
+				const isActive = this.#hasActiveEventItem(l, f)
+
+				return !isIgnored && isActive
+			})
 			return ids.includes(target?.object?.id) && isSet
 		})
 
 		const item: ExtendableItem = match[match.length - 1]
 		return item && { item, target }
+	}
+
+	/**
+	 * Check if the item has active event
+	 * @param item Item to check
+	 * @param key Key of the event
+	 * @returns True if the item has active event
+	 */
+	#hasActiveEventItem(item: ExtendableItem, key: keyof TItemsEvents) {
+		const cb = item.callbacks[key]
+		return cb && cb.length > 0
 	}
 
 	/**

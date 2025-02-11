@@ -49,8 +49,7 @@ export default class Picture extends ExtendableItem<Home> {
 	 * @param event Mouse hover event
 	 */
 	private _onMouseHover(event: TCursorProps): void {
-		console.log(event)
-
+		// console.log(event)
 		// this._targetPosition.set(
 		// 	this._savedPosition.x,
 		// 	this._savedPosition.y,

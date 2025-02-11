@@ -19,7 +19,6 @@ export default class SceneManager {
 
 	// Private
 	private _experience: Experience
-	private _renderer: Experience['renderer']
 	private _store: Experience['store']
 	private _scrollManager: Experience['scrollManager']
 	private _debug: Experience['debug']
@@ -41,7 +40,6 @@ export default class SceneManager {
 
 		// Private
 		this._experience = new Experience()
-		this._renderer = this._experience.renderer
 		this._store = this._experience.store
 		this._scrollManager = this._experience.scrollManager
 		this._debug = this._experience.debug
@@ -68,6 +66,7 @@ export default class SceneManager {
 
 		// Set the active scene
 		this._active = scene
+
 		// Add the active scene to the render list
 		if (scene) {
 			this.renderList.push(scene)
@@ -86,14 +85,9 @@ export default class SceneManager {
 	 * Set next scene
 	 */
 	public set next(scene: ExtendableScene | undefined) {
-		// Remove the previous scene from the render list
-		if (this._next) {
-			this.renderList = this.renderList.filter((s) => s.id !== this._next?.id)
-			this._next.isActive = false
-		}
-
 		// Set the next scene
 		this._next = scene
+
 		// Add the next scene to the render list
 		if (scene) {
 			this.renderList.push(scene)
@@ -144,8 +138,6 @@ export default class SceneManager {
 	 * @param {TSceneInfos} nextInfos Destination scene
 	 */
 	public switch(nextInfos: TSceneInfos): void {
-		console.log(this.next)
-
 		if (this.next) return
 		if (this._debug && this._debugScene) {
 			this._debugScene.disabled = true // Disable the debug folder during the transition
@@ -172,10 +164,9 @@ export default class SceneManager {
 			},
 		})
 
-		const transition = this.active?.transition
-		if (transition) {
-			const tl = transition.start(this.next)
-			tl.then(() => this._onSwitchComplete(nextInfos))
+		if (this.active?.transition) {
+			const transition = this.active?.transition.start()
+			transition.then(() => this._onSwitchComplete(nextInfos))
 		} else {
 			this._onSwitchComplete(nextInfos)
 		}

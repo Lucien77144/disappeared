@@ -209,7 +209,7 @@ export default class Renderer {
 				const transition = instance.transition
 				if (transition?.isActive) {
 					this.instance.clear()
-					transition.render()
+					transition?.render()
 				}
 
 				// Trigger after render

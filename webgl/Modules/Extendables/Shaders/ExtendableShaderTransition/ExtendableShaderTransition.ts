@@ -30,8 +30,6 @@ export default class ExtendableShaderTransition extends ExtendableShader {
 	// Public
 	public isActive: boolean
 	public options: TExtendableShaderTransitionOptions
-	public next?: ExtendableScene
-	public timeline?: gsap.core.Timeline
 
 	/**
 	 * Constructor
@@ -55,10 +53,17 @@ export default class ExtendableShaderTransition extends ExtendableShader {
 	}
 
 	/**
+	 * Get the next scene
+	 */
+	public get next(): ExtendableScene | undefined {
+		return this.experience.sceneManager.next
+	}
+
+	/**
 	 * Render the transition
 	 */
 	public override render() {
-		if (!this.next?.rt.texture || !this.isActive) return
+		if (!this.next?.rt?.texture || !this.isActive) return
 
 		this.setUniform('tNextDiffuse', this.next?.rt.texture)
 		super.render()
@@ -68,22 +73,11 @@ export default class ExtendableShaderTransition extends ExtendableShader {
 	 * Start the transition
 	 * @param next - Next scene to transition to
 	 */
-	public start(next: ExtendableScene): gsap.core.Timeline {
+	public start(): gsap.core.Tween {
 		this.isActive = true
-		this.next = next
-		this.#setTimeline()
-
-		return this.timeline!
-	}
-
-	/**
-	 * Set the timeline of the transition
-	 */
-	#setTimeline() {
-		this.timeline = gsap.timeline()
 
 		this.setUniform('uTransition', 0)
-		this.timeline.to(this.uniforms.uTransition, {
+		return gsap.to(this.uniforms.uTransition, {
 			value: 1,
 			duration: this.options.duration,
 			ease: this.options.ease,
