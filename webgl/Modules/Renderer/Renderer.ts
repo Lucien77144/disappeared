@@ -10,7 +10,12 @@ import {
 import Experience from '../../Experience'
 import type { FolderApi } from '@tweakpane/core'
 import type Debug from '~/webgl/Core/Debug'
-import { EffectComposer, ShaderPass } from 'postprocessing'
+import {
+	BloomEffect,
+	EffectComposer,
+	EffectPass,
+	ShaderPass,
+} from 'postprocessing'
 import vertexShader from './shaders/vertexShader.vert?raw'
 import fragmentShader from './shaders/fragmentShader.frag?raw'
 import { FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js'

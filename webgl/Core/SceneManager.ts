@@ -121,7 +121,9 @@ export default class SceneManager {
 	 */
 	public init(name: string = this.scenes.default.name): void {
 		// Debug
-		if (this._debug && name) this._setDebug(name)
+		if (this._debug && name) {
+			name = this._setDebug(name)
+		}
 
 		// Get the scene from the store or the default one
 		const scene = this._getSceneFromList(name)
@@ -184,12 +186,10 @@ export default class SceneManager {
 	/**
 	 * Set debug
 	 */
-	private _setDebug(defaultScene: string): void {
-		if (!this._debug) return
-
+	private _setDebug(defaultScene: string): string {
 		// Debug scene
 		const scene = { value: defaultScene }
-		this._debugScene = this._debug.panel.addBinding(scene, 'value', {
+		this._debugScene = this._debug!.panel.addBinding(scene, 'value', {
 			view: 'list',
 			label: 'Scene',
 			options: this.scenes.list.map((i) => ({
@@ -202,14 +202,16 @@ export default class SceneManager {
 		this._debugScene.disabled = false
 
 		// Add switch event on change scene
-		this._debugScene?.on('change', (evt) => {
+		this._debugScene?.on('change', (evt) =>
 			this.switch(this._getSceneFromList(evt.value as string))
-		})
+		)
 
 		// Separator
-		this._debug.panel.addBlade({
+		this._debug!.panel.addBlade({
 			view: 'separator',
 		})
+
+		return this._debugScene.controller.value.rawValue as string
 	}
 
 	/**
