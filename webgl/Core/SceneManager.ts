@@ -83,8 +83,11 @@ export default class SceneManager {
 		this._next = scene
 
 		// Add the next scene to the render list
-		if (scene) {
-			this._addToRenderList([...Object.values(scene.allScenes), scene])
+		if (this._next) {
+			this._addToRenderList([
+				...Object.values(this._next.allScenes),
+				this._next,
+			])
 		}
 	}
 
@@ -98,11 +101,12 @@ export default class SceneManager {
 			this._debugScene.disabled = true // Disable the debug folder during the transition
 		}
 
-		// Init next scene
-		this.next = new Scene()
+		// Init & load the next scene
+		const next = new Scene()
+		next.trigger('load')
 
-		// Load the next scene
-		this.next.trigger('load')
+		// Set the next scene
+		this.next = next
 
 		// Switch function start on previous scene
 		this.active?.trigger('disposestart')
@@ -195,16 +199,15 @@ export default class SceneManager {
 			this._debugScene.disabled = false
 		}
 
-		// Dispose active scene
-		this.active?.trigger('dispose')
+		// Get the previous scene
+		const previousScene = this.active
 
 		// Switch to next scene
 		this.active = this.next
 		this.next = undefined
 
-		setTimeout(() => {
-			console.log(this.renderList)
-		}, 500)
+		// Dispose previous scene
+		previousScene?.trigger('dispose')
 
 		// Switch complete function on the new scene
 		this.active?.trigger('ready')

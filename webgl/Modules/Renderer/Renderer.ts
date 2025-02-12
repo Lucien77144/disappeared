@@ -215,7 +215,6 @@ export default class Renderer {
 				// Render transition
 				const transition = instance.transition
 				if (transition?.isActive) {
-					this.instance.clear()
 					transition.render()
 				}
 
@@ -248,10 +247,6 @@ export default class Renderer {
 
 		// Set post processing
 		this._experience.resources.on('ready', () => this._setPostProcessing())
-
-		setTimeout(() => {
-			console.log(this._renderList)
-		}, 2000)
 
 		// Debug
 		if (this._debug) this._setDebug()

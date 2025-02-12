@@ -505,9 +505,6 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 
 		// Trigger resize on all components
 		Object.values(this.allComponents).forEach((c) => c.trigger('resize'))
-
-		// Trigger resize on all scenes
-		// Object.values(this.allScenes).forEach((s) => s.trigger('resize'))
 	}
 
 	/**
@@ -530,7 +527,7 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 		this.allComponents = {}
 
 		// Scenes
-		// Object.values(this.allScenes).forEach((s) => s.trigger('dispose'))
+		Object.values(this.allScenes).forEach((s) => s.trigger('dispose'))
 		this.scenes = {}
 		this.allScenes = {}
 
