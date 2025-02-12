@@ -1,5 +1,4 @@
 import {
-	Camera,
 	Group,
 	LinearFilter,
 	MirroredRepeatWrapping,
@@ -24,7 +23,7 @@ import type {
 import type { TCursorProps } from '~/utils/CursorManager'
 import type { FolderApi } from 'tweakpane'
 import type { TItemsEvents } from './ExtendableItem'
-import type ExtendableShader from './Shaders/ExtendableShader/ExtendableShader'
+import ExtendableShader from './Shaders/ExtendableShader/ExtendableShader'
 import ExtendableShaderTransition from './Shaders/ExtendableShaderTransition/ExtendableShaderTransition'
 import { ScrollManager } from '#imports'
 
@@ -167,6 +166,18 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 	 */
 	public camera: ExtendableCamera
 	/**
+	 * Parent scene if exists
+	 */
+	public parent?: ExtendableScene
+	/**
+	 * Scene components
+	 */
+	public scenes: Dictionary<ExtendableScene>
+	/**
+	 * Flattened components including nested ones
+	 */
+	public allScenes: Dictionary<ExtendableScene>
+	/**
 	 * Scene components
 	 */
 	public components: Dictionary<ExtendableItem>
@@ -277,7 +288,6 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 		this.name = this.constructor.name
 		this.#setScene()
 		this.camera = new ExtendableCamera(this.name)
-		this.allComponents = {}
 		this.wireframe = false
 		this.transition = new ExtendableShaderTransition(this)
 		this.rt = new WebGLRenderTarget(this.viewport.width, this.viewport.height, {
@@ -301,7 +311,11 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 		this.on('resize', this.#onResize.bind(this))
 		this.on('dispose', this.#onDispose.bind(this))
 
+		// Initialize dictionaries
 		this.components = {}
+		this.allComponents = {}
+		this.scenes = {}
+		this.allScenes = {}
 		this.audios = {}
 	}
 
@@ -372,6 +386,9 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 	 * @param event Mouse down event
 	 */
 	#onMouseDown(event: TCursorProps): void {
+		// Trigger mousedown on all scenes
+		// Object.values(this.allScenes).forEach((s) => s.trigger('mousedown', event))
+
 		// Clicked item
 		const clicked = this.#getRaycastedItem(event.centered, ['click'])?.item
 		clicked?.trigger('click')
@@ -386,6 +403,10 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 	 * @param event Mouse up event
 	 */
 	#onMouseUp(): void {
+		// Trigger mouseup on all scenes
+		// Object.values(this.allScenes).forEach((s) => s.trigger('mouseup'))
+
+		// Reset holded item
 		this.#resetHoldedItem()
 	}
 
@@ -394,6 +415,9 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 	 * @param event Mouse move event
 	 */
 	#onMouseMove(event: TCursorProps): void {
+		// Trigger mousemove on all scenes
+		// Object.values(this.allScenes).forEach((s) => s.trigger('mousemove', event))
+
 		// Get hovered item
 		const hovered = this.#getRaycastedItem(event.centered, [
 			'mouseenter',
@@ -431,7 +455,11 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 	 * @param event Scroll event
 	 */
 	#onScroll(event: TScrollEvent): void {
+		// Trigger scroll on all components
 		Object.values(this.allComponents).forEach((c) => c.trigger('scroll', event))
+
+		// Trigger scroll on all scenes
+		// Object.values(this.allScenes).forEach((s) => s.trigger('scroll', event))
 	}
 
 	/**
@@ -440,15 +468,25 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 	#onReady(): void {
 		// Trigger onInitComplete on all components
 		Object.values(this.allComponents).forEach((c) => c.trigger('ready'))
+
+		// Trigger ready on all scenes
+		// Object.values(this.allScenes).forEach((s) => s.trigger('ready'))
 	}
 
 	/**
 	 * Update the scene
 	 */
 	#onUpdate(): void {
+		// Trigger update on all components
 		Object.values(this.allComponents).forEach((c) => c.trigger('update'))
 
+		// Trigger update on all scenes
+		// Object.values(this.allScenes).forEach((s) => s.trigger('update'))
+
+		// Update camera
 		this.camera.update()
+
+		// Update CSS renderers
 		this.#css2dManager?.update()
 		this.#css3dManager?.update()
 	}
@@ -464,7 +502,12 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 		this.camera.resize()
 		this.#css2dManager?.resize()
 		this.#css3dManager?.resize()
+
+		// Trigger resize on all components
 		Object.values(this.allComponents).forEach((c) => c.trigger('resize'))
+
+		// Trigger resize on all scenes
+		// Object.values(this.allScenes).forEach((s) => s.trigger('resize'))
 	}
 
 	/**
@@ -483,8 +526,14 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 			this.scene.remove(c.item)
 			this.camera.removeAudios(c.audios, true)
 		})
-		this.allComponents = {}
 		this.components = {}
+		this.allComponents = {}
+
+		// Scenes
+		// Object.values(this.allScenes).forEach((s) => s.trigger('dispose'))
+		this.scenes = {}
+		this.allScenes = {}
+
 		this.audios = {}
 
 		// Dispose scene
@@ -494,7 +543,6 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 		this.rt.dispose()
 		this.#css2dManager?.dispose()
 		this.#css3dManager?.dispose()
-		this.cursorManager?.dispose()
 	}
 
 	/**
@@ -502,15 +550,27 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 	 * Automatically called after the constructor
 	 */
 	#onLoad(): void {
+		// Flatten components & add to scene
 		this.allComponents = this.#flattenComponents()
 		this.#addItemsToScene()
 
+		// Flatten scenes & trigger load on all scenes
+		this.allScenes = this.#flattenScenes()
+		Object.values(this.allScenes).forEach((s) => s.trigger('load'))
+
+		// Set debug
 		this.debug && this.#setDebug()
+
+		// Add audios to the scene
 		this.audios && this.camera.addAudios(this.audios, this.scene)
 
+		// Add camera to the scene
 		this.scene.add(this.camera.instance)
+
+		// Set events
 		this.#setEvents()
 
+		// Trigger ready event on all components
 		Object.values(this.allComponents).forEach((c) => c.trigger('ready'))
 	}
 
@@ -764,7 +824,7 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 		let res: Dictionary<ExtendableItem> = {}
 
 		Object.keys(c).forEach((key) => {
-			const value = c[key] as ExtendableItem
+			const value = c[key]
 
 			if (res[key]) {
 				const oldKey = key
@@ -791,6 +851,52 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 				res = {
 					...res,
 					...this.#flattenComponents(value.components, value),
+				}
+			}
+
+			res[key] = value
+		})
+
+		return res
+	}
+
+	/**
+	 * Flatten scenes
+	 * @param c Scenes to flatten
+	 * @param parent Parent of the scenes
+	 * @returns Flattened scenes
+	 */
+	#flattenScenes(
+		c: Dictionary<ExtendableScene> = this.scenes,
+		parent?: ExtendableScene
+	): Dictionary<ExtendableScene> {
+		let res: Dictionary<ExtendableScene> = {}
+
+		Object.keys(c).forEach((key) => {
+			const value = c[key]
+
+			if (res[key]) {
+				const oldKey = key
+				const count = Object.keys(res).filter((r) => r.includes(key)).length
+				key = `${key}_${count}`
+
+				const warn_msg = `Scene name '${oldKey}' already exists, renamed to '${key}'`
+				console.warn(warn_msg)
+			}
+
+			if (!value) {
+				const warn_msg = `Scene ${key} is not defined`
+				return console.warn(warn_msg, c)
+			}
+
+			if (parent) {
+				value.parent = parent
+			}
+
+			if (value?.scenes) {
+				res = {
+					...res,
+					...this.#flattenScenes(value.scenes, value),
 				}
 			}
 

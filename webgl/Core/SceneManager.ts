@@ -52,8 +52,10 @@ export default class SceneManager {
 	public set active(scene: ExtendableScene | undefined) {
 		// Remove the previous scene from the render list
 		if (this._active) {
-			this.renderList = this.renderList.filter((s) => s.id !== this._active?.id)
-			this._active.isActive = false
+			this._removeFromRenderList([
+				...Object.values(this._active.allScenes),
+				this._active,
+			])
 		}
 
 		// Set the active scene
@@ -62,8 +64,7 @@ export default class SceneManager {
 
 		// Add the active scene to the render list
 		if (scene) {
-			this.renderList.push(scene)
-			scene.isActive = true
+			this._addToRenderList([...Object.values(scene.allScenes), scene])
 		}
 	}
 
@@ -83,8 +84,7 @@ export default class SceneManager {
 
 		// Add the next scene to the render list
 		if (scene) {
-			this.renderList.push(scene)
-			scene.isActive = true
+			this._addToRenderList([...Object.values(scene.allScenes), scene])
 		}
 	}
 
@@ -92,14 +92,14 @@ export default class SceneManager {
 	 * Switch scene
 	 * @param {TSceneInfos} nextInfos Destination scene
 	 */
-	public switch(nextInfos: TSceneInfos): void {
+	public switch({ Scene }: TSceneInfos): void {
 		if (this.next) return
 		if (this._debug && this._debugScene) {
 			this._debugScene.disabled = true // Disable the debug folder during the transition
 		}
 
 		// Init next scene
-		this.next = new nextInfos.Scene()
+		this.next = new Scene()
 
 		// Load the next scene
 		this.next.trigger('load')
@@ -127,11 +127,14 @@ export default class SceneManager {
 
 		// Get the scene and init it
 		const { Scene } = this._getSceneFromList(name)
-		this.active = new Scene()
+		const active = new Scene()
 
 		// Trigger load and ready events
-		this.active.trigger('load')
-		this.active.trigger('ready')
+		active.trigger('load')
+		active.trigger('ready')
+
+		// Set the active scene
+		this.active = active
 
 		// Start navigation
 		this.$bus?.on('scene:switch', (scene: TSceneInfos) => this.switch(scene))
@@ -159,6 +162,30 @@ export default class SceneManager {
 	}
 
 	/**
+	 * Remove elements from render list
+	 * @param list Elements to remove
+	 */
+	private _removeFromRenderList(list: ExtendableScene[]): void {
+		list.forEach((scene) => {
+			this.renderList = this.renderList.filter((s) => s.id !== scene.id)
+			scene.isActive = false
+		})
+	}
+
+	/**
+	 * Add elements to render list
+	 * @param list Elements to add
+	 */
+	private _addToRenderList(list: ExtendableScene[]): void {
+		list.forEach((scene) => {
+			if (!this.renderList.find((s) => s.id === scene.id)) {
+				this.renderList.push(scene)
+				scene.isActive = true
+			}
+		})
+	}
+
+	/**
 	 * On switch complete
 	 * @param infos Scene infos
 	 */
@@ -174,6 +201,10 @@ export default class SceneManager {
 		// Switch to next scene
 		this.active = this.next
 		this.next = undefined
+
+		setTimeout(() => {
+			console.log(this.renderList)
+		}, 500)
 
 		// Switch complete function on the new scene
 		this.active?.trigger('ready')

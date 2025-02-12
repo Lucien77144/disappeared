@@ -21,8 +21,6 @@ export type TExtendableUniforms = {
 export default class ExtendableShader {
 	// Public
 	public scene: ExtendableScene
-	public frag?: string
-	public vert?: string
 	public uniforms: TExtendableUniforms
 	public shaderMaterial!: ShaderMaterial
 
@@ -46,15 +44,13 @@ export default class ExtendableShader {
 	) {
 		// Public
 		this.scene = scene
-		this.vert = vert
-		this.frag = frag
 		this.uniforms = uniforms
 
-		if (!this.vert) {
+		if (!vert) {
 			throw new Error('Vertex shaders is missing.')
 		}
 
-		if (!this.frag) {
+		if (!frag) {
 			throw new Error('Fragment  shaders is missing.')
 		}
 
@@ -65,11 +61,39 @@ export default class ExtendableShader {
 		this.time = this.experience.time
 
 		// Private
-		this.#initMaterial()
+		this.#initMaterial(vert, frag)
 		this.#initFullScreenQuad()
 
 		// Events
 		this.resize()
+	}
+
+	/**
+	 * Get the fragment shader
+	 */
+	public get frag() {
+		return this.shaderMaterial.fragmentShader
+	}
+
+	/**
+	 * Set the fragment shader
+	 */
+	public set frag(value: string) {
+		this.shaderMaterial.fragmentShader = value
+	}
+
+	/**
+	 * Get the vertex shader
+	 */
+	public get vert() {
+		return this.shaderMaterial.vertexShader
+	}
+
+	/**
+	 * Set the vertex shader
+	 */
+	public set vert(value: string) {
+		this.shaderMaterial.vertexShader = value
 	}
 
 	/**
@@ -97,6 +121,7 @@ export default class ExtendableShader {
 
 		// Apply the shader material to the rt
 		this.renderer.instance.setRenderTarget(this.scene.rt)
+		this.renderer.instance.clear()
 		this.#fullScreenQuad.render(this.renderer.instance)
 	}
 
@@ -132,10 +157,10 @@ export default class ExtendableShader {
 	/**
 	 * Init the shader material
 	 */
-	#initMaterial() {
+	#initMaterial(vertexShader: string, fragmentShader: string) {
 		this.shaderMaterial = new ShaderMaterial({
-			vertexShader: this.vert,
-			fragmentShader: this.frag,
+			vertexShader,
+			fragmentShader,
 			uniforms: this.uniforms,
 			transparent: true,
 		})

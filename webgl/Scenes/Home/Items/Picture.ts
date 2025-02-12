@@ -20,6 +20,7 @@ export default class Picture extends ExtendableItem<Home> {
 	private _mesh!: Mesh
 	private _savedPosition!: Vector3
 	private _targetPosition!: Vector3
+
 	/**
 	 * Constructor
 	 */

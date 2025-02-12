@@ -8,7 +8,8 @@ import {
 import ExtendableScene from '../../Modules/Extendables/ExtendableScene'
 import Garland from './Items/Garland'
 import type { Dictionary } from '~/models/functions/dictionary.model'
-import { HomeShader } from './Shaders/HomeMain'
+import Sandbox2 from './Scenes/Sandbox2/Sandbox2'
+import { HomeMainShader } from './Shaders/HomeMainShader'
 
 export default class Home extends ExtendableScene {
 	// Public
@@ -24,11 +25,13 @@ export default class Home extends ExtendableScene {
 	constructor() {
 		super()
 		// Public
+		this.scenes = {
+			sandbox2: new Sandbox2(),
+		}
 		this.components = {
-			// cube: new Cube(),
 			garland: new Garland(),
 		}
-		this.shader = new HomeShader(this)
+		this.shader = new HomeMainShader(this)
 		this.hdri = this.experience.resources.items.hdri as Texture
 
 		// Private
@@ -63,6 +66,7 @@ export default class Home extends ExtendableScene {
 		const pmremGenerator = new PMREMGenerator(this._renderer)
 		this.hdriTexture = pmremGenerator.fromEquirectangular(this.hdri).texture
 		this.scene.background = this.hdriTexture
+		this.scene.environment = this.hdriTexture
 		pmremGenerator.dispose()
 	}
 

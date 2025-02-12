@@ -10,12 +10,7 @@ import {
 import Experience from '../../Experience'
 import type { FolderApi } from '@tweakpane/core'
 import type Debug from '~/webgl/Core/Debug'
-import {
-	BloomEffect,
-	EffectComposer,
-	EffectPass,
-	ShaderPass,
-} from 'postprocessing'
+import { EffectComposer, ShaderPass } from 'postprocessing'
 import vertexShader from './shaders/vertexShader.vert?raw'
 import fragmentShader from './shaders/fragmentShader.frag?raw'
 import { FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js'
@@ -74,6 +69,13 @@ export default class Renderer {
 	 */
 	private get _sceneManager() {
 		return this._experience.sceneManager
+	}
+
+	/**
+	 * Get the render list
+	 */
+	private get _renderList() {
+		return this._sceneManager.renderList
 	}
 
 	// --------------------------------
@@ -197,7 +199,7 @@ export default class Renderer {
 		this.instance.clear()
 
 		// Render each scene from the render list
-		this._sceneManager.renderList.forEach((instance) => {
+		this._renderList.forEach((instance) => {
 			if (instance.camera?.instance) {
 				// Trigger before render
 				instance.trigger('beforeRender')
@@ -214,7 +216,7 @@ export default class Renderer {
 				const transition = instance.transition
 				if (transition?.isActive) {
 					this.instance.clear()
-					transition?.render()
+					transition.render()
 				}
 
 				// Trigger after render
@@ -246,6 +248,10 @@ export default class Renderer {
 
 		// Set post processing
 		this._experience.resources.on('ready', () => this._setPostProcessing())
+
+		setTimeout(() => {
+			console.log(this._renderList)
+		}, 2000)
 
 		// Debug
 		if (this._debug) this._setDebug()
