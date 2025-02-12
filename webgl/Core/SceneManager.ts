@@ -217,6 +217,11 @@ export default class SceneManager {
 	 * Set debug
 	 */
 	private _setDebug(defaultScene: string): string {
+		// Separator
+		this._debug!.panel.addBlade({
+			view: 'separator',
+		})
+
 		// Debug scene
 		const scene = { value: defaultScene }
 		this._debugScene = this._debug!.panel.addBinding(scene, 'value', {

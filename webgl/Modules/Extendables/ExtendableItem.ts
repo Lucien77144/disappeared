@@ -155,6 +155,10 @@ export default class ExtendableItem<
 	 */
 	public item: Group
 	/**
+	 * Shild scenes of the item
+	 */
+	public scenes: Dictionary<ExtendableScene>
+	/**
 	 * Child components of the item
 	 * @description Will replace item by a group (including item) and add components to it
 	 */
@@ -211,6 +215,7 @@ export default class ExtendableItem<
 
 		// Public
 		this.item = new Group()
+		this.scenes = {}
 		this.components = {}
 		this.holdDuration = 1000
 		this.disabledFn = []

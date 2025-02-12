@@ -26,6 +26,7 @@ export default class Picture extends ExtendableItem<Home> {
 	 */
 	constructor({ position }: { position: Vector3 }) {
 		super()
+
 		// Public
 		this.position = position
 		this.holdDuration = 2000

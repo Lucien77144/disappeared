@@ -22,7 +22,6 @@ import type { FolderApi } from 'tweakpane'
  */
 export default class ExtendableCamera {
 	// Public
-	public name: string
 	public instance!: PerspectiveCamera
 	public listener?: AudioListener
 	public debugFolder?: FolderApi
@@ -43,20 +42,20 @@ export default class ExtendableCamera {
 	/**
 	 * Constructor
 	 */
-	constructor(name: string) {
+	constructor(debugFolder?: FolderApi) {
 		// Public
-		this.name = name
 		this.pendingAudios = []
 
 		// Private
 		this.#experience = new Experience()
 		this.$bus = this.#experience.$bus
 		this.#viewport = this.#experience.viewport
-		this.#debug = this.#experience.debug
 		this.#audioManager = this.#experience.audioManager
-
+		this.#debug = this.#experience.debug
 		// Init
-		this.#init()
+		this.#setInstance()
+		this.#setListener()
+		debugFolder && this.#setDebug(debugFolder)
 	}
 
 	// --------------------------------
@@ -185,27 +184,18 @@ export default class ExtendableCamera {
 	/**
 	 * Set debug
 	 */
-	#setDebug() {
-		this.debugFolder = this.#debug?.panel.addFolder({
+	#setDebug(parentFolder: FolderApi) {
+		this.debugFolder = parentFolder.addFolder({
 			expanded: false,
-			title: '🎥 Camera - ' + this.name,
+			title: '🎥 Camera',
 		})
 
-		this.debugFolder?.addBinding(this.instance, 'position', {
+		this.debugFolder.addBinding(this.instance, 'position', {
 			label: 'Position',
-			tag: `cam_position_${this.name}`,
+			tag: `cam_position`,
 			x: { label: 'X', step: 0.5 },
 			y: { label: 'Y', step: 0.5 },
 			z: { label: 'Z', step: 0.5 },
 		})
-	}
-
-	/**
-	 * Init the camera
-	 */
-	#init() {
-		this.#setInstance()
-		this.#setListener()
-		this.#debug && this.#setDebug()
 	}
 }

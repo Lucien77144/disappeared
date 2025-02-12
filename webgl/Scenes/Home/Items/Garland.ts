@@ -22,6 +22,7 @@ export default class Garland extends ExtendableItem<Home> {
 	 */
 	constructor() {
 		super()
+
 		// Public
 		this.wrapper = new Group()
 

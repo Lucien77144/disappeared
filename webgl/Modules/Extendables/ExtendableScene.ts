@@ -129,6 +129,8 @@ export type TSceneEvents = {
  * @param {ExtendableCamera} camera Camera instance
  * @param {Dictionary<ExtendableItem>} components Scene components
  * @param {Dictionary<ExtendableItem>} allComponents Flattened components including nested ones
+ * @param {Dictionary<ExtendableScene>} scenes Scenes
+ * @param {Dictionary<ExtendableScene>} allScenes Flattened scenes including nested ones
  * @param {Dictionary<TAudioParams>} audios Object of audios to add to the scene
  * @param {boolean} wireframe Wireframe mode
  * @param {ExtendableItem} hovered Currently hovered item
@@ -142,14 +144,6 @@ export type TSceneEvents = {
  * @method removeCSS3D Remove CSS3D from the item
  */
 export default class ExtendableScene extends EventEmitter<TSceneEvents> {
-	// --------------------------------
-	// Readonly properties
-	// --------------------------------
-	/**
-	 * Scene name
-	 */
-	readonly name: string
-
 	// --------------------------------
 	// Public properties
 	// --------------------------------
@@ -165,6 +159,10 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 	 * BasicCamera instance
 	 */
 	public camera: ExtendableCamera
+	/**
+	 * Scroll manager reference
+	 */
+	public scrollManager: ScrollManager
 	/**
 	 * Parent scene if exists
 	 */
@@ -238,10 +236,6 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 	 */
 	protected cursorManager: Experience['cursorManager']
 	/**
-	 * Scroll manager reference
-	 */
-	protected scrollManager: ScrollManager
-	/**
 	 * Store reference
 	 */
 	protected store: Experience['store']
@@ -253,16 +247,13 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 	 * Event bus reference
 	 */
 	protected $bus: Experience['$bus']
-	/**
-	 * Debug reference
-	 */
-	protected debug: Experience['debug']
 
 	// --------------------------------
 	// Private properties
 	// --------------------------------
 	#css2dManager?: CSS2DManager
 	#css3dManager?: CSS3DManager
+	#debug: Experience['debug']
 
 	/**
 	 * Constructor
@@ -280,25 +271,24 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 		this.cursorManager = this.experience.cursorManager
 		this.store = this.experience.store
 		this.raycaster = this.experience.raycaster
-		this.debug = this.experience.debug
 		this.$bus = this.experience.$bus
+
+		// Private
+		this.#debug = this.experience.debug
 
 		// Public
 		this.isActive = false
-		this.name = this.constructor.name
-		this.#setScene()
-		this.camera = new ExtendableCamera(this.name)
 		this.wireframe = false
-		this.transition = new ExtendableShaderTransition(this)
-		this.rt = new WebGLRenderTarget(this.viewport.width, this.viewport.height, {
-			generateMipmaps: false,
-			minFilter: LinearFilter,
-			magFilter: LinearFilter,
-			format: RGBAFormat,
-			samples: 1,
-			wrapS: MirroredRepeatWrapping,
-			wrapT: MirroredRepeatWrapping,
-		})
+		this.debugFolder = this.#setDebugFolder()
+		this.scene = this.#setScene()
+		this.camera = this.#setCamera()
+		this.transition = this.#setTransition()
+		this.rt = this.#setRenderTarget()
+		this.components = {}
+		this.allComponents = {}
+		this.scenes = {}
+		this.allScenes = {}
+		this.audios = {}
 
 		// Events
 		this.on('mousedown', this.#onMouseDown.bind(this))
@@ -310,13 +300,14 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 		this.on('update', this.#onUpdate.bind(this))
 		this.on('resize', this.#onResize.bind(this))
 		this.on('dispose', this.#onDispose.bind(this))
+	}
 
-		// Initialize dictionaries
-		this.components = {}
-		this.allComponents = {}
-		this.scenes = {}
-		this.allScenes = {}
-		this.audios = {}
+	/**
+	 * Get the name of the scene
+	 * @returns Name of the scene
+	 */
+	public get name(): string {
+		return this.constructor.name
 	}
 
 	// --------------------------------
@@ -386,9 +377,6 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 	 * @param event Mouse down event
 	 */
 	#onMouseDown(event: TCursorProps): void {
-		// Trigger mousedown on all scenes
-		// Object.values(this.allScenes).forEach((s) => s.trigger('mousedown', event))
-
 		// Clicked item
 		const clicked = this.#getRaycastedItem(event.centered, ['click'])?.item
 		clicked?.trigger('click')
@@ -403,9 +391,6 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 	 * @param event Mouse up event
 	 */
 	#onMouseUp(): void {
-		// Trigger mouseup on all scenes
-		// Object.values(this.allScenes).forEach((s) => s.trigger('mouseup'))
-
 		// Reset holded item
 		this.#resetHoldedItem()
 	}
@@ -415,9 +400,6 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 	 * @param event Mouse move event
 	 */
 	#onMouseMove(event: TCursorProps): void {
-		// Trigger mousemove on all scenes
-		// Object.values(this.allScenes).forEach((s) => s.trigger('mousemove', event))
-
 		// Get hovered item
 		const hovered = this.#getRaycastedItem(event.centered, [
 			'mouseenter',
@@ -457,9 +439,6 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 	#onScroll(event: TScrollEvent): void {
 		// Trigger scroll on all components
 		Object.values(this.allComponents).forEach((c) => c.trigger('scroll', event))
-
-		// Trigger scroll on all scenes
-		// Object.values(this.allScenes).forEach((s) => s.trigger('scroll', event))
 	}
 
 	/**
@@ -468,9 +447,6 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 	#onReady(): void {
 		// Trigger onInitComplete on all components
 		Object.values(this.allComponents).forEach((c) => c.trigger('ready'))
-
-		// Trigger ready on all scenes
-		// Object.values(this.allScenes).forEach((s) => s.trigger('ready'))
 	}
 
 	/**
@@ -479,9 +455,6 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 	#onUpdate(): void {
 		// Trigger update on all components
 		Object.values(this.allComponents).forEach((c) => c.trigger('update'))
-
-		// Trigger update on all scenes
-		// Object.values(this.allScenes).forEach((s) => s.trigger('update'))
 
 		// Update camera
 		this.camera.update()
@@ -531,6 +504,8 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 		this.scenes = {}
 		this.allScenes = {}
 
+		// Dispose audios
+		this.camera.removeAudios(this.audios, true)
 		this.audios = {}
 
 		// Dispose scene
@@ -552,11 +527,8 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 		this.#addItemsToScene()
 
 		// Flatten scenes & trigger load on all scenes
-		this.allScenes = this.#flattenScenes()
+		this.allScenes = this.#flattenScenes(this.#getAllScenes())
 		Object.values(this.allScenes).forEach((s) => s.trigger('load'))
-
-		// Set debug
-		this.debug && this.#setDebug()
 
 		// Add audios to the scene
 		this.audios && this.camera.addAudios(this.audios, this.scene)
@@ -578,11 +550,11 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 	/**
 	 * Set scene
 	 */
-	#setScene(): void {
-		this.scene = new Scene()
+	#setScene(): Scene {
+		const scene = new Scene()
 
-		const isLogEnabled = () => this.debug?.debugParams.SceneLogs
-		this.scene.add = (function (original) {
+		const isLogEnabled = () => this.#debug?.debugParams.SceneLogs
+		scene.add = (function (original) {
 			return function (object) {
 				if (!object.userData?.devObject && isLogEnabled()) {
 					console.debug(
@@ -598,7 +570,38 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 				// @ts-ignore
 				return original.apply(this, arguments)
 			}
-		})(this.scene.add)
+		})(scene.add)
+
+		return scene
+	}
+
+	/**
+	 * Set camera
+	 */
+	#setCamera(): ExtendableCamera {
+		return new ExtendableCamera(this.debugFolder)
+	}
+
+	/**
+	 * Set transition shader
+	 */
+	#setTransition(): ExtendableShaderTransition {
+		return new ExtendableShaderTransition(this)
+	}
+
+	/**
+	 * Set render target
+	 */
+	#setRenderTarget(): WebGLRenderTarget {
+		return new WebGLRenderTarget(this.viewport.width, this.viewport.height, {
+			generateMipmaps: false,
+			minFilter: LinearFilter,
+			magFilter: LinearFilter,
+			format: RGBAFormat,
+			samples: 1,
+			wrapS: MirroredRepeatWrapping,
+			wrapT: MirroredRepeatWrapping,
+		})
 	}
 
 	/**
@@ -667,14 +670,16 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 	/**
 	 * Set debug
 	 */
-	#setDebug(): void {
-		this.debugFolder = this.debug?.panel?.addFolder({
+	#setDebugFolder(): FolderApi | undefined {
+		if (!this.#debug) return
+
+		const folder = this.#debug.panel.addFolder({
 			expanded: false,
 			title: '🌏 Scene - ' + this.name,
 		})
 
-		this.debugFolder
-			?.addBinding(this, 'wireframe', {
+		folder
+			.addBinding(this, 'wireframe', {
 				tag: `wireframe_${this.name}`,
 			})
 			.on('change', () =>
@@ -684,6 +689,8 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 					}
 				})
 			)
+
+		return folder
 	}
 
 	/**
@@ -759,11 +766,11 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 	 */
 	#removeDebug() {
 		Object.values(this.allComponents).forEach((e) => {
-			e.debugFolder && this.debug?.remove(e.debugFolder)
+			e.debugFolder && this.#debug?.remove(e.debugFolder)
 		})
 
 		// Debug
-		this.debugFolder && this.debug?.remove(this.debugFolder)
+		this.debugFolder && this.#debug?.remove(this.debugFolder)
 	}
 
 	/**
@@ -855,6 +862,24 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 		})
 
 		return res
+	}
+
+	/**
+	 * Get all scenes
+	 * @param c Scenes to get
+	 * @returns All scenes
+	 */
+	#getAllScenes(): Dictionary<ExtendableScene> {
+		return {
+			...this.scenes,
+			...Object.entries(this.allComponents).reduce(
+				(acc, [key, comp]) => ({
+					...acc,
+					...(Object.keys(comp.scenes).length > 0 && { [key]: comp.scenes }),
+				}),
+				{}
+			),
+		}
 	}
 
 	/**

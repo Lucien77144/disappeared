@@ -2,11 +2,11 @@ import { BoxGeometry, MathUtils, Mesh, MeshNormalMaterial } from 'three'
 import { UIBtn } from '#components'
 import type ScrollManager from '~/utils/ScrollManager'
 import ExtendableItem from '~/webgl/Modules/Extendables/ExtendableItem'
-import type Home from '../Home'
+import type Home from '../../Home'
 
 export default class Cube extends ExtendableItem<Home> {
 	// Private
-	private _scrollManager: ScrollManager
+	private _scrollManager!: ScrollManager
 	private _geometry?: BoxGeometry
 	private _material?: MeshNormalMaterial
 	private _mesh!: Mesh
@@ -24,9 +24,6 @@ export default class Cube extends ExtendableItem<Home> {
 		//     position: { x: 0, y: 0.5, z: 0 },
 		//   }),
 		// }
-
-		// Private
-		this._scrollManager = this.experience.scrollManager
 
 		// Events
 		this.on('load', () => this._onLoad())
@@ -78,6 +75,7 @@ export default class Cube extends ExtendableItem<Home> {
 	 * On load
 	 */
 	private _onLoad(): void {
+		this._scrollManager = this.scene?.scrollManager!
 		this._setGeometry()
 		this._setMaterial()
 		this._setMesh()
