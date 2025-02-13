@@ -5,13 +5,16 @@ import * as TweakpaneFileImportPlugin from 'tweakpane-plugin-file-import'
 import Experience from '../Experience'
 import type {
 	BladeApi,
+	BladeController,
 	BladeState,
+	Controller,
 	FolderApi,
 	FolderController,
 	PluginPool,
 } from '@tweakpane/core'
 import Stats from './Stats'
 import { Pane } from 'tweakpane'
+import { defined } from '~/utils/functions/defined'
 
 type TMonitoringValue = {
 	name: string
@@ -108,26 +111,79 @@ export default class Debug {
 	}
 
 	/**
+	 * Get the stack ID
+	 * @param state State of the blade
+	 * @returns Stack ID
+	 */
+	private async _getStackID(
+		state: BladeState,
+		el: HTMLElement
+	): Promise<string> {
+		let res = ''
+		const getParentElement = (el: HTMLElement) => {
+			if (el.classList.contains('tp-rotv_c')) return
+			if (el.classList.contains('tp-fldv')) {
+				const child = el.querySelector('.tp-fldv_b>.tp-fldv_t')
+				if (child) {
+					res += `-${child.textContent}`
+				}
+			}
+
+			if (el.parentElement) {
+				return getParentElement(el.parentElement)
+			}
+		}
+		getParentElement(el)
+
+		const tag = this._getStateTag(state)
+		async function hashString(input: string): Promise<string> {
+			const encoder = new TextEncoder()
+			const data = encoder.encode(input)
+			const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+			const hashArray = Array.from(new Uint8Array(hashBuffer))
+			const code = hashArray
+				.map((byte) => byte.toString(16).padStart(2, '0'))
+				.join('')
+				.slice(0, 8)
+
+			return `${tag}-${code}`
+		}
+
+		return tag && hashString(res)
+	}
+
+	/**
+	 * Get the state tag
+	 * @param state State of the binding
+	 * @returns State tag
+	 */
+	private _getStateTag(state: any): string {
+		if (!state.tag) {
+			const key = state.binding?.key
+			const parsedLabel = state.label?.toLowerCase().replace(/ /g, '-')
+
+			if (key !== state.label) {
+				return `${state.binding?.key}${parsedLabel ? '-' + parsedLabel : ''}`
+			} else {
+				return key && `${key}`
+			}
+		}
+
+		return state.tag
+	}
+
+	/**
 	 * Remove a folder from the panel
 	 * @param debug Debug folder
 	 */
-	public remove(debug: FolderApi | BladeApi) {
-		const state = debug.exportState()
+	public async remove(debug: FolderApi | BladeApi) {
+		const id = debug.element.id
 
 		const childs = (debug as FolderApi).children
 		childs?.forEach((child: BladeApi | FolderApi) => this.remove(child))
 
 		// Check if this is a folder
-		if ((debug as FolderApi).controller.foldable) {
-			const key = (state.title as string)?.toLowerCase().replace(/ /g, '-')
-			const id: `f_${string}` = `f_${key}`
-
-			this._activeDebugs = this._activeDebugs.filter(
-				(tag) => tag !== (state.tag ?? id)
-			)
-		} else {
-			this._activeDebugs = this._activeDebugs.filter((tag) => tag !== state.tag)
-		}
+		this._activeDebugs = this._activeDebugs.filter((tag) => tag !== id)
 
 		this.panel.remove(debug)
 	}
@@ -172,14 +228,15 @@ export default class Debug {
 	 * Save the folder state
 	 */
 	private _saveFolderState() {
-		const handleSave = (state: BladeState, key: string) => {
-			return this._handleLocalSave(state, key)
+		const getStackId = async (state: BladeState, element: HTMLElement) => {
+			return await this._getStackID(state, element)
 		}
-		const getDefaultState = (state: BladeState, key: string) => {
-			return this._handleLocalValue(state, key)
-		}
-		const isActive = (tag: string) => this._activeDebugs.includes(tag)
-		const addToList = (tag: string) => this._activeDebugs.push(tag)
+		const handleSave = (id: string, state: BladeState) =>
+			this._handleLocalSave(id, state)
+
+		const getDefaultState = (id: string) => this._handleLocalValue(id)
+		const isActive = (id: string) => this._activeDebugs.includes(id)
+		const addToList = (id: string) => this._activeDebugs.push(id)
 
 		this._pool.createApi = (function (original) {
 			return function (bc) {
@@ -187,28 +244,33 @@ export default class Debug {
 					bc = bc as FolderController
 
 					const state = bc.exportState()
-					const key = (state.title as string)?.toLowerCase().replace(/ /g, '-')
-					const id: `f_${string}` = `f_${key}`
 
 					// Used to prevent issues on scene changes
 					window.requestAnimationFrame(() => {
-						if (isActive(id)) {
-							console.warn(
-								`The tag "${id}" is already used in the session storage`,
-								bc
-							)
-						} else {
-							addToList(id)
-						}
-					})
+						// Wait the panel to build element
+						const element = bc.view.element
+						getStackId(state, element).then((id) => {
+							if (!id) return
+							element.id = id
 
-					bc.view.element.addEventListener('click', () => {
-						const state = bc.exportState()
-						handleSave(state, id)
-					})
+							if (isActive(id)) {
+								console.warn(
+									`The tag "${id}" is already used in the session storage`,
+									bc
+								)
+							} else {
+								addToList(id)
+							}
 
-					const defaultState = getDefaultState(state, id)
-					if (defaultState) bc.importState(defaultState)
+							const defaultState = getDefaultState(id)
+							if (defaultState) bc.importState(defaultState)
+
+							bc.view.element.addEventListener('click', () => {
+								const state = bc.exportState()
+								handleSave(id, state)
+							})
+						})
+					})
 				}
 
 				// @ts-ignore
@@ -407,11 +469,14 @@ export default class Debug {
 		document.head.appendChild(styleElement)
 		resetButton.innerHTML = `↺`
 
-		const handleSave = (state: BladeState) => this._handleLocalSave(state)
-		const getDefaultState = (state: BladeState) => this._handleLocalValue(state)
-		const isActive = (tag: string) => this._activeDebugs.includes(tag)
-		const addToList = (tag: string) => this._activeDebugs.push(tag)
-		const getStateTag = (state: BladeState) => this._getStateTag(state)
+		const handleSave = (id: string, state: BladeState) =>
+			this._handleLocalSave(id, state)
+		const getDefaultState = (id: string) => this._handleLocalValue(id)
+		const isActive = (id: string) => this._activeDebugs.includes(id)
+		const addToList = (id: string) => this._activeDebugs.push(id)
+		const getStackId = async (state: BladeState, element: HTMLElement) => {
+			return await this._getStackID(state, element)
+		}
 
 		this._pool.createBindingApi = (function (original) {
 			return function (bc) {
@@ -423,37 +488,45 @@ export default class Debug {
 
 				const initialValue = bc.valueController.value.rawValue
 				const initialState: any = bc.exportState()
-				bc.tag = getStateTag(initialState)
 
-				if (isActive(bc.tag)) {
-					console.warn(
-						`The tag "${bc.tag}" is already used in the session storage`,
-						bc
-					)
-				} else {
-					addToList(bc.tag)
-				}
+				window.requestAnimationFrame(() => {
+					// Wait the panel to build element
+					const element = bc.view.element
+					getStackId(initialState, element).then((id) => {
+						if (!id) return
+						element.id = id
 
-				bc.value.emitter.on('change', (e) => {
-					if (JSON.stringify(e.rawValue) === JSON.stringify(initialValue)) {
-						clonedResetButton.style.color = '#65656e'
-					} else {
-						clonedResetButton.style.color = 'var(--btn-bg-a)'
-					}
+						if (isActive(id)) {
+							console.warn(
+								`The tag "${id}" is already used in the session storage`,
+								bc
+							)
+						} else {
+							addToList(id)
+						}
 
-					handleSave(bc.exportState())
-				})
+						bc.value.emitter.on('change', (e) => {
+							if (JSON.stringify(e.rawValue) === JSON.stringify(initialValue)) {
+								clonedResetButton.style.color = '#65656e'
+							} else {
+								clonedResetButton.style.color = 'var(--btn-bg-a)'
+							}
 
-				const defaultState = getDefaultState(initialState)
-				if (defaultState) {
-					bc.importState(defaultState)
-					window.requestAnimationFrame(() => {
-						bc.importState(defaultState)
+							handleSave(id, bc.exportState())
+						})
+
+						const defaultState = getDefaultState(id)
+						if (defaultState) {
+							bc.importState(defaultState)
+							window.requestAnimationFrame(() => {
+								bc.importState(defaultState)
+							})
+						}
+
+						clonedResetButton.addEventListener('click', () => {
+							bc.valueController.value.setRawValue(initialValue)
+						})
 					})
-				}
-
-				clonedResetButton.addEventListener('click', () => {
-					bc.valueController.value.setRawValue(initialValue)
 				})
 
 				// @ts-ignore
@@ -463,55 +536,39 @@ export default class Debug {
 	}
 
 	/**
-	 * Get the state tag
-	 * @param state State of the binding
-	 * @returns State tag
-	 */
-	private _getStateTag(state: any): string {
-		if (!state.tag) {
-			const key = state.binding?.key
-			const parsedLabel = state.label?.toLowerCase().replace(/ /g, '-')
-
-			if (key !== state.label) {
-				return `${state.binding?.key}${parsedLabel ? '-' + parsedLabel : ''}`
-			} else {
-				return `${key}`
-			}
-		}
-
-		return state.tag
-	}
-
-	/**
 	 * Handle local save
+	 * @param id ID of the binding
 	 * @param state State of the binding
 	 */
-	private _handleLocalSave(state: any, key?: string) {
+	private _handleLocalSave(id: string, state: any) {
 		const current = sessionStorage.getItem('debugParams')
 		const res = current ? JSON.parse(current) : {}
-		const tag = key ?? this._getStateTag(state)
 
-		if (tag) {
-			res[tag] = state
+		if (id) {
+			res[id] = state
 			sessionStorage.setItem('debugParams', JSON.stringify(res))
 		} else {
-			console.warn('The tag is not defined', state)
+			console.warn('The key is not defined', state)
 		}
 	}
 
 	/**
 	 * Handle default local value
-	 * @param state State of the binding
+	 * @param id ID of the binding
 	 * @returns Default local value
 	 */
-	private _handleLocalValue(state: any, key?: string): any {
+	private _handleLocalValue(id: string): any {
 		const current = sessionStorage.getItem('debugParams')
 		if (!current) return
 
 		const values = JSON.parse(current)
-		const tag = key ?? this._getStateTag(state)
+		const res = values[id]
 
-		if (tag) return values[tag]
+		if (defined(res?.disable)) {
+			res.disable = false
+		}
+
+		if (id) return res
 	}
 
 	/**
