@@ -94,9 +94,10 @@ export default class SceneManager {
 	/**
 	 * Switch scene
 	 * @param {TSceneInfos} nextInfos Destination scene
+	 * @param {boolean} instant If true, the scene will be switched instantly
 	 */
-	public switch({ Scene }: TSceneInfos): void {
-		if (this.next) return
+	public switch({ Scene }: TSceneInfos, instant: boolean = false): void {
+		if (this.next && !instant) return
 		if (this._debug && this._debugScene) {
 			this._debugScene.disabled = true // Disable the debug folder during the transition
 		}
@@ -111,7 +112,7 @@ export default class SceneManager {
 		// Switch function start on previous scene
 		this.active?.trigger('disposestart')
 
-		if (this.active?.transition) {
+		if (this.active?.transition && !instant) {
 			const transition = this.active?.transition.start()
 			transition.then(() => this._onSwitchComplete())
 		} else {
@@ -126,7 +127,7 @@ export default class SceneManager {
 	public init(name: string = this.scenes.default.name): void {
 		// Init debug
 		if (this._debug && name) {
-			name = this._setDebug(name)
+			this._setDebug(name)
 		}
 
 		// Get the scene and init it
@@ -216,14 +217,31 @@ export default class SceneManager {
 	/**
 	 * Set debug
 	 */
-	private _setDebug(defaultScene: string): string {
+	private _setDebug(defaultScene: string): void {
 		// Separator
 		this._debug!.panel.addBlade({
 			view: 'separator',
 		})
 
 		// Debug scene
-		const scene = { value: defaultScene }
+		const scene = {
+			value: defaultScene,
+			onLoad: () => {
+				// Switch to default scene
+				if (scene.value !== defaultScene) {
+					const infos = this._getSceneFromList(scene.value)
+					this.switch(infos, true)
+				}
+
+				// Add switch event on change scene
+				this._debugScene!.on('change', (evt) => {
+					const value = evt.value as string
+					const infos = this._getSceneFromList(value)
+
+					return this.switch(infos)
+				})
+			},
+		}
 		this._debugScene = this._debug!.panel.addBinding(scene, 'value', {
 			view: 'list',
 			label: 'Scene',
@@ -233,20 +251,10 @@ export default class SceneManager {
 			})),
 		})
 
-		// Persist the folder and enable it
-		this._debugScene.disabled = false
-
-		// Add switch event on change scene
-		this._debugScene?.on('change', (evt) =>
-			this.switch(this._getSceneFromList(evt.value as string))
-		)
-
 		// Separator
 		this._debug!.panel.addBlade({
 			view: 'separator',
 		})
-
-		return this._debugScene.controller.value.rawValue as string
 	}
 
 	/**

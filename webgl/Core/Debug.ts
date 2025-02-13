@@ -5,9 +5,7 @@ import * as TweakpaneFileImportPlugin from 'tweakpane-plugin-file-import'
 import Experience from '../Experience'
 import type {
 	BladeApi,
-	BladeController,
 	BladeState,
-	Controller,
 	FolderApi,
 	FolderController,
 	PluginPool,
@@ -61,13 +59,11 @@ export default class Debug {
 	private _statsValues?: TStatsValues
 	private _monitoring!: HTMLElement
 	private _self: any
-	private _activeDebugs: string[]
 
 	constructor() {
 		// Private
 		this._experience = new Experience()
 		this._viewport = this._experience.viewport
-		this._activeDebugs = []
 
 		// Public
 		this._setPanel()
@@ -118,7 +114,7 @@ export default class Debug {
 	private async _getStackID(
 		state: BladeState,
 		el: HTMLElement
-	): Promise<string> {
+	): Promise<string | undefined> {
 		let res = ''
 		const getParentElement = (el: HTMLElement) => {
 			if (el.classList.contains('tp-rotv_c')) return
@@ -149,7 +145,9 @@ export default class Debug {
 			return `${tag}-${code}`
 		}
 
-		return tag && hashString(res)
+		// Check if el is in the dom :
+		const isInDom = document.body.contains(el)
+		if (isInDom) return tag && hashString(res)
 	}
 
 	/**
@@ -158,18 +156,25 @@ export default class Debug {
 	 * @returns State tag
 	 */
 	private _getStateTag(state: any): string {
-		if (!state.tag) {
+		let res = state.tag
+		if (!res) {
 			const key = state.binding?.key
-			const parsedLabel = state.label?.toLowerCase().replace(/ /g, '-')
+			const name = state.label ?? state.title
+			const filteredName = name.replace(/[^\p{L}\p{N}\p{P}\p{Z}]/gu, '')
+			const parsedName = filteredName
+				?.toLowerCase()
+				.replace(/ /g, '-')
+				?.replace(/--+/g, '-')
+				?.replace(/^-/, '')
 
-			if (key !== state.label) {
-				return `${state.binding?.key}${parsedLabel ? '-' + parsedLabel : ''}`
+			if (key !== parsedName) {
+				res = `${key ? key + '-' : ''}${parsedName ? parsedName : ''}`
 			} else {
-				return key && `${key}`
+				res = key && `${key}`
 			}
 		}
 
-		return state.tag
+		return res
 	}
 
 	/**
@@ -182,9 +187,6 @@ export default class Debug {
 		const childs = (debug as FolderApi).children
 		childs?.forEach((child: BladeApi | FolderApi) => this.remove(child))
 
-		// Check if this is a folder
-		this._activeDebugs = this._activeDebugs.filter((tag) => tag !== id)
-
 		this.panel.remove(debug)
 	}
 
@@ -193,7 +195,6 @@ export default class Debug {
 	 */
 	public dispose() {
 		this.panel.dispose()
-		this._activeDebugs = []
 		this.stats?.dispose()
 		this._monitoring?.remove()
 	}
@@ -233,10 +234,8 @@ export default class Debug {
 		}
 		const handleSave = (id: string, state: BladeState) =>
 			this._handleLocalSave(id, state)
-
 		const getDefaultState = (id: string) => this._handleLocalValue(id)
-		const isActive = (id: string) => this._activeDebugs.includes(id)
-		const addToList = (id: string) => this._activeDebugs.push(id)
+		const isActive = (id: string) => this._isActive(id)
 
 		this._pool.createApi = (function (original) {
 			return function (bc) {
@@ -255,16 +254,23 @@ export default class Debug {
 
 							if (isActive(id)) {
 								console.warn(
-									`The tag "${id}" is already used in the session storage`,
+									`The debug "${state.title}" is already used in the session storage`,
 									bc
 								)
-							} else {
-								addToList(id)
 							}
 
+							// Default state
 							const defaultState = getDefaultState(id)
 							if (defaultState) bc.importState(defaultState)
 
+							// Trigger onLoad if needed
+							// console.log(bc)
+
+							// const binding = (bc.valueController.value as any).binding
+							// const onLoad = binding?.target?.obj_?.onLoad
+							// if (onLoad && typeof onLoad === 'function') onLoad()
+
+							// Click event
 							bc.view.element.addEventListener('click', () => {
 								const state = bc.exportState()
 								handleSave(id, state)
@@ -441,6 +447,15 @@ export default class Debug {
 	}
 
 	/**
+	 * Check if the id is active
+	 * @param id ID of the binding
+	 * @returns True if the id is active
+	 */
+	private _isActive(id: string) {
+		return document.body.querySelectorAll(`#${id}`).length > 1
+	}
+
+	/**
 	 * Set the reset button on the panels bindings
 	 */
 	private _setResetButton() {
@@ -472,8 +487,7 @@ export default class Debug {
 		const handleSave = (id: string, state: BladeState) =>
 			this._handleLocalSave(id, state)
 		const getDefaultState = (id: string) => this._handleLocalValue(id)
-		const isActive = (id: string) => this._activeDebugs.includes(id)
-		const addToList = (id: string) => this._activeDebugs.push(id)
+		const isActive = (id: string) => this._isActive(id)
 		const getStackId = async (state: BladeState, element: HTMLElement) => {
 			return await this._getStackID(state, element)
 		}
@@ -498,11 +512,9 @@ export default class Debug {
 
 						if (isActive(id)) {
 							console.warn(
-								`The tag "${id}" is already used in the session storage`,
+								`The debug "${initialState.title}" is already used in the session storage`,
 								bc
 							)
-						} else {
-							addToList(id)
 						}
 
 						bc.value.emitter.on('change', (e) => {
@@ -515,14 +527,16 @@ export default class Debug {
 							handleSave(id, bc.exportState())
 						})
 
+						// Default state
 						const defaultState = getDefaultState(id)
-						if (defaultState) {
-							bc.importState(defaultState)
-							window.requestAnimationFrame(() => {
-								bc.importState(defaultState)
-							})
-						}
+						if (defaultState) bc.importState(defaultState)
 
+						// Trigger onLoad if needed
+						const binding = (bc.valueController.value as any).binding
+						const onLoad = binding?.target?.obj_?.onLoad
+						if (onLoad && typeof onLoad === 'function') onLoad()
+
+						// Click event
 						clonedResetButton.addEventListener('click', () => {
 							bc.valueController.value.setRawValue(initialValue)
 						})
@@ -564,8 +578,8 @@ export default class Debug {
 		const values = JSON.parse(current)
 		const res = values[id]
 
-		if (defined(res?.disable)) {
-			res.disable = false
+		if (defined(res?.disabled)) {
+			res.disabled = false
 		}
 
 		if (id) return res
