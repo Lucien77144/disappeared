@@ -263,13 +263,6 @@ export default class Debug {
 							const defaultState = getDefaultState(id)
 							if (defaultState) bc.importState(defaultState)
 
-							// Trigger onLoad if needed
-							// console.log(bc)
-
-							// const binding = (bc.valueController.value as any).binding
-							// const onLoad = binding?.target?.obj_?.onLoad
-							// if (onLoad && typeof onLoad === 'function') onLoad()
-
 							// Click event
 							bc.view.element.addEventListener('click', () => {
 								const state = bc.exportState()
