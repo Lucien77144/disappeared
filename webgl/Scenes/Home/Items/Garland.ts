@@ -1,10 +1,12 @@
-import { Group, Mesh, Object3D, Vector3 } from 'three'
+import { Group, Mesh, Vector3 } from 'three'
 import ExtendableItem from '~/webgl/Modules/Extendables/ExtendableItem'
 import Picture from './Picture'
 import { get3DSize } from '~/utils/functions/getSize'
 import type Experience from '~/webgl/Experience'
 import gsap from 'gsap'
 import type Home from '../Home'
+import cloneModel from '~/webgl/Core/functions/cloneModel'
+import type { GLTF } from 'three/examples/jsm/Addons.js'
 
 const DEFAULT_ROTATION = new Vector3(-0.5, -0.5, 0)
 
@@ -90,7 +92,9 @@ export default class Garland extends ExtendableItem<Home> {
 	 * Set item
 	 */
 	public setComponents() {
-		const garland = this.resources.garland as Object3D
+		console.log(this.resources.garland)
+
+		const garland = cloneModel(this.resources.garland as GLTF).scene
 		this.item = new Group()
 		this.item.add(garland)
 
