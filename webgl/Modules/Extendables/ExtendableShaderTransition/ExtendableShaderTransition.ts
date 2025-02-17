@@ -1,4 +1,3 @@
-import type ExtendableScene from '../../ExtendableScene'
 import ExtendableShader, {
 	type TExtendableUniforms,
 } from '../ExtendableShader/ExtendableShader'
@@ -6,6 +5,7 @@ import vertexShader from './shaders/vertexShader.vert?raw'
 import fragmentShader from './shaders/fragmentShader.frag?raw'
 import gsap from 'gsap'
 import type { Texture, Uniform } from 'three'
+import type ExtendableScene from '../ExtendableScene'
 
 /**
  * Uniforms for the shader transition
@@ -34,14 +34,27 @@ export default class ExtendableShaderTransition extends ExtendableShader {
 	/**
 	 * Constructor
 	 */
-	constructor(
-		scene: ExtendableScene,
-		options: TExtendableShaderTransitionOptions = {},
-		vert: string = vertexShader,
-		frag: string = fragmentShader,
-		uniforms: TExtendableShaderTransitionUniforms = {}
-	) {
-		super(scene, vert, frag, uniforms)
+	constructor({
+		scene,
+		options,
+		vert,
+		frag,
+		uniforms,
+	}: {
+		scene: ExtendableScene
+		options?: TExtendableShaderTransitionOptions
+		vert?: string
+		frag?: string
+		uniforms?: TExtendableShaderTransitionUniforms
+	}) {
+		// Default
+		options ??= {}
+		vert ??= vertexShader
+		frag ??= fragmentShader
+		uniforms ??= {}
+
+		// Super
+		super({ scene, vert, frag, uniforms })
 
 		// Set options
 		this.options = options

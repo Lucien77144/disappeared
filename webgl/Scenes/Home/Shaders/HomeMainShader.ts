@@ -1,10 +1,10 @@
 import mainFrag from './shaders/main.frag?raw'
-import ExtendableShader from '~/webgl/Modules/Extendables/Shaders/ExtendableShader/ExtendableShader'
+import ExtendableShader from '~/webgl/Modules/Extendables/ExtendableShader/ExtendableShader'
 import type Home from '../Home'
 
 export class HomeMainShader extends ExtendableShader {
 	constructor(scene: Home) {
-		super(scene)
+		super({ scene })
 
 		this.frag = mainFrag
 	}

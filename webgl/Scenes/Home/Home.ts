@@ -10,6 +10,7 @@ import Garland from './Items/Garland'
 import type { Dictionary } from '~/models/functions/dictionary.model'
 import Sandbox2 from './Scenes/Sandbox2/Sandbox2'
 import { HomeMainShader } from './Shaders/HomeMainShader'
+import TransitionSlide from '~/webgl/Modules/Shaders/Transitions/TransitionSlide/TransitionSlide'
 
 export default class Home extends ExtendableScene {
 	// Public
@@ -32,6 +33,7 @@ export default class Home extends ExtendableScene {
 			garland: new Garland(),
 		}
 		this.shader = new HomeMainShader(this)
+		this.transition = new TransitionSlide(this)
 		this.hdri = this.experience.resources.items.hdri as Texture
 
 		// Private

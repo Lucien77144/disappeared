@@ -61,7 +61,6 @@ export default class SceneManager {
 
 		// Add the active scene to the render list
 		if (scene) {
-			console.log(scene)
 			this._addToRenderList(scene)
 		}
 	}
@@ -135,7 +134,6 @@ export default class SceneManager {
 
 		// Set the active scene
 		this.active = active
-		console.log(this.renderList)
 
 		// Start navigation
 		this.$bus?.on('scene:switch', (scene: TSceneInfos) => this.switch(scene))
@@ -167,9 +165,12 @@ export default class SceneManager {
 	 * @param list Elements to remove
 	 */
 	private _removeFromRenderList(scene: ExtendableScene): void {
-		this.renderList = this.renderList.filter(
-			(s) => s.id !== scene.id || !scene.allScenes[s.id]
-		)
+		const removeList = [
+			scene.id,
+			...Object.values(scene.allScenes).map((s) => s.id),
+		]
+
+		this.renderList = this.renderList.filter((s) => !removeList.includes(s.id))
 		scene.isActive = false
 	}
 

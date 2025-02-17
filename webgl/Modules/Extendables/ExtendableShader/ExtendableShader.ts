@@ -5,7 +5,7 @@ import {
 	Texture,
 	type ShaderMaterialParameters,
 } from 'three'
-import type ExtendableScene from '../../ExtendableScene'
+import type ExtendableScene from '../ExtendableScene'
 import { FullScreenQuad } from 'three/examples/jsm/Addons.js'
 import Experience from '~/webgl/Experience'
 import vertexShader from './shaders/vertexShader.vert?raw'
@@ -36,12 +36,22 @@ export default class ExtendableShader {
 	/**
 	 * Constructor
 	 */
-	constructor(
-		scene: ExtendableScene,
-		vert: string = vertexShader,
-		frag: string = fragmentShader,
-		uniforms: TExtendableUniforms = {}
-	) {
+	constructor({
+		scene,
+		vert,
+		frag,
+		uniforms,
+	}: {
+		scene: ExtendableScene
+		vert?: string
+		frag?: string
+		uniforms?: TExtendableUniforms
+	}) {
+		// Default
+		vert ??= vertexShader
+		frag ??= fragmentShader
+		uniforms ??= {}
+
 		// Public
 		this.scene = scene
 		this.uniforms = uniforms

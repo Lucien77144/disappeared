@@ -23,8 +23,8 @@ import type {
 import type { TCursorProps } from '~/utils/CursorManager'
 import type { FolderApi } from 'tweakpane'
 import type { TItemsEvents } from './ExtendableItem'
-import ExtendableShader from './Shaders/ExtendableShader/ExtendableShader'
-import ExtendableShaderTransition from './Shaders/ExtendableShaderTransition/ExtendableShaderTransition'
+import ExtendableShader from './ExtendableShader/ExtendableShader'
+import ExtendableShaderTransition from './ExtendableShaderTransition/ExtendableShaderTransition'
 import { ScrollManager } from '#imports'
 
 /**
@@ -591,7 +591,7 @@ export default class ExtendableScene<
 	 * Set transition shader
 	 */
 	#setTransition(): ExtendableShaderTransition {
-		return new ExtendableShaderTransition(this)
+		return new ExtendableShaderTransition({ scene: this })
 	}
 
 	/**
