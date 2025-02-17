@@ -1,11 +1,11 @@
 import { BoxGeometry, Mesh, ShaderMaterial, Uniform } from 'three'
 import ExtendableItem from '~/webgl/Modules/Extendables/ExtendableItem'
-import type Sandbox2 from '../../Sandbox2'
+import type SandboxClone from '../../SandboxClone'
 import vertexShader from './shaders/vertexShader.vert?raw'
 import fragmentShader from './shaders/fragmentShader.frag?raw'
-import CubeShaderTest from './Scenes/CubeShaderTest'
+import TestCubeScene from './Scenes/TestCubeScene'
 
-export default class TestCube extends ExtendableItem<Sandbox2> {
+export default class TestCube extends ExtendableItem<SandboxClone> {
 	// Public
 	public position: { x: number; y: number; z: number }
 
@@ -21,7 +21,7 @@ export default class TestCube extends ExtendableItem<Sandbox2> {
 		super()
 
 		this.scenes = {
-			test: new CubeShaderTest(),
+			testCube: new TestCubeScene(),
 		}
 
 		// Public
@@ -60,7 +60,7 @@ export default class TestCube extends ExtendableItem<Sandbox2> {
 	}
 
 	public onUpdate() {
-		this._material!.uniforms.tDiffuse.value = this.scenes.test.rt.texture
+		this._material!.uniforms.tDiffuse.value = this.scenes.testCube.rt.texture
 	}
 
 	// --------------------------------
@@ -82,7 +82,7 @@ export default class TestCube extends ExtendableItem<Sandbox2> {
 			vertexShader,
 			fragmentShader,
 			uniforms: {
-				tDiffuse: new Uniform(this.scenes.test.rt.texture),
+				tDiffuse: new Uniform(this.scenes.testCube.rt.texture),
 			},
 		})
 	}

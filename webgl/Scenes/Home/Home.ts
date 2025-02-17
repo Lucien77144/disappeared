@@ -8,9 +8,9 @@ import {
 import ExtendableScene from '../../Modules/Extendables/ExtendableScene'
 import Garland from './Items/Garland'
 import type { Dictionary } from '~/models/functions/dictionary.model'
-import Sandbox2 from './Scenes/Sandbox2/Sandbox2'
-import { HomeMainShader } from './Shaders/HomeMainShader'
-import TransitionSlide from '~/webgl/Modules/Shaders/Transitions/TransitionSlide/TransitionSlide'
+import SandboxClone from './Scenes/SandboxClone/SandboxClone'
+import TransitionSlide from '~/webgl/Modules/Transitions/TransitionSlide/TransitionSlide'
+import { ShaderMix } from '~/webgl/Modules/Shaders/ShaderMix/ShaderMix'
 
 export default class Home extends ExtendableScene {
 	// Public
@@ -27,12 +27,13 @@ export default class Home extends ExtendableScene {
 		super()
 		// Public
 		this.scenes = {
-			sandbox2: new Sandbox2(),
+			sandbox2: new SandboxClone(),
 		}
 		this.components = {
 			garland: new Garland(),
 		}
-		this.shader = new HomeMainShader(this)
+		const target = this.scenes.sandbox2.rt.texture
+		this.shader = new ShaderMix(this, { target })
 		this.transition = new TransitionSlide(this)
 		this.hdri = this.experience.resources.items.hdri as Texture
 

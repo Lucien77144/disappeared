@@ -4,7 +4,7 @@ import { AmbientLight } from 'three'
 import type { Dictionary } from '~/models/functions/dictionary.model'
 import type { Light } from 'three'
 
-export default class Sandbox2 extends ExtendableScene {
+export default class SandboxClone extends ExtendableScene {
 	/**
 	 * Constructor
 	 */

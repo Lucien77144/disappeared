@@ -1,10 +1,4 @@
-import {
-	ShaderMaterial,
-	Uniform,
-	Vector2,
-	Texture,
-	type ShaderMaterialParameters,
-} from 'three'
+import { ShaderMaterial, Uniform, Vector2, Texture } from 'three'
 import type ExtendableScene from '../ExtendableScene'
 import { FullScreenQuad } from 'three/examples/jsm/Addons.js'
 import Experience from '~/webgl/Experience'
@@ -16,7 +10,9 @@ export type TExtendableUniforms = {
 	uTime?: Uniform<number>
 	uResolution?: Uniform<Vector2>
 	uRatio?: Uniform<Vector2>
-} & NonNullable<ShaderMaterialParameters['uniforms']>
+} & {
+	[key: string]: Uniform<any>
+}
 
 export default class ExtendableShader {
 	// Public

@@ -9,9 +9,8 @@ import ExtendableScene from '~/webgl/Modules/Extendables/ExtendableScene'
 import TestCube from '../TestCube'
 import Garland from '~/webgl/Scenes/Home/Items/Garland'
 import type { Dictionary } from '~/models/functions/dictionary.model'
-import { CubeShaderTestShader } from './CubeShaderTestShader'
 
-export default class CubeShaderTest extends ExtendableScene<TestCube> {
+export default class TestCubeScene extends ExtendableScene<TestCube> {
 	// Public
 	public hdri!: Texture
 	public hdriTexture!: Texture
@@ -28,7 +27,6 @@ export default class CubeShaderTest extends ExtendableScene<TestCube> {
 		this.components = {
 			garland: new Garland(),
 		}
-		this.shader = new CubeShaderTestShader(this)
 		this.hdri = this.experience.resources.items.hdri as Texture
 
 		// Private
