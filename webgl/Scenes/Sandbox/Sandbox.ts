@@ -16,7 +16,7 @@ export default class Sandbox extends ExtendableScene {
 		}
 
 		// Events
-		this.on('load', () => this._onLoad())
+		this.on('load', () => this.#onLoad())
 	}
 
 	// --------------------------------
@@ -26,7 +26,7 @@ export default class Sandbox extends ExtendableScene {
 	/**
 	 * On load
 	 */
-	private _onLoad() {
+	#onLoad() {
 		this.camera.instance.position.z = 40
 	}
 }

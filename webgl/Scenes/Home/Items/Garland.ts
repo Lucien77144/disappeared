@@ -13,11 +13,11 @@ const DEFAULT_ROTATION = new Vector3(-0.5, -0.5, 0)
 export default class Garland extends ExtendableItem<Home> {
 	// Public
 	public wrapper: Group
+	public rotationFactor: number
 
 	// Private
-	private _scrollEndTimeout?: NodeJS.Timeout
-	private _rotationFactor: number
-	private _viewport: Experience['viewport']
+	#scrollEndTimeout?: NodeJS.Timeout
+	#viewport: Experience['viewport']
 
 	/**
 	 * Constructor
@@ -29,14 +29,14 @@ export default class Garland extends ExtendableItem<Home> {
 		this.wrapper = new Group()
 
 		// Private
-		this._rotationFactor = 1
-		this._viewport = this.experience.viewport
+		this.rotationFactor = 1
+		this.#viewport = this.experience.viewport
 
 		// Events
-		this.on('load', () => this._onLoad())
-		this.on('resize', () => this._onResize())
-		this.on('update', () => this._onUpdate())
-		this.on('scroll', (event: TScrollEvent) => this._onScroll(event))
+		this.on('load', () => this.#onLoad())
+		this.on('resize', () => this.#onResize())
+		this.on('update', () => this.#onUpdate())
+		this.on('scroll', (event: TScrollEvent) => this.#onScroll(event))
 	}
 
 	// --------------------------------
@@ -47,40 +47,40 @@ export default class Garland extends ExtendableItem<Home> {
 	 * On scroll
 	 * @param event Scroll event
 	 */
-	private _onScroll(event: TScrollEvent) {
-		this._rotationFactor = 0
+	#onScroll(event: TScrollEvent) {
+		this.rotationFactor = 0
 		this.item.rotation.z += event.delta * 0.00025
 
-		this._scrollEndTimeout && clearTimeout(this._scrollEndTimeout)
-		this._scrollEndTimeout = setTimeout(() => {
-			gsap.to(this, { _rotationFactor: 1, duration: 2 })
+		this.#scrollEndTimeout && clearTimeout(this.#scrollEndTimeout)
+		this.#scrollEndTimeout = setTimeout(() => {
+			gsap.to(this, { rotationFactor: 1, duration: 2 })
 		}, 500)
 	}
 
 	/**
 	 * On load
 	 */
-	private _onLoad(): void {
+	#onLoad(): void {
 		this.setComponents()
-		this._setScale()
-		this._setPosition()
-		this._setRotation()
+		this.#setScale()
+		this.#setPosition()
+		this.#setRotation()
 	}
 
 	/**
 	 * On resize
 	 */
-	private _onResize() {
-		this._setScale()
-		this._setPosition()
+	#onResize() {
+		this.#setScale()
+		this.#setPosition()
 	}
 
 	/**
 	 * On update
 	 */
-	private _onUpdate(): void {
-		if (this._rotationFactor > 0) {
-			this.item.rotation.z += 0.001 * this._rotationFactor
+	#onUpdate(): void {
+		if (this.rotationFactor > 0) {
+			this.item.rotation.z += 0.001 * this.rotationFactor
 		}
 	}
 
@@ -92,8 +92,6 @@ export default class Garland extends ExtendableItem<Home> {
 	 * Set item
 	 */
 	public setComponents() {
-		console.log(this.resources.garland)
-
 		const garland = cloneModel(this.resources.garland as GLTF).scene
 		this.item = new Group()
 		this.item.add(garland)
@@ -125,22 +123,22 @@ export default class Garland extends ExtendableItem<Home> {
 	/**
 	 * Set the scale of the item
 	 */
-	private _setScale() {
+	#setScale() {
 		this.item.scale.set(0.2, 0.2, 0.2)
 	}
 
 	/**
 	 * Set the position of the item
 	 */
-	private _setPosition() {
+	#setPosition() {
 		this.item.position.set(-6, 3, 0)
-		this.item.position.x *= 1 / Math.max(1, this._viewport.ratio)
+		this.item.position.x *= 1 / Math.max(1, this.#viewport.ratio)
 	}
 
 	/**
 	 * Set the rotation of the item
 	 */
-	private _setRotation() {
+	#setRotation() {
 		this.item.rotation.setFromVector3(DEFAULT_ROTATION)
 	}
 }

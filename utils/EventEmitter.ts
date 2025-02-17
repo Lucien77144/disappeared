@@ -33,31 +33,29 @@ export default class EventEmitter<
 
 	/**
 	 * Set callback for an event
-	 * @param _names Event names
+	 * @param name Event name
 	 * @param callback Callback
 	 */
 	public on<T extends TEventName<K>>(
-		_name: T,
+		name: T,
 		callback: TEventCallback<T, K>
 	): this {
 		// Resolve name
-		this.callbacks[_name] ??= []
-		this.callbacks[_name].push(callback)
+		this.callbacks[name] ??= []
+		this.callbacks[name].push(callback)
 
 		return this
 	}
 
 	/**
 	 * Off event
-	 * @param _names Event names
+	 * @param names Event names
 	 */
-	public off(_names: TEventName<K> | TEventName<K>[]): this {
-		const names = Array.isArray(_names) ? _names : [_names]
+	public off(names: TEventName<K> | TEventName<K>[]): this {
+		const keys = Array.isArray(names) ? names : [names]
 
 		// Each name
-		names.forEach((_name) => {
-			delete this.callbacks[_name]
-		})
+		keys.forEach((key) => delete this.callbacks[key])
 
 		return this
 	}
@@ -72,24 +70,24 @@ export default class EventEmitter<
 
 	/**
 	 * Trigger event
-	 * @param _name Event names
-	 * @param _args Event arguments
+	 * @param name Event names
+	 * @param args Event arguments
 	 */
 	public trigger<T extends TEventName<K>>(
-		_name: T,
-		_args?: ArgumentTypes<K[T]>[number]
+		name: T,
+		args?: ArgumentTypes<K[T]>[number]
 	): this | ReturnType<TEventCallback<T, K>> {
 		// Check if the event exists
-		if (!this.callbacks[_name]) {
+		if (!this.callbacks[name]) {
 			return this
 		}
 		// Default args
-		const argsArray = !Array.isArray(_args) ? [_args] : _args
-		const args = argsArray as ArgumentTypes<K[keyof K]>
+		const argsArray = !Array.isArray(args) ? [args] : args
+		args = argsArray as ArgumentTypes<K[keyof K]>
 
 		// Default namespace
 		let result: ReturnType<TEventCallback<T, K>> | undefined
-		this.callbacks[_name]?.forEach((callback: TEventCallback<T, K>) => {
+		this.callbacks[name]?.forEach((callback: TEventCallback<T, K>) => {
 			result = callback.apply(this, args)
 		})
 

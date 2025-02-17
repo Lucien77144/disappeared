@@ -30,33 +30,35 @@ export default class DragManager extends EventEmitter<TDragManagerEvents> {
 	public delta: Vector2
 
 	// Private
-	private _viewport: Viewport
-	private _handleMouseDown!: (e: Event) => void
-	private _handleMouseMove!: (e: Event) => void
-	private _handleMouseUp!: (e: Event) => void
-	private _handleTouchStart!: (e: Event) => void
-	private _handleTouchMove!: (e: Event) => void
-	private _handleTouchUp!: (e: Event) => void
+	#viewport: Viewport
+	#handleMouseDown!: (e: Event) => void
+	#handleMouseMove!: (e: Event) => void
+	#handleMouseUp!: (e: Event) => void
+	#handleTouchStart!: (e: Event) => void
+	#handleTouchMove!: (e: Event) => void
+	#handleTouchUp!: (e: Event) => void
 
 	/**
 	 * Constructor
+	 * @param options Options
+	 * @param options.el Element to attach the drag manager to (default: window)
 	 */
-	constructor(_options?: { el?: HTMLElement | Window }) {
+	constructor(options?: { el?: HTMLElement | Window }) {
 		super()
 
 		// Public
-		this.el = _options?.el || window
+		this.el = options?.el || window
 		this.enabled = true
 		this.drag = false
-		this._viewport = new Viewport()
+		this.#viewport = new Viewport()
 		this.position = new Vector2(0)
 		this.normalized = new Vector2(0)
 		this.centered = new Vector2(0)
 		this.start = new Vector2(0)
 		this.delta = new Vector2(0)
 
-		this._initBinds()
-		this._initEvents()
+		this.#initBinds()
+		this.#initEvents()
 	}
 
 	/**
@@ -64,7 +66,7 @@ export default class DragManager extends EventEmitter<TDragManagerEvents> {
 	 * @param e Touch event
 	 * @returns ClientX and ClientY
 	 */
-	private _getMobileEvent(e: TouchEvent): Vector2 {
+	#getMobileEvent(e: TouchEvent): Vector2 {
 		const x =
 			(e.touches && e.touches.length && e.touches[0].clientX) ||
 			(e.changedTouches &&
@@ -85,48 +87,48 @@ export default class DragManager extends EventEmitter<TDragManagerEvents> {
 	 * @param e Event
 	 * @returns ClientX and ClientY
 	 */
-	private _getVec2Values(e: MouseEvent): Vector2 {
+	#getVec2Values(e: MouseEvent): Vector2 {
 		return new Vector2(e.clientX, e.clientY)
 	}
 
 	/**
 	 * Setup binds for the cursor
 	 */
-	private _initBinds(): void {
+	#initBinds(): void {
 		// Desktop
-		this._handleMouseDown = (e) =>
-			this._onStart.bind(this)(this._getVec2Values(e as MouseEvent))
-		this._handleMouseMove = (e) =>
-			this._onMove.bind(this)(this._getVec2Values(e as MouseEvent))
-		this._handleMouseUp = (e) =>
-			this._onEnd.bind(this)(this._getVec2Values(e as MouseEvent))
+		this.#handleMouseDown = (e) =>
+			this.#onStart.bind(this)(this.#getVec2Values(e as MouseEvent))
+		this.#handleMouseMove = (e) =>
+			this.#onMove.bind(this)(this.#getVec2Values(e as MouseEvent))
+		this.#handleMouseUp = (e) =>
+			this.#onEnd.bind(this)(this.#getVec2Values(e as MouseEvent))
 
 		// Mobile
-		this._handleTouchStart = (e) =>
-			this._onStart.bind(this)(this._getMobileEvent(e as TouchEvent))
-		this._handleTouchMove = (e) =>
-			this._onMove.bind(this)(this._getMobileEvent(e as TouchEvent))
-		this._handleTouchUp = (e) =>
-			this._onEnd.bind(this)(this._getMobileEvent(e as TouchEvent))
+		this.#handleTouchStart = (e) =>
+			this.#onStart.bind(this)(this.#getMobileEvent(e as TouchEvent))
+		this.#handleTouchMove = (e) =>
+			this.#onMove.bind(this)(this.#getMobileEvent(e as TouchEvent))
+		this.#handleTouchUp = (e) =>
+			this.#onEnd.bind(this)(this.#getMobileEvent(e as TouchEvent))
 	}
 
 	/**
 	 * Setup events for the cursor
 	 */
-	private _initEvents(): void {
+	#initEvents(): void {
 		// Desktop
-		this.el.addEventListener('mousedown', this._handleMouseDown)
-		window.addEventListener('mousemove', this._handleMouseMove)
-		window.addEventListener('mouseup', this._handleMouseUp)
+		this.el.addEventListener('mousedown', this.#handleMouseDown)
+		window.addEventListener('mousemove', this.#handleMouseMove)
+		window.addEventListener('mouseup', this.#handleMouseUp)
 
 		// Mobile
-		this.el.addEventListener('touchstart', this._handleTouchStart, {
+		this.el.addEventListener('touchstart', this.#handleTouchStart, {
 			passive: true,
 		})
-		window.addEventListener('touchmove', this._handleTouchMove, {
+		window.addEventListener('touchmove', this.#handleTouchMove, {
 			passive: true,
 		})
-		window.addEventListener('touchend', this._handleTouchUp, {
+		window.addEventListener('touchend', this.#handleTouchUp, {
 			passive: true,
 		})
 	}
@@ -135,11 +137,11 @@ export default class DragManager extends EventEmitter<TDragManagerEvents> {
 	 * On start
 	 * @param position Mouse position (x, y)
 	 */
-	private _onStart(position: Vector2): void {
+	#onStart(position: Vector2): void {
 		this.drag = true
 
 		this.start = position
-		this._handleEvent('dragstart', {
+		this.#handleEvent('dragstart', {
 			position,
 			delta: new Vector2(0),
 		})
@@ -149,7 +151,7 @@ export default class DragManager extends EventEmitter<TDragManagerEvents> {
 	 * On move
 	 * @param position Mouse position (x, y)
 	 */
-	private _onMove(position: Vector2): void {
+	#onMove(position: Vector2): void {
 		const delta = new Vector2(
 			this.position.x - position.x,
 			this.position.y - position.y
@@ -157,23 +159,23 @@ export default class DragManager extends EventEmitter<TDragManagerEvents> {
 		this.position = position
 		this.delta = delta
 
-		this.drag && this._handleEvent('drag', { position, delta })
+		this.drag && this.#handleEvent('drag', { position, delta })
 	}
 
 	/**
 	 * On up
 	 * @param position Mouse position (x, y)
 	 */
-	private _onEnd(position: Vector2): void {
+	#onEnd(position: Vector2): void {
 		const delta = this.delta
 		const tap =
 			Math.abs(position.x - this.start.x) < TAP_TRESHOLD &&
 			Math.abs(position.y - this.start.y) < TAP_TRESHOLD
 
 		if (this.drag && tap) {
-			this._handleEvent('tap', { position, delta })
+			this.#handleEvent('tap', { position, delta })
 		} else {
-			this._handleEvent('dragend', { position, delta })
+			this.#handleEvent('dragend', { position, delta })
 		}
 
 		this.drag = false
@@ -185,7 +187,7 @@ export default class DragManager extends EventEmitter<TDragManagerEvents> {
 	 * @param y Y position
 	 * @param event Event type
 	 */
-	private _handleEvent(
+	#handleEvent(
 		event: keyof TDragManagerEvents,
 		params: {
 			position: Vector2
@@ -198,12 +200,12 @@ export default class DragManager extends EventEmitter<TDragManagerEvents> {
 		this.position = params.position
 
 		// Normalized
-		this.normalized.x = this.position.x / this._viewport.width
-		this.normalized.y = 1.0 - this.position.y / this._viewport.height
+		this.normalized.x = this.position.x / this.#viewport.width
+		this.normalized.y = 1.0 - this.position.y / this.#viewport.height
 
 		// Centered
-		this.centered.x = (this.position.x / this._viewport.width) * 2 - 1
-		this.centered.y = -(this.position.y / this._viewport.height) * 2 + 1
+		this.centered.x = (this.position.x / this.#viewport.width) * 2 - 1
+		this.centered.y = -(this.position.y / this.#viewport.height) * 2 + 1
 
 		// Emit event and pass the position, normalized and centered values
 		this.trigger(event, {
@@ -218,14 +220,14 @@ export default class DragManager extends EventEmitter<TDragManagerEvents> {
 	 */
 	public dispose(): void {
 		// Desktop
-		this.el.removeEventListener('mousedown', this._handleMouseDown)
-		window.removeEventListener('mousemove', this._handleMouseMove)
-		window.removeEventListener('mouseup', this._handleMouseUp)
+		this.el.removeEventListener('mousedown', this.#handleMouseDown)
+		window.removeEventListener('mousemove', this.#handleMouseMove)
+		window.removeEventListener('mouseup', this.#handleMouseUp)
 
 		// Mobile
-		this.el.removeEventListener('touchstart', this._handleTouchStart)
-		window.removeEventListener('touchmove', this._handleTouchMove)
-		window.removeEventListener('touchend', this._handleTouchUp)
+		this.el.removeEventListener('touchstart', this.#handleTouchStart)
+		window.removeEventListener('touchmove', this.#handleTouchMove)
+		window.removeEventListener('touchend', this.#handleTouchUp)
 	}
 
 	// Getters and setters

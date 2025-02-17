@@ -38,44 +38,46 @@ export default class Renderer {
 	public shaderPass!: ShaderPass
 
 	// Private
-	private _experience: Experience
-	private _viewport: Experience['viewport']
-	private _debug: Experience['debug']
-	private _stats?: Debug['stats']
+	#experience: Experience
+	#viewport: Experience['viewport']
+	#debug: Experience['debug']
+	#stats?: Debug['stats']
 
 	/**
 	 * Constructor
+	 * @param options Options
+	 * @param options.clearColor Clear color
 	 */
 	constructor(
-		_options: {
+		options: {
 			clearColor?: TClearColor
 		} = {}
 	) {
 		// Public
-		this.clearColor = _options.clearColor ?? DEFAULT_CLEAR_COLOR
+		this.clearColor = options.clearColor ?? DEFAULT_CLEAR_COLOR
 
 		// Private
-		this._experience = new Experience()
-		this._viewport = this._experience.viewport
-		this._debug = this._experience.debug
-		this._stats = this._debug?.stats
+		this.#experience = new Experience()
+		this.#viewport = this.#experience.viewport
+		this.#debug = this.#experience.debug
+		this.#stats = this.#debug?.stats
 
 		// Init
-		this._init()
+		this.#init()
 	}
 
 	/**
 	 * Get the scene manager
 	 */
-	private get _sceneManager() {
-		return this._experience.sceneManager
+	get #sceneManager() {
+		return this.#experience.sceneManager
 	}
 
 	/**
 	 * Get the render list
 	 */
-	private get _renderList() {
-		return this._sceneManager.renderList
+	get #renderList() {
+		return this.#sceneManager.renderList
 	}
 
 	// --------------------------------
@@ -85,10 +87,10 @@ export default class Renderer {
 	/**
 	 * Set debug
 	 */
-	private _setDebug() {
-		if (!this._debug) return
+	#setDebug() {
+		if (!this.#debug) return
 
-		this.debugFolder = this._debug.panel.addFolder({
+		this.debugFolder = this.#debug.panel.addFolder({
 			expanded: false,
 			title: 'Renderer',
 		})
@@ -130,10 +132,10 @@ export default class Renderer {
 	/**
 	 * Set the camera instance ONLY USED TO RENDER THE SCENE ON THE MESH
 	 */
-	private _setCamera() {
+	#setCamera() {
 		this.camera = new PerspectiveCamera(
 			75,
-			this._viewport.width / this._viewport.height,
+			this.#viewport.width / this.#viewport.height,
 			0.1,
 			100
 		)
@@ -142,7 +144,7 @@ export default class Renderer {
 	/**
 	 * Set the renderer instance
 	 */
-	private _setInstance(canvas?: HTMLCanvasElement) {
+	#setInstance(canvas?: HTMLCanvasElement) {
 		// Renderer
 		this.instance = new WebGLRenderer({
 			canvas,
@@ -154,8 +156,8 @@ export default class Renderer {
 
 		// Setters
 		this.instance.setClearColor(this.clearColor.color, this.clearColor.alpha)
-		this.instance.setSize(this._viewport.width, this._viewport.height)
-		this.instance.setPixelRatio(this._viewport.dpr)
+		this.instance.setSize(this.#viewport.width, this.#viewport.height)
+		this.instance.setPixelRatio(this.#viewport.dpr)
 
 		// Options
 		this.instance.toneMapping = ACESFilmicToneMapping
@@ -169,7 +171,7 @@ export default class Renderer {
 	/**
 	 * Set the post processing
 	 */
-	private _setPostProcessing() {
+	#setPostProcessing() {
 		// Set render shader
 		this.renderShader = new ShaderMaterial({
 			uniforms: {
@@ -193,13 +195,13 @@ export default class Renderer {
 	/**
 	 * Render the targets and the mesh
 	 */
-	private _render() {
+	#render() {
 		// Clear the render target
 		this.instance.setRenderTarget(null)
 		this.instance.clear()
 
 		// Render each scene from the render list
-		this._renderList.forEach((instance) => {
+		this.#renderList.forEach((instance) => {
 			if (instance.camera?.instance) {
 				// Trigger before render
 				instance.trigger('beforeRender')
@@ -224,7 +226,7 @@ export default class Renderer {
 		})
 
 		// Update shader uniforms with active scene render target
-		const active = this._sceneManager.active
+		const active = this.#sceneManager.active
 		if (active?.rt) {
 			this.renderShader.uniforms.tDiffuse.value = active.rt.texture
 		}
@@ -241,34 +243,34 @@ export default class Renderer {
 	/**
 	 * Init the renderer
 	 */
-	private _init() {
-		this._setCamera()
-		this._setInstance(this._experience.canvas)
+	#init() {
+		this.#setCamera()
+		this.#setInstance(this.#experience.canvas)
 
 		// Set post processing
-		this._experience.resources.on('ready', () => this._setPostProcessing())
+		this.#experience.resources.on('ready', () => this.#setPostProcessing())
 
 		// Debug
-		if (this._debug) this._setDebug()
+		if (this.#debug) this.#setDebug()
 	}
 
 	/**
 	 * Update the renderer
 	 */
 	public update() {
-		this._stats?.beforeRender()
-		this._render()
-		this._stats?.afterRender()
+		this.#stats?.beforeRender()
+		this.#render()
+		this.#stats?.afterRender()
 	}
 
 	/**
 	 * Resize the renderer
 	 */
 	public resize() {
-		this.camera.aspect = this._viewport.width / this._viewport.height
+		this.camera.aspect = this.#viewport.width / this.#viewport.height
 		this.camera.updateProjectionMatrix()
-		this.instance.setSize(this._viewport.width, this._viewport.height)
-		this.instance.setPixelRatio(this._viewport.dpr)
+		this.instance.setSize(this.#viewport.width, this.#viewport.height)
+		this.instance.setPixelRatio(this.#viewport.dpr)
 	}
 
 	/**

@@ -55,55 +55,55 @@ export default class Debug {
 	public stats!: Stats
 
 	// Private
-	private _experience: Experience
-	private _viewport: Experience['viewport']
-	private _statsValues?: TStatsValues
-	private _monitoring!: HTMLElement
-	private _self: any
+	#experience: Experience
+	#viewport: Experience['viewport']
+	#statsValues?: TStatsValues
+	#monitoring!: HTMLElement
+	#self: any
 
 	constructor() {
 		// Private
-		this._experience = new Experience()
-		this._viewport = this._experience.viewport
+		this.#experience = new Experience()
+		this.#viewport = this.#experience.viewport
 
 		// Public
-		this._setPanel()
-		this._saveFolderState()
-		this._setPlugins()
-		this._setHeaderButtons()
-		this._setMoveEvent()
-		this._setResizeEvent()
-		this._setResetButton()
-		this._setDebugManager()
-		this._setStats()
-		this._setMonitoring()
+		this.#setPanel()
+		this.#saveFolderState()
+		this.#setPlugins()
+		this.#setHeaderButtons()
+		this.#setMoveEvent()
+		this.#setResizeEvent()
+		this.#setResetButton()
+		this.#setDebugManager()
+		this.#setStats()
+		this.#setMonitoring()
 	}
 
 	/**
 	 * Get the plugin pool of the pane
 	 */
-	private get _pool(): PluginPool {
-		return this._self.pool_
+	get #pool(): PluginPool {
+		return this.#self.pool_
 	}
 
 	/**
 	 * Get the UI container of the panel
 	 */
-	private get _uiContainer() {
+	get #uiContainer() {
 		return this.panel.element.parentElement as HTMLElement
 	}
 
 	/**
 	 * Get the UI content of the panel
 	 */
-	private get _uiContent() {
-		return this._uiContainer.querySelector('.tp-rotv_c') as HTMLElement
+	get #uiContent() {
+		return this.#uiContainer.querySelector('.tp-rotv_c') as HTMLElement
 	}
 
 	/**
 	 * Get the UI title of the panel
 	 */
-	private get _uiTitle() {
+	get #uiTitle() {
 		return this.panel.element.children[0] as HTMLElement
 	}
 
@@ -112,7 +112,7 @@ export default class Debug {
 	 * @param state State of the blade
 	 * @returns Stack ID
 	 */
-	private async _getStackID(
+	async #getStackID(
 		state: BladeState,
 		el: HTMLElement
 	): Promise<string | undefined> {
@@ -132,7 +132,7 @@ export default class Debug {
 		}
 		getParentElement(el)
 
-		const tag = this._getStateTag(state)
+		const tag = this.#getStateTag(state)
 		async function hashString(input: string): Promise<string> {
 			const encoder = new TextEncoder()
 			const data = encoder.encode(input)
@@ -156,7 +156,7 @@ export default class Debug {
 	 * @param state State of the binding
 	 * @returns State tag
 	 */
-	private _getStateTag(state: any): string {
+	#getStateTag(state: any): string {
 		let res = state.tag
 		if (!res) {
 			const key = state.binding?.key
@@ -195,49 +195,49 @@ export default class Debug {
 	public dispose() {
 		this.panel.dispose()
 		this.stats?.dispose()
-		this._monitoring?.remove()
+		this.#monitoring?.remove()
 	}
 
 	/**
 	 * Update the debug panel
 	 */
 	public update() {
-		if (this.debugParams.Stats) this._statsValues?.update()
+		if (this.debugParams.Stats) this.#statsValues?.update()
 	}
 
 	/**
 	 * Set the panel
 	 */
-	private _setPanel() {
-		this.name = `Debug - ${this._experience.name}`
+	#setPanel() {
+		this.name = `Debug - ${this.#experience.name}`
 		this.panel = new Pane({ title: '⚙️ ' + this.name })
-		this._self = this.panel as any
+		this.#self = this.panel as any
 		this.debugParams = DEFAULT_SETTINGS
 
 		// Set the container style
-		this._uiContainer.style.position = 'fixed'
-		this._uiContainer.style.zIndex = '1000'
-		this._uiContainer.style.userSelect = 'none'
+		this.#uiContainer.style.position = 'fixed'
+		this.#uiContainer.style.zIndex = '1000'
+		this.#uiContainer.style.userSelect = 'none'
 
 		// Set the content style
-		this._uiContent.style.maxHeight = '80vh'
-		this._uiContent.style.overflowY = 'auto'
+		this.#uiContent.style.maxHeight = '80vh'
+		this.#uiContent.style.overflowY = 'auto'
 	}
 
 	/**
 	 * Save the folder state
 	 */
-	private _saveFolderState() {
+	#saveFolderState() {
 		const getStackId = async (state: BladeState, element: HTMLElement) => {
-			return await this._getStackID(state, element)
+			return await this.#getStackID(state, element)
 		}
 		const handleSave = (id: string, state: BladeState) =>
-			this._handleLocalSave(id, state)
-		const handleUnsave = (id: string) => this._handleLocalUnsave(id)
-		const getDefaultState = (id: string) => this._handleLocalValue(id)
-		const isActive = (id: string) => this._isActive(id)
+			this.#handleLocalSave(id, state)
+		const handleUnsave = (id: string) => this.#handleLocalUnsave(id)
+		const getDefaultState = (id: string) => this.#handleLocalValue(id)
+		const isActive = (id: string) => this.#isActive(id)
 
-		this._pool.createApi = (function (original) {
+		this.#pool.createApi = (function (original) {
 			return function (bc) {
 				if ((bc as FolderController).foldable) {
 					bc = bc as FolderController
@@ -283,13 +283,13 @@ export default class Debug {
 				// @ts-ignore
 				return original.apply(this, arguments)
 			}
-		})(this._pool.createApi)
+		})(this.#pool.createApi)
 	}
 
 	/**
 	 * Set panel plugins from Tweakpane
 	 */
-	private _setPlugins() {
+	#setPlugins() {
 		this.panel.registerPlugin(TweakpaneEssentialsPlugin)
 		this.panel.registerPlugin(TweakpanePluginMedia)
 		this.panel.registerPlugin(TweakpaneFileImportPlugin)
@@ -298,7 +298,7 @@ export default class Debug {
 	/**
 	 * Set import/export buttons
 	 */
-	private _setHeaderButtons() {
+	#setHeaderButtons() {
 		const blade = this.panel.addBlade({
 			view: 'buttongrid',
 			size: [3, 1],
@@ -308,16 +308,16 @@ export default class Debug {
 		}) as any
 
 		blade.on('click', (event: any) => {
-			if (event.index[0] === 0) return this._handleImport()
-			else if (event.index[0] === 1) return this._handleExport()
-			else if (event.index[0] === 2) return this._handleReset()
+			if (event.index[0] === 0) return this.#handleImport()
+			else if (event.index[0] === 1) return this.#handleExport()
+			else if (event.index[0] === 2) return this.#handleReset()
 		})
 	}
 
 	/**
 	 * Handle import
 	 */
-	private _handleImport() {
+	#handleImport() {
 		const input = document.createElement('input')
 		input.type = 'file'
 		input.accept = '.json'
@@ -337,7 +337,7 @@ export default class Debug {
 	/**
 	 * Handle export
 	 */
-	private _handleExport() {
+	#handleExport() {
 		const data = this.panel.exportState()
 		const element = document.createElement('a')
 		const file = new Blob([JSON.stringify(data)], {
@@ -355,9 +355,9 @@ export default class Debug {
 	/**
 	 * Handle reset
 	 */
-	private _handleReset() {
+	#handleReset() {
 		sessionStorage.removeItem('debugParams')
-		this._uiContent
+		this.#uiContent
 			.querySelectorAll('.tp-reset-button')
 			.forEach((button: any) => button.click())
 	}
@@ -365,15 +365,15 @@ export default class Debug {
 	/**
 	 * Set the move event on the panel
 	 */
-	private _setMoveEvent() {
-		this._uiTitle.childNodes.forEach((child: any) => {
+	#setMoveEvent() {
+		this.#uiTitle.childNodes.forEach((child: any) => {
 			child.style.pointerEvents = 'none'
 		})
 
 		let move = (_: MouseEvent) => {}
 		let hasMoved = true
 		const handleMouseDown = (event: any) => {
-			this._uiTitle.style.cursor = 'grabbing'
+			this.#uiTitle.style.cursor = 'grabbing'
 			const clickTargetX = event.layerX
 			const clickTargetWidth = event.target?.clientWidth
 			const clickTargetY = event.layerY
@@ -381,16 +381,16 @@ export default class Debug {
 			move = ({ clientX, clientY }) => {
 				hasMoved = true
 
-				this._uiContainer.style.right = `${
-					this._viewport.width - clientX - (clickTargetWidth - clickTargetX)
+				this.#uiContainer.style.right = `${
+					this.#viewport.width - clientX - (clickTargetWidth - clickTargetX)
 				}px`
-				this._uiContainer.style.top = `${clientY - clickTargetY}px`
+				this.#uiContainer.style.top = `${clientY - clickTargetY}px`
 			}
 
 			document.addEventListener('mousemove', move)
 		}
 		const handleMouseUp = () => {
-			this._uiTitle.style.cursor = ''
+			this.#uiTitle.style.cursor = ''
 
 			if (hasMoved) {
 				this.panel.controller.foldable.set(
@@ -403,15 +403,15 @@ export default class Debug {
 			document.removeEventListener('mousemove', move)
 		}
 
-		this._uiTitle.addEventListener('mousedown', handleMouseDown)
-		this._uiTitle.addEventListener('mouseup', handleMouseUp)
+		this.#uiTitle.addEventListener('mousedown', handleMouseDown)
+		this.#uiTitle.addEventListener('mouseup', handleMouseUp)
 	}
 
 	/**
 	 * Set the resize event on the panel
 	 */
-	private _setResizeEvent() {
-		this._uiContainer.style.minWidth = '280px'
+	#setResizeEvent() {
+		this.#uiContainer.style.minWidth = '280px'
 
 		const styleElement = document.createElement('style')
 		styleElement.innerHTML = `
@@ -424,14 +424,14 @@ export default class Debug {
 
 		const horizontalResizeElement = document.createElement('div')
 		horizontalResizeElement.classList.add('horizontal-resize')
-		this._uiContainer.appendChild(horizontalResizeElement)
+		this.#uiContainer.appendChild(horizontalResizeElement)
 		horizontalResizeElement.addEventListener('mousedown', (event) => {
-			this._uiContainer.style.pointerEvents = 'none'
+			this.#uiContainer.style.pointerEvents = 'none'
 			const clickTargetX = event.clientX
-			const clickTargetWidth = this._uiContainer.clientWidth
+			const clickTargetWidth = this.#uiContainer.clientWidth
 
 			const handleMouseMove = ({ clientX }: MouseEvent) => {
-				this._uiContainer.style.width = `${
+				this.#uiContainer.style.width = `${
 					clickTargetWidth - (clientX - clickTargetX)
 				}px`
 			}
@@ -439,7 +439,7 @@ export default class Debug {
 			const handleMouseUp = () => {
 				document.removeEventListener('mousemove', handleMouseMove)
 				document.removeEventListener('mouseup', handleMouseUp)
-				this._uiContainer.style.pointerEvents = ''
+				this.#uiContainer.style.pointerEvents = ''
 			}
 
 			document.addEventListener('mousemove', handleMouseMove)
@@ -452,14 +452,14 @@ export default class Debug {
 	 * @param id ID of the binding
 	 * @returns True if the id is active
 	 */
-	private _isActive(id: string) {
+	#isActive(id: string) {
 		return document.body.querySelectorAll(`#${id}`).length > 1
 	}
 
 	/**
 	 * Set the reset button on the panels bindings
 	 */
-	private _setResetButton() {
+	#setResetButton() {
 		const resetButton = document.createElement('button')
 		resetButton.classList.add('tp-reset-button')
 		const styleElement = document.createElement('style')
@@ -486,15 +486,15 @@ export default class Debug {
 		resetButton.innerHTML = `↺`
 
 		const handleSave = (id: string, state: BladeState) =>
-			this._handleLocalSave(id, state)
-		const handleUnsave = (id: string) => this._handleLocalUnsave(id)
-		const getDefaultState = (id: string) => this._handleLocalValue(id)
-		const isActive = (id: string) => this._isActive(id)
+			this.#handleLocalSave(id, state)
+		const handleUnsave = (id: string) => this.#handleLocalUnsave(id)
+		const getDefaultState = (id: string) => this.#handleLocalValue(id)
+		const isActive = (id: string) => this.#isActive(id)
 		const getStackId = async (state: BladeState, element: HTMLElement) => {
-			return await this._getStackID(state, element)
+			return await this.#getStackID(state, element)
 		}
 
-		this._pool.createBindingApi = (function (original) {
+		this.#pool.createBindingApi = (function (original) {
 			return function (bc) {
 				const valueElement = bc.view.valueElement
 				valueElement.style.position = 'relative'
@@ -562,7 +562,7 @@ export default class Debug {
 				// @ts-ignore
 				return original.apply(this, arguments)
 			}
-		})(this._pool.createBindingApi)
+		})(this.#pool.createBindingApi)
 	}
 
 	/**
@@ -570,7 +570,7 @@ export default class Debug {
 	 * @param id ID of the binding
 	 * @param state State of the binding
 	 */
-	private _handleLocalSave(id: string, state: any) {
+	#handleLocalSave(id: string, state: any) {
 		const current = sessionStorage.getItem('debugParams')
 		const res = current ? JSON.parse(current) : {}
 
@@ -586,7 +586,7 @@ export default class Debug {
 	 * Handle local unsave
 	 * @param id ID of the binding
 	 */
-	private _handleLocalUnsave(id: string) {
+	#handleLocalUnsave(id: string) {
 		const current = sessionStorage.getItem('debugParams')
 		if (!current) return
 
@@ -604,7 +604,7 @@ export default class Debug {
 	 * @param id ID of the binding
 	 * @returns Default local value
 	 */
-	private _handleLocalValue(id: string): any {
+	#handleLocalValue(id: string): any {
 		const current = sessionStorage.getItem('debugParams')
 		if (!current) return
 
@@ -621,7 +621,7 @@ export default class Debug {
 	/**
 	 * Set the debug manager
 	 */
-	private _setDebugManager() {
+	#setDebugManager() {
 		const debugManager = this.panel.addFolder({
 			title: 'Debug Feature Manager',
 			expanded: false,
@@ -634,69 +634,69 @@ export default class Debug {
 					case 'Stats':
 						if (this.debugParams.Stats) {
 							this.stats?.enable()
-							this._monitoring.style.display = 'flex'
+							this.#monitoring.style.display = 'flex'
 						} else {
 							this.stats?.disable()
-							this._monitoring.style.display = 'none'
+							this.#monitoring.style.display = 'none'
 						}
 					case 'LoadingScreen':
 						const loadingScreen = this.debugParams.LoadingScreen
-						this._experience.store.loadingScreen = loadingScreen
+						this.#experience.store.loadingScreen = loadingScreen
 					case 'Landing':
 						const landing = this.debugParams.Landing
-						this._experience.store.landing = landing
+						this.#experience.store.landing = landing
 				}
 			})
 		)
 
-		this._experience.store.loadingScreen = this.debugParams.LoadingScreen
-		this._experience.store.landing = this.debugParams.Landing
+		this.#experience.store.loadingScreen = this.debugParams.LoadingScreen
+		this.#experience.store.landing = this.debugParams.Landing
 	}
 
 	/**
 	 * Set the stats panel
 	 */
-	private _setStats() {
+	#setStats() {
 		this.stats = new Stats(this.debugParams.Stats)
 	}
 
 	/**
 	 * Set the monitoring panel
 	 */
-	private _setMonitoring() {
+	#setMonitoring() {
 		const monitoringValues: Array<TMonitoringValue> = [
 			{
 				name: 'Calls',
-				value: () => this._experience.renderer.instance.info.render.calls,
+				value: () => this.#experience.renderer.instance.info.render.calls,
 			},
 			{
 				name: 'Triangles',
-				value: () => this._experience.renderer.instance.info.render.triangles,
+				value: () => this.#experience.renderer.instance.info.render.triangles,
 			},
 			{
 				name: 'Lines',
-				value: () => this._experience.renderer.instance.info.render.lines,
+				value: () => this.#experience.renderer.instance.info.render.lines,
 			},
 			{
 				name: 'Points',
-				value: () => this._experience.renderer.instance.info.render.points,
+				value: () => this.#experience.renderer.instance.info.render.points,
 			},
 			{
 				name: 'Geometries',
-				value: () => this._experience.renderer.instance.info.memory.geometries,
+				value: () => this.#experience.renderer.instance.info.memory.geometries,
 			},
 			{
 				name: 'Materials',
-				value: () => this._experience.renderer.instance.info.programs?.length,
+				value: () => this.#experience.renderer.instance.info.programs?.length,
 			},
 			{
 				name: 'Textures',
-				value: () => this._experience.renderer.instance.info.memory.textures,
+				value: () => this.#experience.renderer.instance.info.memory.textures,
 			},
 		]
 
-		this._monitoring = document.createElement('section')
-		Object.assign(this._monitoring.style, {
+		this.#monitoring = document.createElement('section')
+		Object.assign(this.#monitoring.style, {
 			position: 'fixed',
 			bottom: '1rem',
 			left: '1rem',
@@ -713,12 +713,12 @@ export default class Debug {
 			monitoringValueElement.id = monitoringValue.name.toLowerCase()
 
 			monitoringValue.element = monitoringValueElement
-			this._monitoring.appendChild(monitoringValueElement)
+			this.#monitoring.appendChild(monitoringValueElement)
 		})
 
-		document.body.appendChild(this._monitoring)
+		document.body.appendChild(this.#monitoring)
 
-		this._statsValues = {
+		this.#statsValues = {
 			monitoringValues,
 			update: () => {
 				this.stats?.update()

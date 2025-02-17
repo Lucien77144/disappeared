@@ -20,46 +20,46 @@ export default class DebugTransformControls {
 	public instance!: TransformControls
 
 	// Private properties
-	private _experience: Experience
-	private _canvas: Experience['canvas']
-	private _camera: ExtendableCamera
-	private _scene: Scene
+	#experience: Experience
+	#canvas: Experience['canvas']
+	#camera: ExtendableCamera
+	#scene: Scene
 
 	// Constructor to initialize the Transform Controls
 	constructor(params: TTransformControlsParams) {
 		if (!params.object) throw new Error('Object is undefined')
 
 		// Set experience and methods
-		this._experience = new Experience()
-		this._canvas = this._experience.canvas
+		this.#experience = new Experience()
+		this.#canvas = this.#experience.canvas
 
 		const activeScene = params.parent
 		if (!activeScene) throw Error('Currently no active scene')
 		const camera = activeScene?.camera
 		if (!camera) throw Error('Camera is undefined')
-		this._camera = camera
+		this.#camera = camera
 		const scene = activeScene.scene
 		if (!scene) throw Error('Scene is undefined')
-		this._scene = scene
+		this.#scene = scene
 
 		// Initialize options
 		this.options = params
 
 		// Set up the Transform Controls instance
-		this._setInstance()
-		if (this.options.debugFolder) this._setDebugFeature()
+		this.#setInstance()
+		if (this.options.debugFolder) this.#setDebugFeature()
 	}
 
 	/**
 	 * Method to set the Transform Controls instance
 	 */
-	private _setInstance() {
-		this.instance = new TransformControls(this._camera.instance, this._canvas)
+	#setInstance() {
+		this.instance = new TransformControls(this.#camera.instance, this.#canvas)
 
 		// Set up the helper for the Transform Controls
 		const helper = this.instance.getHelper()
 		helper.userData.devObject = true
-		this._scene.add(helper)
+		this.#scene.add(helper)
 
 		// Add the object to the scene if it has no parent
 		this.instance.attach(this.options.object)
@@ -71,13 +71,13 @@ export default class DebugTransformControls {
 	/**
 	 * Set the debug feature
 	 */
-	private _setDebugFeature() {
+	#setDebugFeature() {
 		this.options.debugFolder
 			.addBinding({ control: false }, 'control', {
 				label: this.options.name || 'transform control',
 			})
 			.on('change', ({ value }) => {
-				this.instance.camera = this._camera.instance
+				this.instance.camera = this.#camera.instance
 				this.instance.enabled = this.instance.getHelper().visible = value
 				transformModeBlade.hidden = !value
 			})

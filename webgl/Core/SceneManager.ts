@@ -14,12 +14,12 @@ export default class SceneManager {
 	public renderList: ExtendableScene[]
 
 	// Private
-	private _experience: Experience
-	private _store: Experience['store']
-	private _debug: Experience['debug']
-	private _debugScene?: BindingApi
-	private _active?: ExtendableScene
-	private _next?: ExtendableScene
+	#experience: Experience
+	#store: Experience['store']
+	#debug: Experience['debug']
+	#debugScene?: BindingApi
+	#active?: ExtendableScene
+	#next?: ExtendableScene
 	private $bus: Experience['$bus']
 
 	/**
@@ -33,17 +33,17 @@ export default class SceneManager {
 		this.start = 0
 
 		// Private
-		this._experience = new Experience()
-		this._store = this._experience.store
-		this._debug = this._experience.debug
-		this.$bus = this._experience.$bus
+		this.#experience = new Experience()
+		this.#store = this.#experience.store
+		this.#debug = this.#experience.debug
+		this.$bus = this.#experience.$bus
 	}
 
 	/**
 	 * Get active scene
 	 */
 	public get active() {
-		return this._active
+		return this.#active
 	}
 
 	/**
@@ -51,17 +51,17 @@ export default class SceneManager {
 	 */
 	public set active(scene: ExtendableScene | undefined) {
 		// Remove the previous scene from the render list
-		if (this._active) {
-			this._removeFromRenderList(this._active)
+		if (this.#active) {
+			this.#removeFromRenderList(this.#active)
 		}
 
 		// Set the active scene
-		this._active = scene
-		this._store.scene = scene?.name
+		this.#active = scene
+		this.#store.scene = scene?.name
 
 		// Add the active scene to the render list
 		if (scene) {
-			this._addToRenderList(scene)
+			this.#addToRenderList(scene)
 		}
 	}
 
@@ -69,7 +69,7 @@ export default class SceneManager {
 	 * Get next scene
 	 */
 	public get next() {
-		return this._next
+		return this.#next
 	}
 
 	/**
@@ -77,11 +77,11 @@ export default class SceneManager {
 	 */
 	public set next(scene: ExtendableScene | undefined) {
 		// Set the next scene
-		this._next = scene
+		this.#next = scene
 
 		// Add the next scene to the render list
-		if (this._next) {
-			this._addToRenderList(this._next)
+		if (this.#next) {
+			this.#addToRenderList(this.#next)
 		}
 	}
 
@@ -92,8 +92,8 @@ export default class SceneManager {
 	 */
 	public switch({ Scene }: TSceneInfos, instant: boolean = false): void {
 		if (this.next && !instant) return
-		if (this._debug && this._debugScene) {
-			this._debugScene.disabled = true // Disable the debug folder during the transition
+		if (this.#debug && this.#debugScene) {
+			this.#debugScene.disabled = true // Disable the debug folder during the transition
 		}
 
 		// Init & load the next scene
@@ -108,9 +108,9 @@ export default class SceneManager {
 
 		if (this.active?.transition && !instant) {
 			const transition = this.active?.transition.start()
-			transition.then(() => this._onSwitchComplete())
+			transition.then(() => this.#onSwitchComplete())
 		} else {
-			this._onSwitchComplete()
+			this.#onSwitchComplete()
 		}
 	}
 
@@ -120,12 +120,12 @@ export default class SceneManager {
 	 */
 	public init(name: string = this.scenes.default.name): void {
 		// Init debug
-		if (this._debug && name) {
-			this._setDebug(name)
+		if (this.#debug && name) {
+			this.#setDebug(name)
 		}
 
 		// Get the scene and init it
-		const { Scene } = this._getSceneFromList(name)
+		const { Scene } = this.#getSceneFromList(name)
 		const active = new Scene()
 
 		// Trigger load and ready events
@@ -164,7 +164,7 @@ export default class SceneManager {
 	 * Remove elements from render list
 	 * @param list Elements to remove
 	 */
-	private _removeFromRenderList(scene: ExtendableScene): void {
+	#removeFromRenderList(scene: ExtendableScene): void {
 		const removeList = [
 			scene.id,
 			...Object.values(scene.allScenes).map((s) => s.id),
@@ -178,7 +178,7 @@ export default class SceneManager {
 	 * Add elements to render list
 	 * @param list Elements to add
 	 */
-	private _addToRenderList(scene: ExtendableScene): void {
+	#addToRenderList(scene: ExtendableScene): void {
 		if (!this.renderList.find((s) => s.id === scene.id)) {
 			this.renderList.push(...Object.values(scene.allScenes), scene)
 			scene.isActive = true
@@ -189,10 +189,10 @@ export default class SceneManager {
 	 * On switch complete
 	 * @param infos Scene infos
 	 */
-	private _onSwitchComplete(): void {
+	#onSwitchComplete(): void {
 		// Enable debug scene
-		if (this._debug && this._debugScene && this._debugScene) {
-			this._debugScene.disabled = false
+		if (this.#debug && this.#debugScene && this.#debugScene) {
+			this.#debugScene.disabled = false
 		}
 
 		// Get the previous scene
@@ -212,9 +212,9 @@ export default class SceneManager {
 	/**
 	 * Set debug
 	 */
-	private _setDebug(defaultScene: string): void {
+	#setDebug(defaultScene: string): void {
 		// Separator
-		this._debug!.panel.addBlade({
+		this.#debug!.panel.addBlade({
 			view: 'separator',
 		})
 
@@ -224,20 +224,20 @@ export default class SceneManager {
 			onLoad: () => {
 				// Switch to default scene
 				if (scene.value !== defaultScene) {
-					const infos = this._getSceneFromList(scene.value)
+					const infos = this.#getSceneFromList(scene.value)
 					this.switch(infos, true)
 				}
 
 				// Add switch event on change scene
-				this._debugScene!.on('change', (evt) => {
+				this.#debugScene!.on('change', (evt) => {
 					const value = evt.value as string
-					const infos = this._getSceneFromList(value)
+					const infos = this.#getSceneFromList(value)
 
 					return this.switch(infos)
 				})
 			},
 		}
-		this._debugScene = this._debug!.panel.addBinding(scene, 'value', {
+		this.#debugScene = this.#debug!.panel.addBinding(scene, 'value', {
 			view: 'list',
 			label: 'Scene',
 			options: this.scenes.list.map((i) => ({
@@ -247,7 +247,7 @@ export default class SceneManager {
 		})
 
 		// Separator
-		this._debug!.panel.addBlade({
+		this.#debug!.panel.addBlade({
 			view: 'separator',
 		})
 	}
@@ -256,7 +256,7 @@ export default class SceneManager {
 	 * Get scene from list
 	 * @param {*} name Scene name
 	 */
-	private _getSceneFromList(name?: string): TSceneInfos {
+	#getSceneFromList(name?: string): TSceneInfos {
 		return this.scenes.list.find((s) => s.name === name) || this.scenes.default
 	}
 }

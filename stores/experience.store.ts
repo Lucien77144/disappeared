@@ -5,44 +5,44 @@ type TParam<T extends keyof TExperienceStore> = TExperienceStore[T]
 
 export const useExperienceStore = defineStore('experience', {
 	state: (): TStore<TExperienceStore> => ({
-		_active: false,
-		_loadingProgress: 0,
-		_loadingScreen: true,
-		_landing: true,
-		_scene: undefined,
+		$active: false,
+		$loadingProgress: 0,
+		$loadingScreen: true,
+		$landing: true,
+		$scene: undefined,
 	}),
 	getters: {
 		active(): TParam<'active'> {
-			return this._active
+			return this.$active
 		},
 		loadingProgress(): TParam<'loadingProgress'> {
-			return this._loadingProgress
+			return this.$loadingProgress
 		},
 		loadingScreen(): TParam<'loadingScreen'> {
-			return this._loadingScreen
+			return this.$loadingScreen
 		},
 		landing(): TParam<'landing'> {
-			return this._landing
+			return this.$landing
 		},
 		scene(): TParam<'scene'> {
-			return this._scene
+			return this.$scene
 		},
 	},
 	actions: {
 		setActive(val: TParam<'active'>) {
-			this._active = val
+			this.$active = val
 		},
 		setLoadingProgress(val: TParam<'loadingProgress'>) {
-			this._loadingProgress = val
+			this.$loadingProgress = val
 		},
 		setLoadingScreen(val: TParam<'loadingScreen'>) {
-			this._loadingScreen = val
+			this.$loadingScreen = val
 		},
 		setLanding(val: TParam<'landing'>) {
-			this._landing = !!val
+			this.$landing = !!val
 		},
 		setScene(val: TParam<'scene'>) {
-			this._scene = val
+			this.$scene = val
 		},
 	},
 })

@@ -1,1 +1,1 @@
-export type TStore<T> = { [K in keyof T as `_${string & K}`]: T[K] }
+export type TStore<T> = { [K in keyof T as `$${string & K}`]: T[K] }

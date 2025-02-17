@@ -149,7 +149,7 @@ export default class ExtendableItem<
 	 * Parent component of the item
 	 * @warning this is null in the constructor
 	 */
-	public parent?: ExtendableItem | ExtendableScene<any>
+	public parent?: ExtendableItem<T> | ExtendableScene<T>
 	/**
 	 * Item that will be added to the three scene
 	 */

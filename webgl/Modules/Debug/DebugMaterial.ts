@@ -115,8 +115,8 @@ export class DebugMaterial {
 	public folder!: FolderApi
 
 	// Private
-	private _experience: Experience
-	private _debug: Experience['debug']
+	#experience: Experience
+	#debug: Experience['debug']
 
 	/**
 	 * Constructor
@@ -134,27 +134,27 @@ export class DebugMaterial {
 		this.options = options
 
 		// Private
-		this._experience = new Experience()
-		this._debug = this._experience.debug
+		this.#experience = new Experience()
+		this.#debug = this.#experience.debug
 
 		// Init folder
-		this._initFolder(parent)
-		this._initDebug()
+		this.#initFolder(parent)
+		this.#initDebug()
 	}
 
 	/**
 	 * Dispose the debug
 	 */
 	public dipose() {
-		this._debug?.remove(this.folder)
+		this.#debug?.remove(this.folder)
 	}
 
 	/**
 	 * Init folder for the debug
 	 * @param parent Parent to add the folder to
 	 */
-	private _initFolder(parent?: FolderApi | Pane): void {
-		parent ??= this._debug?.panel
+	#initFolder(parent?: FolderApi | Pane): void {
+		parent ??= this.#debug?.panel
 		if (!parent) return
 
 		// Set title
@@ -174,14 +174,14 @@ export class DebugMaterial {
 	/**
 	 * Init debug folder content
 	 */
-	private _initDebug(): void {
-		const _selfParams = this.params as any
-		const _selfMaterial = this.material as any
+	#initDebug(): void {
+		const selfParams = this.params as any
+		const selfMaterial = this.material as any
 
 		const keys = Object.keys(this.params) as KeyOfDistributive<TParams>[]
 		keys.forEach((key) => {
-			const params = _selfParams[key]
-			const value = _selfMaterial[key]
+			const params = selfParams[key]
+			const value = selfMaterial[key]
 
 			if (value == null || params.condition) return
 
@@ -195,12 +195,12 @@ export class DebugMaterial {
 								tag: `${this.title}-${key}`,
 							})
 							.on('change', ({ value }) => {
-								const previousValue = _selfMaterial[key] as Texture
+								const previousValue = selfMaterial[key] as Texture
 								const texture = new Texture(value)
 								texture.colorSpace = previousValue.colorSpace
 								texture.flipY = previousValue.flipY
 
-								const res = ((_selfMaterial[key] as Texture) = texture)
+								const res = ((selfMaterial[key] as Texture) = texture)
 								res.needsUpdate = true
 							})
 					}
@@ -245,8 +245,8 @@ export class DebugMaterial {
 							options,
 						})
 						.on('change', ({ value }: { value: string }) => {
-							_selfMaterial[key] = parseInt(value)
-							_selfMaterial.needsUpdate = true
+							selfMaterial[key] = parseInt(value)
+							selfMaterial.needsUpdate = true
 						})
 					break
 				}
@@ -299,7 +299,7 @@ export class DebugMaterial {
 									bindImage(image)
 								})
 							} else if (uniformValue.isDataTexture) {
-								const img = this._experience.resources.items[uniformValue.name]
+								const img = this.#experience.resources.items[uniformValue.name]
 								bindImage(img as HTMLImageElement)
 							}
 
@@ -317,13 +317,13 @@ export class DebugMaterial {
 				}
 				default: {
 					this.folder
-						.addBinding(_selfMaterial, key, {
+						.addBinding(selfMaterial, key, {
 							...params,
 							label: params.name || key,
 							tag: `${this.title}-${key}`,
 						})
 						.on('change', () => {
-							_selfMaterial.needsUpdate = true
+							selfMaterial.needsUpdate = true
 						})
 					break
 				}

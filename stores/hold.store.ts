@@ -3,24 +3,24 @@ import type { TStore } from '~/models/stores/store.model'
 
 export const useHoldStore = defineStore('hold', {
 	state: (): TStore<THold> => ({
-		_progress: 0 as THold['progress'], // 0-100
-		_complete: false,
+		$progress: 0 as THold['progress'], // 0-100
+		$complete: false,
 	}),
 	getters: {
 		progress(): THold['progress'] {
-			return this._progress
+			return this.$progress
 		},
 		complete(): THold['complete'] {
-			return this._complete
+			return this.$complete
 		},
 	},
 	actions: {
 		setProgress(val: THold['progress']) {
-			this._progress = val
+			this.$progress = val
 			if (val >= 100) {
-				this._complete = true
+				this.$complete = true
 			} else if (!val) {
-				this._complete = false
+				this.$complete = false
 			}
 		},
 	},

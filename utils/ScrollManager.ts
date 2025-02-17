@@ -35,10 +35,10 @@ export default class ScrollManager extends EventEmitter<TScrollManagerEvents> {
 	public limit?: TOptions['limit']
 
 	// Private
-	private _time: Time
-	private _dragManager: DragManager
-	private _handleScroll: any
-	private _handleUpdate: any
+	#time: Time
+	#dragManager: DragManager
+	#handleScroll: any
+	#handleUpdate: any
 
 	/**
 	 * Constructor
@@ -65,11 +65,11 @@ export default class ScrollManager extends EventEmitter<TScrollManagerEvents> {
 		this.delta = 0
 
 		// Private
-		this._time = new Time()
-		this._dragManager = new DragManager()
+		this.#time = new Time()
+		this.#dragManager = new DragManager()
 
 		// Init
-		this._init()
+		this.#init()
 	}
 
 	// ---------------------
@@ -86,7 +86,7 @@ export default class ScrollManager extends EventEmitter<TScrollManagerEvents> {
 		if (instant) {
 			this.current = val
 		}
-		this._emit()
+		this.#emit()
 	}
 
 	// ---------------------
@@ -96,55 +96,55 @@ export default class ScrollManager extends EventEmitter<TScrollManagerEvents> {
 	/**
 	 * Set scroll detection events
 	 */
-	private _setScrollEvents() {
+	#setScrollEvents() {
 		let prev = -1
 		const firefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1
 		const isMobile = isDeviceMobile()
 
 		if (isMobile) {
-			this._handleScroll = (e: TDragEvent) => {
+			this.#handleScroll = (e: TDragEvent) => {
 				if (this.disabled) return
 
 				this.delta = (e.delta?.y ?? 0) * 10
 
-				this._updateTarget()
-				this._emit()
+				this.#updateTarget()
+				this.#emit()
 			}
 
-			this._dragManager.on('drag', this._handleScroll)
+			this.#dragManager.on('drag', this.#handleScroll)
 		} else if (firefox) {
-			this._handleScroll = (e: WheelEvent) => {
+			this.#handleScroll = (e: WheelEvent) => {
 				if (this.disabled) return
 
 				this.delta =
 					Math.sign(e.detail * 15) == Math.sign(prev) ? e.detail * 15 : 0
 				prev = e.detail
 
-				this._updateTarget()
-				this._emit()
+				this.#updateTarget()
+				this.#emit()
 			}
 
-			window.addEventListener('DOMMouseScroll', this._handleScroll)
+			window.addEventListener('DOMMouseScroll', this.#handleScroll)
 		} else {
-			this._handleScroll = (e: WheelEvent) => {
+			this.#handleScroll = (e: WheelEvent) => {
 				if (this.disabled) return
 
 				if (Math.abs(e.deltaY) > Math.abs(this.delta)) {
 					this.delta = e.deltaY
 				}
 
-				this._updateTarget()
-				this._emit()
+				this.#updateTarget()
+				this.#emit()
 			}
 
-			window.addEventListener('wheel', this._handleScroll)
+			window.addEventListener('wheel', this.#handleScroll)
 		}
 	}
 
 	/**
 	 * Scroll function to override
 	 */
-	private _emit() {
+	#emit() {
 		const event = {
 			delta: this.delta,
 			current: this.current,
@@ -156,15 +156,15 @@ export default class ScrollManager extends EventEmitter<TScrollManagerEvents> {
 	/**
 	 * Set update event
 	 */
-	private _setUpdate() {
-		this._handleUpdate = this._update.bind(this)
-		this._time.on('tick', this._handleUpdate)
+	#setUpdate() {
+		this.#handleUpdate = this.#update.bind(this)
+		this.#time.on('tick', this.#handleUpdate)
 	}
 
 	/**
 	 * Update target value
 	 */
-	private _updateTarget() {
+	#updateTarget() {
 		this.target += this.delta * (this.factor / 100)
 
 		if (this.limit) {
@@ -175,15 +175,15 @@ export default class ScrollManager extends EventEmitter<TScrollManagerEvents> {
 	/**
 	 * Init the scroll manager
 	 */
-	private _init() {
-		this._setScrollEvents()
-		this._setUpdate()
+	#init() {
+		this.#setScrollEvents()
+		this.#setUpdate()
 	}
 
 	/**
 	 * Update values
 	 */
-	private _update() {
+	#update() {
 		if (this.disabled) return
 
 		const prev = this.current
@@ -194,7 +194,7 @@ export default class ScrollManager extends EventEmitter<TScrollManagerEvents> {
 			this.delta = MathUtils.lerp(this.delta, 0, this.speed)
 		}
 
-		if (this.current !== prev) this._emit()
+		if (this.current !== prev) this.#emit()
 	}
 
 	/**
@@ -205,13 +205,13 @@ export default class ScrollManager extends EventEmitter<TScrollManagerEvents> {
 		this.disposeEvents()
 
 		// Dispose time
-		this._time.dispose()
+		this.#time.dispose()
 
 		// Remove event listener
-		this._dragManager.dispose()
+		this.#dragManager.dispose()
 
 		// Remove event listener
-		window.removeEventListener('DOMMouseScroll', this._handleScroll)
-		window.removeEventListener('wheel', this._handleScroll)
+		window.removeEventListener('DOMMouseScroll', this.#handleScroll)
+		window.removeEventListener('wheel', this.#handleScroll)
 	}
 }

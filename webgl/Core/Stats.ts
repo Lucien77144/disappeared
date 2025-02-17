@@ -12,7 +12,7 @@ export default class Stats {
 
 	// Private
 	private queryCreated: boolean
-	private _render?: {
+	#render?: {
 		context?: WebGL2RenderingContext
 		extension?: any
 		panel?: any
@@ -21,16 +21,16 @@ export default class Stats {
 
 	/**
 	 * Constructor
-	 * @param _active Active status
+	 * @param active Active status
 	 */
-	constructor(public _active: boolean = true) {
+	constructor(active: boolean = true) {
 		// Public
 		this.instance = new StatsJs()
 		this.instance.showPanel(0) // 0: fps, 1: ms, 2: mb, 3+: custom
 		this.max = 40
 		this.ignoreMaxed = true
 		this.queryCreated = false
-		this.active = !!_active
+		this.active = !!active
 		this.active ? this.enable() : this.disable()
 
 		// Append to body
@@ -60,7 +60,7 @@ export default class Stats {
 	public setRenderPanel(context: WebGL2RenderingContext): void {
 		const panel = new StatsJs.Panel('Render (ms)', '#f8f', '#212')
 
-		this._render = {
+		this.#render = {
 			context,
 			extension: context.getExtension('EXT_disjoint_timer_query_webgl2'),
 			panel: this.instance.addPanel(panel),
@@ -70,7 +70,7 @@ export default class Stats {
 			typeof WebGL2RenderingContext !== 'undefined' &&
 			context instanceof WebGL2RenderingContext
 
-		if (!webGL2 || !this._render?.extension) this.disable()
+		if (!webGL2 || !this.#render?.extension) this.disable()
 	}
 
 	/**
@@ -82,10 +82,10 @@ export default class Stats {
 		// Setup
 		this.queryCreated = false
 		let queryResultAvailable = false
-		const query = this._render?.query
-		const context = this._render?.context
-		const panel = this._render?.panel
-		const ext = this._render?.extension
+		const query = this.#render?.query
+		const context = this.#render?.context
+		const panel = this.#render?.panel
+		const ext = this.#render?.extension
 
 		// Test if query result available
 		if (query) {
@@ -109,12 +109,12 @@ export default class Stats {
 		}
 
 		// If query result available or no query yet
-		if (this._render && (queryResultAvailable || !this._render?.query)) {
+		if (this.#render && (queryResultAvailable || !this.#render?.query)) {
 			// Create new query
 			this.queryCreated = true
-			this._render.query = context?.createQuery() ?? {}
+			this.#render.query = context?.createQuery() ?? {}
 
-			context?.beginQuery(ext.TIME_ELAPSED_EXT, this._render?.query)
+			context?.beginQuery(ext.TIME_ELAPSED_EXT, this.#render?.query)
 		}
 	}
 
@@ -126,7 +126,7 @@ export default class Stats {
 
 		// End the query (result will be available "later")
 		if (this.queryCreated) {
-			this._render?.context?.endQuery(this._render?.extension.TIME_ELAPSED_EXT)
+			this.#render?.context?.endQuery(this.#render?.extension.TIME_ELAPSED_EXT)
 		}
 	}
 

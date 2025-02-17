@@ -10,14 +10,16 @@ export default class TestCube extends ExtendableItem<SandboxClone> {
 	public position: { x: number; y: number; z: number }
 
 	// Private
-	private _geometry?: BoxGeometry
-	private _material?: ShaderMaterial
-	private _mesh?: Mesh
+	#geometry?: BoxGeometry
+	#material?: ShaderMaterial
+	#mesh?: Mesh
 
 	/**
 	 * Constructor
+	 * @param options Options
+	 * @param options.position Position
 	 */
-	constructor(_options: { position: { x: number; y: number; z: number } }) {
+	constructor(options: { position: { x: number; y: number; z: number } }) {
 		super()
 
 		this.scenes = {
@@ -26,7 +28,7 @@ export default class TestCube extends ExtendableItem<SandboxClone> {
 
 		// Public
 		this.holdDuration = 2000
-		this.position = _options.position
+		this.position = options.position
 
 		// Events
 		this.on('load', () => this.onLoad())
@@ -43,9 +45,9 @@ export default class TestCube extends ExtendableItem<SandboxClone> {
 	 * On load
 	 */
 	public onLoad() {
-		this._setGeometry()
-		this._setMaterial()
-		this._setMesh()
+		this.#setGeometry()
+		this.#setMaterial()
+		this.#setMesh()
 	}
 
 	/**
@@ -56,11 +58,11 @@ export default class TestCube extends ExtendableItem<SandboxClone> {
 	}
 
 	public onScroll() {
-		this._mesh!.rotation.y += 0.01
+		this.#mesh!.rotation.y += 0.01
 	}
 
 	public onUpdate() {
-		this._material!.uniforms.tDiffuse.value = this.scenes.testCube.rt.texture
+		this.#material!.uniforms.tDiffuse.value = this.scenes.testCube.rt.texture
 	}
 
 	// --------------------------------
@@ -70,15 +72,15 @@ export default class TestCube extends ExtendableItem<SandboxClone> {
 	/**
 	 * Set geometry
 	 */
-	private _setGeometry() {
-		this._geometry = new BoxGeometry(4, 4, 4)
+	#setGeometry() {
+		this.#geometry = new BoxGeometry(4, 4, 4)
 	}
 
 	/**
 	 * Set material
 	 */
-	private _setMaterial() {
-		this._material = new ShaderMaterial({
+	#setMaterial() {
+		this.#material = new ShaderMaterial({
 			vertexShader,
 			fragmentShader,
 			uniforms: {
@@ -90,10 +92,10 @@ export default class TestCube extends ExtendableItem<SandboxClone> {
 	/**
 	 * Set mesh
 	 */
-	private _setMesh() {
-		this._mesh = new Mesh(this._geometry, this._material)
-		this._mesh.position.set(this.position.x, this.position.y, this.position.z)
-		this._mesh.scale.set(0.5, 0.5, 0.5)
-		this.item.add(this._mesh)
+	#setMesh() {
+		this.#mesh = new Mesh(this.#geometry, this.#material)
+		this.#mesh.position.set(this.position.x, this.position.y, this.position.z)
+		this.#mesh.scale.set(0.5, 0.5, 0.5)
+		this.item.add(this.#mesh)
 	}
 }

@@ -14,9 +14,9 @@ export default class AudioManager {
 	public debugFolder?: FolderApi
 
 	// Private
-	private _experience: Experience
-	private _resources: Experience['resources']
-	private _debug: Experience['debug']
+	#experience: Experience
+	#resources: Experience['resources']
+	#debug: Experience['debug']
 
 	/**
 	 * Constructor
@@ -27,9 +27,9 @@ export default class AudioManager {
 		this.audios = {}
 
 		// Private
-		this._experience = new Experience()
-		this._resources = this._experience.resources
-		this._debug = this._experience.debug
+		this.#experience = new Experience()
+		this.#resources = this.#experience.resources
+		this.#debug = this.#experience.debug
 	}
 
 	/**
@@ -58,7 +58,7 @@ export default class AudioManager {
 		if (this.audios[name]) return this.audios[name]
 		if (!listener) return
 
-		const source = this._resources?.items?.[name] as HTMLMediaElement
+		const source = this.#resources?.items?.[name] as HTMLMediaElement
 		const sound = new (parent ? PositionalAudio : Audio)(listener) as TAudio
 
 		if (!this.sources[name] && source) {
@@ -110,7 +110,7 @@ export default class AudioManager {
 		isSingle && (sound.isSingle = isSingle)
 
 		this.audios[name] = sound
-		this.audios[name].debug = this._debug && this._setDebug(name, sound)
+		this.audios[name].debug = this.#debug && this.#setDebug(name, sound)
 
 		return sound
 	}
@@ -128,7 +128,7 @@ export default class AudioManager {
 		delete this.audios[name]
 
 		if (Object.keys(this.audios).length == 0 && this.debugFolder) {
-			this._debug?.remove(this.debugFolder)
+			this.#debug?.remove(this.debugFolder)
 			this.debugFolder = undefined
 		}
 	}
@@ -137,7 +137,7 @@ export default class AudioManager {
 	 * Dispose the audio manager
 	 */
 	public dispose(): void {
-		this.debugFolder && this._debug?.remove(this.debugFolder)
+		this.debugFolder && this.#debug?.remove(this.debugFolder)
 		Object.keys(this.audios).forEach((name) => this.remove(name))
 	}
 
@@ -146,9 +146,9 @@ export default class AudioManager {
 	 * @param {string | number} title - Title of the debug
 	 * @param {TAudio} audio - Audio object
 	 */
-	private _setDebug(title: string | number, audio: TAudio) {
+	#setDebug(title: string | number, audio: TAudio) {
 		// Folder
-		this.debugFolder ??= this._debug?.panel?.addFolder({
+		this.debugFolder ??= this.#debug?.panel?.addFolder({
 			expanded: false,
 			title: 'Audio',
 		})

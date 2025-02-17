@@ -36,8 +36,8 @@ export default class DebugObject {
 	public parent: ExtendableScene
 
 	// Private
-	private _experience: Experience
-	private _debug: Experience['debug']
+	#experience: Experience
+	#debug: Experience['debug']
 
 	constructor(
 		object: Object3D,
@@ -45,14 +45,14 @@ export default class DebugObject {
 		options: TObjectDebugOptions = {}
 	) {
 		// Private
-		this._experience = new Experience()
-		this._debug = this._experience.debug
+		this.#experience = new Experience()
+		this.#debug = this.#experience.debug
 
 		// Public
 		this.object = object
 		this.options = options
 		this.parent = parent
-		const debugFolder = options.debugFolder || this._debug?.panel
+		const debugFolder = options.debugFolder || this.#debug?.panel
 		if (debugFolder) {
 			const title =
 				this.options.title ||
@@ -64,18 +64,16 @@ export default class DebugObject {
 				title: '📦 Object3D - ' + title,
 				expanded: true,
 			})
-
-			console.log(this.debugFolder)
 		}
 
 		// Init
-		this._init()
+		this.#init()
 	}
 
 	/**
 	 * Init the debug object
 	 */
-	private _init() {
+	#init() {
 		if (!this.debugFolder) return
 		const meshKeys: any = Object.keys(objectParams)
 

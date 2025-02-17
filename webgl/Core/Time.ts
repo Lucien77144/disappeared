@@ -17,15 +17,16 @@ export default class Time extends EventEmitter<TTimeEvents> {
 	public enableBus: boolean
 
 	// Private
-	private _experience: Experience
+	#experience: Experience
 	private $bus: Experience['$bus']
-	private _ticker?: number
+	#ticker?: number
 
 	/**
 	 * Constructor
-	 * @param { boolean } _options.enableBus Enable bus to emit (default: false)
+	 * @param options Options
+	 * @param options.enableBus Enable bus to emit (default: false)
 	 */
-	constructor(_options: { enableBus?: boolean } = {}) {
+	constructor(options: { enableBus?: boolean } = {}) {
 		super()
 
 		// Public
@@ -33,14 +34,14 @@ export default class Time extends EventEmitter<TTimeEvents> {
 		this.elapsed = 0
 		this.delta = 16
 		this.playing = true
-		this.enableBus = !!_options.enableBus
+		this.enableBus = !!options.enableBus
 
 		// Private
-		this._experience = new Experience()
-		this.$bus = this._experience.$bus
+		this.#experience = new Experience()
+		this.$bus = this.#experience.$bus
 
 		// Init
-		this._setTicker()
+		this.#setTicker()
 	}
 
 	/**
@@ -62,7 +63,7 @@ export default class Time extends EventEmitter<TTimeEvents> {
 	 */
 	public dispose() {
 		// Cancel ticker
-		this._ticker && window.cancelAnimationFrame(this._ticker)
+		this.#ticker && window.cancelAnimationFrame(this.#ticker)
 
 		// Dispose events
 		this.disposeEvents()
@@ -71,15 +72,15 @@ export default class Time extends EventEmitter<TTimeEvents> {
 	/**
 	 * Set ticker
 	 */
-	private _setTicker(): void {
-		this._ticker = window.requestAnimationFrame(() => this._tick())
+	#setTicker(): void {
+		this.#ticker = window.requestAnimationFrame(() => this.#tick())
 	}
 
 	/**
 	 * Update time values
 	 */
-	private _tick() {
-		this._setTicker()
+	#tick() {
+		this.#setTicker()
 
 		const current = Date.now()
 

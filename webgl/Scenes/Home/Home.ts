@@ -18,7 +18,7 @@ export default class Home extends ExtendableScene {
 	public hdriTexture!: Texture
 
 	// Private
-	private _renderer: WebGLRenderer
+	#renderer: WebGLRenderer
 
 	/**
 	 * Constructor
@@ -38,10 +38,10 @@ export default class Home extends ExtendableScene {
 		this.hdri = this.experience.resources.items.hdri as Texture
 
 		// Private
-		this._renderer = this.experience.renderer.instance
+		this.#renderer = this.experience.renderer.instance
 
 		// Init the scene
-		this.on('load', () => this._onLoad())
+		this.on('load', () => this.#onLoad())
 	}
 
 	// --------------------------------
@@ -51,9 +51,9 @@ export default class Home extends ExtendableScene {
 	/**
 	 * On load
 	 */
-	private _onLoad() {
-		this._setupPMREMGenerator()
-		this._setupLights()
+	#onLoad() {
+		this.#setupPMREMGenerator()
+		this.#setupLights()
 
 		this.camera.instance.position.z = 30
 	}
@@ -65,8 +65,8 @@ export default class Home extends ExtendableScene {
 	/**
 	 * Setup PMREM Generator
 	 */
-	private _setupPMREMGenerator() {
-		const pmremGenerator = new PMREMGenerator(this._renderer)
+	#setupPMREMGenerator() {
+		const pmremGenerator = new PMREMGenerator(this.#renderer)
 		this.hdriTexture = pmremGenerator.fromEquirectangular(this.hdri).texture
 		this.scene.background = this.hdriTexture
 		this.scene.environment = this.hdriTexture
@@ -76,7 +76,7 @@ export default class Home extends ExtendableScene {
 	/**
 	 * Setup lights
 	 */
-	private _setupLights() {
+	#setupLights() {
 		const lights: Dictionary<Light> = {}
 
 		// Ambient light

@@ -38,7 +38,7 @@ export type TLoaderEvents = {
 
 export default class Loader extends EventEmitter<TLoaderEvents> {
 	// Static
-	static _i18n: ReturnType<typeof useI18n>
+	static #i18n: ReturnType<typeof useI18n>
 
 	// Public
 	public total: number
@@ -46,9 +46,9 @@ export default class Loader extends EventEmitter<TLoaderEvents> {
 	public items: Dictionary<TResourceData>
 
 	// Private
-	private _experience: Experience
-	private _loaders: Array<TLoader>
-	private _store: Experience['store']
+	#experience: Experience
+	#loaders: Array<TLoader>
+	#store: Experience['store']
 	private $bus: Experience['$bus']
 
 	/**
@@ -57,8 +57,8 @@ export default class Loader extends EventEmitter<TLoaderEvents> {
 	constructor() {
 		super()
 		// Static
-		if (!Loader._i18n) {
-			Loader._i18n = useI18n() as unknown as ReturnType<typeof useI18n>
+		if (!Loader.#i18n) {
+			Loader.#i18n = useI18n() as unknown as ReturnType<typeof useI18n>
 		}
 
 		// Public
@@ -67,13 +67,13 @@ export default class Loader extends EventEmitter<TLoaderEvents> {
 		this.items = {}
 
 		// Private
-		this._experience = new Experience()
-		this._loaders = []
-		this._store = this._experience.store
-		this.$bus = this._experience.$bus
+		this.#experience = new Experience()
+		this.#loaders = []
+		this.#store = this.#experience.store
+		this.$bus = this.#experience.$bus
 
 		// Init
-		this._init()
+		this.#init()
 	}
 
 	/**
@@ -82,10 +82,10 @@ export default class Loader extends EventEmitter<TLoaderEvents> {
 	public load(resources: Array<TResourceItem> = []): void {
 		for (const resource of resources) {
 			this.total++
-			const extension = this._getExtension(resource.source)
+			const extension = this.#getExtension(resource.source)
 
 			if (typeof extension !== 'undefined') {
-				const loader = this._loaders.find((loader) =>
+				const loader = this.#loaders.find((loader) =>
 					loader.extensions.find((e) => e === extension)
 				)
 
@@ -111,21 +111,21 @@ export default class Loader extends EventEmitter<TLoaderEvents> {
 	/**
 	 * Init loaders
 	 */
-	private _init(): void {
+	#init(): void {
 		// Images
-		this._loaders.push({
+		this.#loaders.push({
 			extensions: ['jpg', 'png', 'svg', 'webp'],
 			action: (resource) => {
 				const data = new Image()
 
 				data.addEventListener('load', () => {
-					const res = this._imageToTexture({ resource, data }) as Texture
-					this._fileLoadEnd(resource, res)
+					const res = this.#imageToTexture({ resource, data }) as Texture
+					this.#fileLoadEnd(resource, res)
 				})
 
 				data.addEventListener('error', () => {
-					const res = this._imageToTexture({ resource, data }) as Texture
-					this._fileLoadEnd(resource, res)
+					const res = this.#imageToTexture({ resource, data }) as Texture
+					this.#fileLoadEnd(resource, res)
 				})
 
 				data.src = resource.source
@@ -134,7 +134,7 @@ export default class Loader extends EventEmitter<TLoaderEvents> {
 
 		// 3D SVG
 		const svgLoader = new SVGLoader()
-		this._loaders.push({
+		this.#loaders.push({
 			extensions: ['model.svg'],
 			action: (resource) => {
 				const sourceData = resource.data ?? {}
@@ -220,18 +220,18 @@ export default class Loader extends EventEmitter<TLoaderEvents> {
 					})
 					group.scale.y *= -1
 
-					this._fileLoadEnd(resource, group)
+					this.#fileLoadEnd(resource, group)
 				})
 			},
 		})
 
 		// EXR
 		const exrLoader = new EXRLoader()
-		this._loaders.push({
+		this.#loaders.push({
 			extensions: ['exr'],
 			action: (resource) => {
 				exrLoader.load(resource.source, (data) => {
-					this._fileLoadEnd(resource, data)
+					this.#fileLoadEnd(resource, data)
 				})
 			},
 		})
@@ -241,11 +241,11 @@ export default class Loader extends EventEmitter<TLoaderEvents> {
 		dracoLoader.setDecoderPath('draco/')
 		dracoLoader.setDecoderConfig({ type: 'js' })
 
-		this._loaders.push({
+		this.#loaders.push({
 			extensions: ['drc'],
 			action: (resource) => {
 				dracoLoader.load(resource.source, (data) => {
-					this._fileLoadEnd(resource, data)
+					this.#fileLoadEnd(resource, data)
 
 					// @ts-ignore // @TODO: Fix this
 					DRACOLoader.releaseDecoderModule()
@@ -257,11 +257,11 @@ export default class Loader extends EventEmitter<TLoaderEvents> {
 		const gltfLoader = new GLTFLoader()
 		gltfLoader.setDRACOLoader(dracoLoader)
 
-		this._loaders.push({
+		this.#loaders.push({
 			extensions: ['glb', 'gltf'],
 			action: (resource) => {
 				gltfLoader.load(resource.source, (data) => {
-					this._fileLoadEnd(resource, data)
+					this.#fileLoadEnd(resource, data)
 				})
 			},
 		})
@@ -269,11 +269,11 @@ export default class Loader extends EventEmitter<TLoaderEvents> {
 		// FBX
 		const fbxLoader = new FBXLoader()
 
-		this._loaders.push({
+		this.#loaders.push({
 			extensions: ['fbx'],
 			action: (resource) => {
 				fbxLoader.load(resource.source, (data) => {
-					this._fileLoadEnd(resource, data)
+					this.#fileLoadEnd(resource, data)
 				})
 			},
 		})
@@ -281,24 +281,24 @@ export default class Loader extends EventEmitter<TLoaderEvents> {
 		// RGBE | HDR
 		const rgbeLoader = new RGBELoader()
 
-		this._loaders.push({
+		this.#loaders.push({
 			extensions: ['hdr'],
 			action: (resource) => {
 				rgbeLoader.load(resource.source, (data) => {
-					this._fileLoadEnd(resource, data)
+					this.#fileLoadEnd(resource, data)
 				})
 			},
 		})
 
 		// Video
-		this._loaders.push({
+		this.#loaders.push({
 			extensions: ['mp4'],
 			action: (resource) => {
 				const video = document.createElement('video')
 				video.src = resource.source
 
 				// Subtitles
-				resource.subtitles && this._setSubtitles(video, resource.subtitles)
+				resource.subtitles && this.#setSubtitles(video, resource.subtitles)
 
 				this.$bus?.on('audio:mute', () => {
 					video.muted = true
@@ -311,13 +311,13 @@ export default class Loader extends EventEmitter<TLoaderEvents> {
 				video.load()
 
 				video.addEventListener('loadeddata', () => {
-					this._fileLoadEnd(resource, video)
+					this.#fileLoadEnd(resource, video)
 				})
 			},
 		})
 
 		// Audio
-		this._loaders.push({
+		this.#loaders.push({
 			extensions: ['m4a', 'mp3', 'ogg', 'wav'],
 			action: (resource) => {
 				// Audio
@@ -326,11 +326,11 @@ export default class Loader extends EventEmitter<TLoaderEvents> {
 				audio.src = resource.source
 
 				// Subtitles
-				resource.subtitles && this._setSubtitles(audio, resource.subtitles)
+				resource.subtitles && this.#setSubtitles(audio, resource.subtitles)
 
 				audio.load()
 				audio.addEventListener('loadeddata', () => {
-					this._fileLoadEnd(resource, audio)
+					this.#fileLoadEnd(resource, audio)
 				})
 			},
 		})
@@ -338,11 +338,11 @@ export default class Loader extends EventEmitter<TLoaderEvents> {
 		// Lottie
 		const lottieLoader = new LottieLoader()
 
-		this._loaders.push({
+		this.#loaders.push({
 			extensions: ['lottie.json'],
 			action: (resource) => {
 				lottieLoader.load(resource.source, (animation) => {
-					this._fileLoadEnd(resource, animation)
+					this.#fileLoadEnd(resource, animation)
 				})
 			},
 		})
@@ -350,11 +350,11 @@ export default class Loader extends EventEmitter<TLoaderEvents> {
 		// Font
 		const fontLoader = new FontLoader()
 
-		this._loaders.push({
+		this.#loaders.push({
 			extensions: ['font.json'],
 			action: (ressource) => {
 				fontLoader.load(ressource.source, (font) => {
-					this._fileLoadEnd(ressource, font)
+					this.#fileLoadEnd(ressource, font)
 				})
 			},
 		})
@@ -365,7 +365,7 @@ export default class Loader extends EventEmitter<TLoaderEvents> {
 	 * @param {*} source source to check
 	 * @returns extension for loader uses
 	 */
-	private _getExtension(source: TResourceItem['source']): TExtension | void {
+	#getExtension(source: TResourceItem['source']): TExtension | void {
 		const ext = source.match(/\.([a-z0-9]+)$/i)?.[1] as TExtension | void
 		if (!ext) return
 
@@ -391,7 +391,7 @@ export default class Loader extends EventEmitter<TLoaderEvents> {
 	 * @param file File to check
 	 * @returns Resource data
 	 */
-	private _imageToTexture(file: TResourceFile): TResourceData {
+	#imageToTexture(file: TResourceFile): TResourceData {
 		// Convert to texture
 		if (!(file.data instanceof Texture)) {
 			file.data = new Texture(file.data as HTMLImageElement)
@@ -405,9 +405,9 @@ export default class Loader extends EventEmitter<TLoaderEvents> {
 	 * Handle cue change
 	 * @param evt event
 	 */
-	private _handleCueChange(evt: Event): void {
+	#handleCueChange(evt: Event): void {
 		const cues = (evt.currentTarget as HTMLTrackElement)?.track?.activeCues
-		this._store.cues = cues
+		this.#store.cues = cues
 	}
 
 	/**
@@ -415,7 +415,7 @@ export default class Loader extends EventEmitter<TLoaderEvents> {
 	 * @param {*} element Audio / Video element
 	 * @param {*} subtitles Subtitles object
 	 */
-	private _setSubtitles(
+	#setSubtitles(
 		element: HTMLVideoElement | HTMLAudioElement,
 		subtitles: Record<string, string>
 	): void {
@@ -424,20 +424,20 @@ export default class Loader extends EventEmitter<TLoaderEvents> {
 			const trackEl = document.createElement('track')
 			trackEl.src = subtitles[key]
 			trackEl.kind = 'subtitles'
-			trackEl.label = Loader._i18n.t('LANG.' + key.toUpperCase() + '.LABEL')
+			trackEl.label = Loader.#i18n.t('LANG.' + key.toUpperCase() + '.LABEL')
 			trackEl.srclang = key
-			trackEl.default = Loader._i18n.locale.value == key
+			trackEl.default = Loader.#i18n.locale.value == key
 
-			trackEl.addEventListener('cuechange', this._handleCueChange)
+			trackEl.addEventListener('cuechange', this.#handleCueChange)
 			element.appendChild(trackEl)
 
 			trackEl.track.mode = 'hidden'
 		})
 
 		// Update the track on locale change
-		this._onLangChange(element, (Loader._i18n.locale.value || 'fr') as TLocale)
+		this.#onLangChange(element, (Loader.#i18n.locale.value || 'fr') as TLocale)
 		this.$bus?.on('lang:change', (locale: TLocale) =>
-			this._onLangChange(element, locale)
+			this.#onLangChange(element, locale)
 		)
 	}
 
@@ -446,7 +446,7 @@ export default class Loader extends EventEmitter<TLoaderEvents> {
 	 * @param {*} element Audio / Video element
 	 * @param {*} locale New locale to use
 	 */
-	private _onLangChange(
+	#onLangChange(
 		element: HTMLVideoElement | HTMLAudioElement,
 		locale: TLocale
 	): void {
@@ -466,10 +466,7 @@ export default class Loader extends EventEmitter<TLoaderEvents> {
 	/**
 	 * File load end
 	 */
-	private _fileLoadEnd(
-		resource: TResourceFile['resource'],
-		data: TResourceData
-	): void {
+	#fileLoadEnd(resource: TResourceFile['resource'], data: TResourceData): void {
 		this.loaded++
 		this.items[resource.name] = data
 

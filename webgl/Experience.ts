@@ -19,7 +19,7 @@ type TOptions = {
 
 export default class Experience {
 	// Static
-	private static _instance?: Experience
+	static instance?: Experience
 
 	// Public
 	public time!: Time
@@ -40,19 +40,19 @@ export default class Experience {
 	public store!: Store
 
 	// Private
-	private _handleResize!: () => void
-	private _handleStart!: () => void
-	private _handleUpdate!: () => void
+	#handleResize!: () => void
+	#handleStart!: () => void
+	#handleUpdate!: () => void
 
 	/**
 	 * Constructor
 	 */
 	constructor({ canvas, defaultScene, debug, name }: TOptions = {}) {
 		// Singleton
-		if (Experience._instance) {
-			return Experience._instance
+		if (Experience.instance) {
+			return Experience.instance
 		}
-		Experience._instance = this
+		Experience.instance = this
 
 		// Check if canvas
 		if (!canvas) throw Error('No canvas provided')
@@ -66,13 +66,13 @@ export default class Experience {
 		this.store = new Store()
 
 		// Private
-		this._handleResize = this._resize.bind(this)
-		this._handleStart = this.start.bind(this)
-		this._handleUpdate = this._update.bind(this)
+		this.#handleResize = this.#resize.bind(this)
+		this.#handleStart = this.start.bind(this)
+		this.#handleUpdate = this.#update.bind(this)
 		this.$bus = useNuxtApp().$bus
 
 		// Init
-		this._init()
+		this.#init()
 	}
 
 	/**
@@ -97,7 +97,7 @@ export default class Experience {
 		this.active = true
 
 		// Events
-		this.time.on('tick', this._handleUpdate)
+		this.time.on('tick', this.#handleUpdate)
 		this.$bus.emit('experience:ready')
 	}
 
@@ -105,8 +105,8 @@ export default class Experience {
 	 * Dispose the experience
 	 */
 	public dispose() {
-		this.$bus.off('ready', this._handleStart)
-		this.$bus.off('resize', this._handleResize)
+		this.$bus.off('ready', this.#handleStart)
+		this.$bus.off('resize', this.#handleResize)
 		this.time.off('tick')
 		this.time.dispose()
 
@@ -119,13 +119,13 @@ export default class Experience {
 		this.debug?.dispose()
 		this.store?.dispose()
 
-		delete Experience._instance
+		delete Experience.instance
 	}
 
 	/**
 	 * Init the experience
 	 */
-	private _init() {
+	#init() {
 		// Set viewport and time
 		this.viewport = new Viewport()
 		this.time = new Time()
@@ -144,14 +144,14 @@ export default class Experience {
 		this.audioManager = new AudioManager()
 
 		// Events
-		this.resources.on('ready', this._handleStart)
-		this.viewport.on('resize', this._handleResize)
+		this.resources.on('ready', this.#handleStart)
+		this.viewport.on('resize', this.#handleResize)
 	}
 
 	/**
 	 * Resize the experience
 	 */
-	private _resize() {
+	#resize() {
 		this.renderer.resize()
 		this.sceneManager.resize()
 	}
@@ -159,7 +159,7 @@ export default class Experience {
 	/**
 	 * Update the experience
 	 */
-	private _update() {
+	#update() {
 		this.renderer.update()
 		this.sceneManager.update()
 		this.debug?.update()

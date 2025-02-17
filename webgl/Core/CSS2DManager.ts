@@ -22,13 +22,13 @@ export default class CSS2DManager {
 	}>
 
 	// Private
-	private _experience: Experience
+	#experience: Experience
 	private $bus: Experience['$bus']
-	private _viewport: Experience['viewport']
-	private _store: Experience['store']
-	private _scene: ExtendableScene['scene']
-	private _camera: ExtendableCamera['instance']
-	private _handleAdd: (item: ICSS2DRendererStore) => void
+	#viewport: Experience['viewport']
+	#store: Experience['store']
+	#scene: ExtendableScene['scene']
+	#camera: ExtendableCamera['instance']
+	#handleAdd: (item: ICSS2DRendererStore) => void
 
 	/**
 	 * Constructor
@@ -40,16 +40,16 @@ export default class CSS2DManager {
 		this.list = {}
 
 		// Private
-		this._experience = new Experience()
-		this.$bus = this._experience.$bus
-		this._viewport = this._experience.viewport
-		this._store = this._experience.store
-		this._scene = scene
-		this._camera = camera
-		this._handleAdd = this.add.bind(this)
+		this.#experience = new Experience()
+		this.$bus = this.#experience.$bus
+		this.#viewport = this.#experience.viewport
+		this.#store = this.#experience.store
+		this.#scene = scene
+		this.#camera = camera
+		this.#handleAdd = this.add.bind(this)
 
 		// Init
-		this._init()
+		this.#init()
 	}
 
 	/**
@@ -60,7 +60,7 @@ export default class CSS2DManager {
 		const d = this.list[id]
 		if (!d) return
 
-		this._store.css2DList = this._store.css2DList.filter((el) => el.id != id)
+		this.#store.css2DList = this.#store.css2DList.filter((el) => el.id != id)
 		d.el?.remove()
 		d.parent?.remove(d.obj)
 
@@ -108,8 +108,8 @@ export default class CSS2DManager {
 	 */
 	public resize(): void {
 		this.instance?.setSize(
-			this._viewport?.width ?? 0,
-			this._viewport?.height ?? 0
+			this.#viewport?.width ?? 0,
+			this.#viewport?.height ?? 0
 		)
 	}
 
@@ -117,15 +117,15 @@ export default class CSS2DManager {
 	 * Update
 	 */
 	public update(): void {
-		if (!this._scene || !this._camera) return
-		this.instance?.render(this._scene, this._camera)
+		if (!this.#scene || !this.#camera) return
+		this.instance?.render(this.#scene, this.#camera)
 	}
 
 	/**
 	 * Dispose
 	 */
 	public dispose(): void {
-		this.$bus?.off('CSS2D:add', this._handleAdd)
+		this.$bus?.off('CSS2D:add', this.#handleAdd)
 		Object.keys(this.list).forEach((k) => this.remove(k))
 
 		this.instance?.domElement.remove()
@@ -136,7 +136,7 @@ export default class CSS2DManager {
 	/**
 	 * Init
 	 */
-	private _init(): void {
+	#init(): void {
 		let element = document.getElementById('css-2d-renderer')
 		if (!element) {
 			element = document.createElement('div')
@@ -148,10 +148,10 @@ export default class CSS2DManager {
 
 		this.instance = new CSS2DRenderer({ element })
 		this.instance.setSize(
-			this._viewport?.width ?? 0,
-			this._viewport?.height ?? 0
+			this.#viewport?.width ?? 0,
+			this.#viewport?.height ?? 0
 		)
 
-		this.$bus?.on('CSS2D:add', this._handleAdd)
+		this.$bus?.on('CSS2D:add', this.#handleAdd)
 	}
 }

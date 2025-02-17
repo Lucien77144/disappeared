@@ -19,7 +19,7 @@ export default class SandboxClone extends ExtendableScene {
 		}
 
 		// Events
-		this.on('load', () => this._onLoad())
+		this.on('load', () => this.#onLoad())
 	}
 
 	// --------------------------------
@@ -29,15 +29,15 @@ export default class SandboxClone extends ExtendableScene {
 	/**
 	 * On load
 	 */
-	private _onLoad() {
+	#onLoad() {
 		this.camera.instance.position.z = 40
-		this._setupLights()
+		this.#setupLights()
 	}
 
 	/**
 	 * Setup lights
 	 */
-	private _setupLights() {
+	#setupLights() {
 		const lights: Dictionary<Light> = {}
 
 		// Ambient light

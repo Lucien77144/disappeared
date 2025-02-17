@@ -8,28 +8,28 @@ import type { TSubtitle } from '~/models/stores/subtitles.store.model'
  */
 export default class Store {
 	// Static
-	static _instance?: Store
+	static instance?: Store
 
 	// Private
-	private _cssRenderer!: ReturnType<typeof useCSSRendererStore>
-	private _experience!: ReturnType<typeof useExperienceStore>
-	private _hold!: ReturnType<typeof useHoldStore>
-	private _subtitles!: ReturnType<typeof useSubtitlesStore>
+	#cssRenderer!: ReturnType<typeof useCSSRendererStore>
+	#experience!: ReturnType<typeof useExperienceStore>
+	#hold!: ReturnType<typeof useHoldStore>
+	#subtitles!: ReturnType<typeof useSubtitlesStore>
 
 	/**
 	 * Constructor
 	 */
 	constructor() {
-		if (Store._instance) {
-			return Store._instance
+		if (Store.instance) {
+			return Store.instance
 		}
-		Store._instance = this
+		Store.instance = this
 
 		// Public
-		this._cssRenderer = useCSSRendererStore()
-		this._experience = useExperienceStore()
-		this._hold = useHoldStore()
-		this._subtitles = useSubtitlesStore()
+		this.#cssRenderer = useCSSRendererStore()
+		this.#experience = useExperienceStore()
+		this.#hold = useHoldStore()
+		this.#subtitles = useSubtitlesStore()
 	}
 
 	// -------------------------------------------------
@@ -41,14 +41,14 @@ export default class Store {
 	 * @param {TExperienceStore['active']} value
 	 */
 	set active(value: TExperienceStore['active']) {
-		this._experience.setActive(value)
+		this.#experience.setActive(value)
 	}
 	/**
 	 * Get the active value in the experience store
 	 * @returns {TExperienceStore['active']}
 	 */
 	get active(): TExperienceStore['active'] {
-		return this._experience.active
+		return this.#experience.active
 	}
 
 	/**
@@ -56,7 +56,7 @@ export default class Store {
 	 * @param {TExperienceStore['loadingProgress']} value
 	 */
 	set loadingProgress(value: TExperienceStore['loadingProgress']) {
-		this._experience.setLoadingProgress(value)
+		this.#experience.setLoadingProgress(value)
 	}
 
 	/**
@@ -64,7 +64,7 @@ export default class Store {
 	 * @returns {TExperienceStore['loadingProgress']}
 	 */
 	get loadingProgress(): TExperienceStore['loadingProgress'] {
-		return this._experience.loadingProgress
+		return this.#experience.loadingProgress
 	}
 
 	/**
@@ -72,14 +72,14 @@ export default class Store {
 	 * @param {TExperienceStore['loadingScreen']} value
 	 */
 	set loadingScreen(value: TExperienceStore['loadingScreen']) {
-		this._experience.setLoadingScreen(value)
+		this.#experience.setLoadingScreen(value)
 	}
 	/**
 	 * Get the loadingScreen value in the experience store
 	 * @returns {TExperienceStore['loadingScreen']}
 	 */
 	get loadingScreen(): TExperienceStore['loadingScreen'] {
-		return this._experience.loadingScreen
+		return this.#experience.loadingScreen
 	}
 
 	/**
@@ -87,14 +87,14 @@ export default class Store {
 	 * @param {TExperienceStore['landing']} value
 	 */
 	set landing(value: TExperienceStore['landing']) {
-		this._experience.setLanding(value)
+		this.#experience.setLanding(value)
 	}
 	/**
 	 * Get the landing value in the experience store
 	 * @returns {TExperienceStore['landing']}
 	 */
 	get landing(): TExperienceStore['landing'] {
-		return this._experience.landing
+		return this.#experience.landing
 	}
 
 	/**
@@ -102,14 +102,14 @@ export default class Store {
 	 * @param {TExperienceStore['scene']} value
 	 */
 	set scene(value: TExperienceStore['scene']) {
-		this._experience.setScene(value)
+		this.#experience.setScene(value)
 	}
 	/**
 	 * Get the scene value in the experience store
 	 * @returns {TExperienceStore['scene']}
 	 */
 	get scene(): TExperienceStore['scene'] {
-		return this._experience.scene
+		return this.#experience.scene
 	}
 
 	// -------------------------------------------------
@@ -121,14 +121,14 @@ export default class Store {
 	 * @returns {TCSSRenderer['css2DList']}
 	 */
 	get css2DList(): TCSSRenderer['css2DList'] {
-		return this._cssRenderer.css2DList
+		return this.#cssRenderer.css2DList
 	}
 	/**
 	 * Set the css2DList value in the cssRenderer store
 	 * @param {TCSSRenderer['css2DList']} value
 	 */
 	set css2DList(value: TCSSRenderer['css2DList']) {
-		this._cssRenderer.setCSS2DList(value)
+		this.#cssRenderer.setCSS2DList(value)
 	}
 
 	/**
@@ -136,14 +136,14 @@ export default class Store {
 	 * @returns {TCSSRenderer['css3DList']}
 	 */
 	get css3DList(): TCSSRenderer['css3DList'] {
-		return this._cssRenderer.css3DList
+		return this.#cssRenderer.css3DList
 	}
 	/**
 	 * Set the css3DList value in the cssRenderer store
 	 * @param {TCSSRenderer['css3DList']} value
 	 */
 	set css3DList(value: TCSSRenderer['css3DList']) {
-		this._cssRenderer.setCSS3DList(value)
+		this.#cssRenderer.setCSS3DList(value)
 	}
 
 	// -------------------------------------------------
@@ -155,14 +155,14 @@ export default class Store {
 	 * @param {THold['progress']} value
 	 */
 	set progress(value: THold['progress']) {
-		this._hold.setProgress(value)
+		this.#hold.setProgress(value)
 	}
 	/**
 	 * Get the progress value in the hold store
 	 * @returns {THold['progress']}
 	 */
 	get progress(): THold['progress'] {
-		return this._hold.progress
+		return this.#hold.progress
 	}
 
 	/**
@@ -170,7 +170,7 @@ export default class Store {
 	 * @returns {THold['complete']}
 	 */
 	get complete(): THold['complete'] {
-		return this._hold.complete
+		return this.#hold.complete
 	}
 
 	// -------------------------------------------------
@@ -182,14 +182,14 @@ export default class Store {
 	 * @param {TSubtitle['cues']} value
 	 */
 	set cues(value: TSubtitle['cues']) {
-		this._subtitles.setCues(value)
+		this.#subtitles.setCues(value)
 	}
 	/**
 	 * Get the cues value in the subtitle store
 	 * @returns {TSubtitle['cues']}
 	 */
 	get cues(): TSubtitle['cues'] {
-		return this._subtitles.cues
+		return this.#subtitles.cues
 	}
 
 	/**
@@ -197,25 +197,25 @@ export default class Store {
 	 * @param {TSubtitle['disabled']} value
 	 */
 	set disabled(value: TSubtitle['disabled']) {
-		this._subtitles.setDisabled(value)
+		this.#subtitles.setDisabled(value)
 	}
 	/**
 	 * Get the disabled value in the subtitle store
 	 * @returns {TSubtitle['disabled']}
 	 */
 	get disabled(): TSubtitle['disabled'] {
-		return this._subtitles.disabled
+		return this.#subtitles.disabled
 	}
 
 	/**
 	 * Dispose store
 	 */
 	public dispose() {
-		this._cssRenderer.$dispose()
-		this._experience.$dispose()
-		this._hold.$dispose()
-		this._subtitles.$dispose()
+		this.#cssRenderer.$dispose()
+		this.#experience.$dispose()
+		this.#hold.$dispose()
+		this.#subtitles.$dispose()
 
-		delete Store._instance
+		delete Store.instance
 	}
 }
