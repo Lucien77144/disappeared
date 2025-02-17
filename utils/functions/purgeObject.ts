@@ -12,33 +12,33 @@
  * @returns purged object
  */
 export function purgeObject(
-  obj: any,
-  options: {
-    array?: boolean
-    string?: boolean
-    deep?: boolean
-  } = {
-    array: true,
-    deep: true,
-  }
+	obj: any,
+	options: {
+		array?: boolean
+		string?: boolean
+		deep?: boolean
+	} = {
+		array: true,
+		deep: true,
+	}
 ): any {
-  const newObj: any = Array.isArray(obj) ? [] : {}
+	const newObj: any = Array.isArray(obj) ? [] : {}
 
-  Object.keys(obj).forEach((key) => {
-    const val = obj[key]
-    const isArray = Array.isArray(val)
+	Object.keys(obj).forEach((key) => {
+		const val = obj[key]
+		const isArray = Array.isArray(val)
 
-    if (
-      (options.array && isArray && val.length) ||
-      (!isArray &&
-        val !== null &&
-        val !== undefined &&
-        (options.string || val !== ''))
-    ) {
-      const isObj = typeof val === 'object'
-      newObj[key] = options.deep && isObj ? purgeObject(val, options) : val
-    }
-  })
+		if (
+			(options.array && isArray && val.length) ||
+			(!isArray &&
+				val !== null &&
+				val !== undefined &&
+				(options.string || val !== ''))
+		) {
+			const isObj = typeof val === 'object'
+			newObj[key] = options.deep && isObj ? purgeObject(val, options) : val
+		}
+	})
 
-  return newObj
+	return newObj
 }

@@ -1,4 +1,4 @@
 export type THold = {
-  progress: number
-  complete: boolean
+	progress: number
+	complete: boolean
 }

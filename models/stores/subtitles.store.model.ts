@@ -1,4 +1,4 @@
 export type TSubtitle = {
-  cues?: TextTrackCueList | null
-  disabled: boolean
+	cues?: TextTrackCueList | null
+	disabled: boolean
 }

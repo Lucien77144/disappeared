@@ -4,6 +4,6 @@
  * @returns copied object
  */
 export function copyObject(obj: any): any {
-  if (!obj) return obj;
-  return JSON.parse(JSON.stringify(obj as Object));
+	if (!obj) return obj
+	return JSON.parse(JSON.stringify(obj as Object))
 }
