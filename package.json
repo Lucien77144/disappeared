@@ -10,10 +10,10 @@
 		"postinstall": "nuxt prepare"
 	},
 	"devDependencies": {
-		"@types/node": "^22.13.1",
+		"@types/node": "^22.13.4",
 		"@types/three": "^0.160.0",
 		"nuxt": "^3.15.4",
-		"sass": "^1.84.0",
+		"sass": "^1.85.0",
 		"tweakpane-plugin-file-import": "^1.1.1",
 		"vue": "^3.5.13",
 		"vue-router": "^4.5.0"
@@ -21,13 +21,13 @@
 	"dependencies": {
 		"@nuxtjs/google-fonts": "^3.2.0",
 		"@nuxtjs/i18n": "^9.2.0",
-		"@pinia/nuxt": "^0.10.0",
+		"@pinia/nuxt": "^0.10.1",
 		"@tweakpane/core": "^2.0.5",
 		"@tweakpane/plugin-essentials": "0.2.1",
 		"@types/three": "^0.173.0",
 		"gsap": "^3.12.7",
 		"mitt": "^3.0.1",
-		"pinia": "^3.0.0",
+		"pinia": "^3.0.1",
 		"postprocessing": "^6.36.7",
 		"stats.js": "^0.17.0",
 		"three": "^0.173.0",
