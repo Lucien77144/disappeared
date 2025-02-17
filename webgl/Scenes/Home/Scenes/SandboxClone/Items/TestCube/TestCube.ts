@@ -48,6 +48,8 @@ export default class TestCube extends ExtendableItem<SandboxClone> {
 		this.#setGeometry()
 		this.#setMaterial()
 		this.#setMesh()
+
+		this.addDebug()
 	}
 
 	/**

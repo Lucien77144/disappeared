@@ -212,6 +212,10 @@ export default class ExtendableScene<
 	 */
 	public debugFolder?: FolderApi
 	/**
+	 * Scenes folder
+	 */
+	public scenesFolder?: FolderApi
+	/**
 	 * Render target of the scene
 	 */
 	public rt: WebGLRenderTarget
@@ -678,12 +682,19 @@ export default class ExtendableScene<
 	#setDebug(): void {
 		if (!this.#debug) return
 
-		const parentFolder = this.parent?.debugFolder || this.#debug.panel
-		this.debugFolder = parentFolder.addFolder({
-			expanded: false,
+		// Set scenes folder if there is a parent
+		if (this.parent) {
+			this.scenesFolder = this.parent.scenesFolder
+		}
+
+		// Set debug folder
+		const parentFolder = this.scenesFolder || this.#debug.panel
+		this.debugFolder ??= parentFolder.addFolder({
+			expanded: !this.parent,
 			title: '🌏 Scene - ' + this.name,
 		})
 
+		// Set wireframe debug
 		this.debugFolder
 			.addBinding(this, 'wireframe', {
 				tag: `wireframe_${this.name}`,
@@ -696,7 +707,17 @@ export default class ExtendableScene<
 				})
 			)
 
+		// Set camera debug
 		this.camera.setDebug(this.debugFolder)
+
+		// Add a separator
+		this.debugFolder.addBlade({ view: 'separator' })
+
+		// Set scenes folder if there is no parent
+		this.scenesFolder ??= this.debugFolder.addFolder({
+			title: '📂 Scenes List',
+			expanded: false,
+		})
 	}
 
 	/**
@@ -875,7 +896,8 @@ export default class ExtendableScene<
 	 * @returns All scenes
 	 */
 	#flattenScenes(
-		c: Dictionary<ExtendableScene>
+		c: Dictionary<ExtendableScene>,
+		parent?: ExtendableScene
 	): Dictionary<ExtendableScene<any>> {
 		let res: Dictionary<ExtendableScene> = {}
 
@@ -883,11 +905,15 @@ export default class ExtendableScene<
 			// Get the scene key
 			let key = scene.name.toLowerCase()
 
+			// Set the parent scene
+			scene.parent = parent || this
+
 			// Trigger load event on the scene (only if this is the master scene to prevent multiple trigger)
 			if (!this.parent) {
 				scene.trigger('load')
 			}
 
+			// Check if the scene key already exists
 			if (res[key]) {
 				const oldKey = key
 				key = `${key}-${scene.id}`
@@ -896,11 +922,16 @@ export default class ExtendableScene<
 				console.warn(warn_msg)
 			}
 
+			// Flatten the scenes
 			const allComps = Object.values(scene.allComponents)
 			const allCompsScenes = allComps.reduce((acc, c) => {
 				return { ...acc, ...c.scenes }
 			}, {})
-			res = { ...res, ...this.#flattenScenes(allCompsScenes), [key]: scene }
+			res = {
+				...res,
+				...this.#flattenScenes(allCompsScenes, scene),
+				[key]: scene,
+			}
 		})
 
 		return res

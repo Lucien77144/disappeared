@@ -27,13 +27,14 @@ export default class Home extends ExtendableScene {
 		super()
 		// Public
 		this.scenes = {
-			sandbox2: new SandboxClone(),
+			sandboxClone: new SandboxClone(),
 		}
 		this.components = {
 			garland: new Garland(),
 		}
-		const target = this.scenes.sandbox2.rt.texture
-		this.shader = new ShaderMix(this, { target })
+		this.shader = new ShaderMix(this, {
+			target: this.scenes.sandboxClone.rt.texture,
+		})
 		this.transition = new TransitionSlide(this)
 		this.hdri = this.experience.resources.items.hdri as Texture
 

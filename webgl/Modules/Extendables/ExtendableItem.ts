@@ -172,6 +172,10 @@ export default class ExtendableItem<
 	 */
 	public debugFolder?: FolderApi
 	/**
+	 * Scenes folder
+	 */
+	public scenesFolder?: FolderApi
+	/**
 	 * Duration after hold event is triggered
 	 */
 	public holdDuration: number
@@ -226,23 +230,12 @@ export default class ExtendableItem<
 	}
 
 	/**
-	 * Set the debug folder of the item
-	 * @param folder Optionnal folder to append to
-	 */
-	protected setDebugFolder(folder: FolderApi = this.debug?.panel as Pane) {
-		this.debugFolder ??= folder?.addFolder({
-			title: '👷🏻 Item - ' + (this.item.name || this.constructor.name),
-			expanded: false,
-		})
-	}
-
-	/**
 	 * Add a debug folder for a providen material
 	 * @param material Material to add debug to
 	 * @param options Options for the debug
 	 */
 	public addDebugMaterial(material: Material, options?: TMaterialDebugOptions) {
-		if (!this.debugFolder) this.setDebugFolder()
+		if (!this.debugFolder) this.#setDebugFolder()
 
 		if (this.debugFolder) {
 			return new DebugMaterial(this.debugFolder, material, options)
@@ -257,7 +250,7 @@ export default class ExtendableItem<
 		target: 'object3D' | 'material' | 'all' = 'all',
 		options?: TMaterialDebugOptions
 	) {
-		if (!this.debugFolder) this.setDebugFolder()
+		if (!this.debugFolder) this.#setDebugFolder()
 
 		if (this.debugFolder) {
 			const added: string[] = []
@@ -352,6 +345,18 @@ export default class ExtendableItem<
 		item.instanceMatrix.needsUpdate = true
 
 		return item
+	}
+
+	/**
+	 * Set the debug folder of the item
+	 * @param folder Optionnal folder to append to
+	 */
+	#setDebugFolder() {
+		const folder = this.parent?.debugFolder || this.scene?.debugFolder
+		this.debugFolder = folder!.addFolder({
+			title: '👷🏻 Item - ' + (this.item.name || this.constructor.name),
+			expanded: false,
+		})
 	}
 
 	/**

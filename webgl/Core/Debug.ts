@@ -165,6 +165,7 @@ export default class Debug {
 			const parsedName = filteredName
 				?.toLowerCase()
 				.replace(/ /g, '-')
+				?.replace(/[^a-z0-9-_]/g, '')
 				?.replace(/--+/g, '-')
 				?.replace(/^-/, '')
 
@@ -173,6 +174,11 @@ export default class Debug {
 			} else {
 				res = key && `${key}`
 			}
+		}
+
+		// Ensure the result starts with a letter (CSS requirement)
+		if (res && /^[^a-zA-Z]/.test(res)) {
+			res = 'debug-' + res
 		}
 
 		return res
@@ -233,7 +239,6 @@ export default class Debug {
 		}
 		const handleSave = (id: string, state: BladeState) =>
 			this.#handleLocalSave(id, state)
-		const handleUnsave = (id: string) => this.#handleLocalUnsave(id)
 		const getDefaultState = (id: string) => this.#handleLocalValue(id)
 		const isActive = (id: string) => this.#isActive(id)
 
@@ -248,6 +253,12 @@ export default class Debug {
 					const contentEl = el.querySelector('.tp-fldv_c') as HTMLElement
 					if (contentEl) contentEl.style.transition = 'none'
 
+					// Check if the folder has no children
+					const childs = state?.children as any[]
+					if (defined(childs) && !childs.length) {
+						state.hidden = true
+					}
+
 					// Used to prevent issues on scene changes
 					window.requestAnimationFrame(() => {
 						// Wait the panel to build element
@@ -255,6 +266,7 @@ export default class Debug {
 						getStackId(state, element).then((id) => {
 							if (!id) return
 							element.id = id
+							element.classList.add(id)
 
 							if (isActive(id)) {
 								console.warn(
@@ -265,6 +277,10 @@ export default class Debug {
 
 							// Default state
 							const defaultState = getDefaultState(id)
+							const defaultChilds = defaultState?.children
+							if (defined(defaultChilds) && !defaultChilds.length) {
+								defaultState.hidden = true
+							}
 							if (defaultState) bc.importState(defaultState)
 
 							window.requestAnimationFrame(() => {
@@ -452,8 +468,8 @@ export default class Debug {
 	 * @param id ID of the binding
 	 * @returns True if the id is active
 	 */
-	#isActive(id: string) {
-		return document.body.querySelectorAll(`#${id}`).length > 1
+	#isActive(id: string): boolean {
+		return document.querySelectorAll(`.${id}`).length > 1
 	}
 
 	/**
@@ -510,6 +526,7 @@ export default class Debug {
 					getStackId(initial.state, element).then((id) => {
 						if (!id) return
 						element.id = id
+						element.classList.add(id)
 
 						if (isActive(id)) {
 							console.warn(
