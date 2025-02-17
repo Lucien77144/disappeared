@@ -17,6 +17,7 @@ export type TScrollEvent = {
 	delta: number
 	current: number
 	target: number
+	deltaTime?: number
 }
 
 export type TScrollManagerEvents = {
@@ -39,6 +40,10 @@ export default class ScrollManager extends EventEmitter<TScrollManagerEvents> {
 	#dragManager: DragManager
 	#handleScroll: any
 	#handleUpdate: any
+	#smoothDelta: number
+	#isScrolling: boolean
+	#scrollTimeout: NodeJS.Timeout | null
+	#baseInterval: number = 16.666 // 60 FPS comme référence pour le timing
 
 	/**
 	 * Constructor
@@ -67,6 +72,9 @@ export default class ScrollManager extends EventEmitter<TScrollManagerEvents> {
 		// Private
 		this.#time = new Time()
 		this.#dragManager = new DragManager()
+		this.#smoothDelta = 0
+		this.#isScrolling = false
+		this.#scrollTimeout = null
 
 		// Init
 		this.#init()
@@ -104,37 +112,26 @@ export default class ScrollManager extends EventEmitter<TScrollManagerEvents> {
 		if (isMobile) {
 			this.#handleScroll = (e: TDragEvent) => {
 				if (this.disabled) return
-
-				this.delta = (e.delta?.y ?? 0) * 10
-
-				this.#updateTarget()
-				this.#emit()
+				this.#handleScrollEvent((e.delta?.y ?? 0) * 10)
 			}
 
 			this.#dragManager.on('drag', this.#handleScroll)
 		} else if (firefox) {
 			this.#handleScroll = (e: WheelEvent) => {
 				if (this.disabled) return
-
-				this.delta =
+				const delta =
 					Math.sign(e.detail * 15) == Math.sign(prev) ? e.detail * 15 : 0
 				prev = e.detail
-
-				this.#updateTarget()
-				this.#emit()
+				this.#handleScrollEvent(delta)
 			}
 
 			window.addEventListener('DOMMouseScroll', this.#handleScroll)
 		} else {
 			this.#handleScroll = (e: WheelEvent) => {
 				if (this.disabled) return
-
 				if (Math.abs(e.deltaY) > Math.abs(this.delta)) {
-					this.delta = e.deltaY
+					this.#handleScrollEvent(e.deltaY)
 				}
-
-				this.#updateTarget()
-				this.#emit()
 			}
 
 			window.addEventListener('wheel', this.#handleScroll)
@@ -146,9 +143,10 @@ export default class ScrollManager extends EventEmitter<TScrollManagerEvents> {
 	 */
 	#emit() {
 		const event = {
-			delta: this.delta,
+			delta: this.#isScrolling ? this.#smoothDelta : this.delta,
 			current: this.current,
 			target: this.target,
+			deltaTime: this.#time.delta,
 		}
 		this.trigger('scroll', event)
 	}
@@ -186,15 +184,51 @@ export default class ScrollManager extends EventEmitter<TScrollManagerEvents> {
 	#update() {
 		if (this.disabled) return
 
+		const deltaTime = this.#time.delta
 		const prev = this.current
-		const current = MathUtils.lerp(this.current, this.target, this.speed)
+
+		// Facteur de lerp normalisé par rapport au temps
+		const lerpFactor = Math.min(
+			1,
+			this.speed * (deltaTime / this.#baseInterval)
+		)
+
+		const current = MathUtils.lerp(this.current, this.target, lerpFactor)
 		this.current = Math.floor(current * this.decimal) / this.decimal
 
 		if (this.delta !== 0) {
-			this.delta = MathUtils.lerp(this.delta, 0, this.speed)
+			this.delta = MathUtils.lerp(this.delta, 0, lerpFactor)
 		}
 
-		if (this.current !== prev) this.#emit()
+		if (this.current !== prev) {
+			this.#emit()
+		}
+	}
+
+	/**
+	 * Handle scroll event
+	 * @param delta Delta
+	 */
+	#handleScrollEvent(delta: number) {
+		if (this.disabled) return
+
+		// Normalisation du delta par rapport au temps de référence
+		const normalizedDelta = delta * (this.#baseInterval / this.#time.delta)
+
+		this.delta = normalizedDelta
+		this.#smoothDelta = MathUtils.lerp(this.#smoothDelta, normalizedDelta, 0.2)
+		this.#isScrolling = true
+
+		this.#updateTarget()
+		this.#emit()
+
+		if (this.#scrollTimeout) {
+			clearTimeout(this.#scrollTimeout)
+		}
+		this.#scrollTimeout = setTimeout(() => {
+			this.#isScrolling = false
+			this.#smoothDelta = 0
+		}, 150)
 	}
 
 	/**
