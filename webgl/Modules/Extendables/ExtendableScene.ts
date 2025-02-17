@@ -143,7 +143,11 @@ export type TSceneEvents = {
  * @method removeCSS2D Remove CSS2D from the item
  * @method removeCSS3D Remove CSS3D from the item
  */
-export default class ExtendableScene extends EventEmitter<TSceneEvents> {
+export default class ExtendableScene<
+	T extends ExtendableItem | ExtendableScene =
+		| ExtendableItem
+		| ExtendableScene<any>
+> extends EventEmitter<TSceneEvents> {
 	// --------------------------------
 	// Public properties
 	// --------------------------------
@@ -166,15 +170,15 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 	/**
 	 * Parent scene if exists
 	 */
-	public parent?: ExtendableScene
+	public parent?: T
 	/**
 	 * Scene components
 	 */
-	public scenes: Dictionary<ExtendableScene>
+	public scenes: Dictionary<ExtendableScene<T>>
 	/**
 	 * Flattened components including nested ones
 	 */
-	public allScenes: Dictionary<ExtendableScene>
+	public allScenes: Dictionary<ExtendableScene<T>>
 	/**
 	 * Scene components
 	 */
@@ -279,7 +283,6 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 		// Public
 		this.isActive = false
 		this.wireframe = false
-		this.debugFolder = this.#setDebugFolder()
 		this.scene = this.#setScene()
 		this.camera = this.#setCamera()
 		this.transition = this.#setTransition()
@@ -522,13 +525,15 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 	 * Automatically called after the constructor
 	 */
 	#onLoad(): void {
+		// Set debug
+		this.#setDebug()
+
 		// Flatten components & add to scene
 		this.allComponents = this.#flattenComponents()
 		this.#addItemsToScene()
 
-		// Flatten scenes & trigger load on all scenes
-		this.allScenes = this.#flattenScenes(this.#getAllScenes())
-		Object.values(this.allScenes).forEach((s) => s.trigger('load'))
+		// Flatten scenes & trigger load on all scenes if there is no parent
+		this.allScenes = this.#flattenScenes(this.scenes)
 
 		// Add audios to the scene
 		this.audios && this.camera.addAudios(this.audios, this.scene)
@@ -579,7 +584,7 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 	 * Set camera
 	 */
 	#setCamera(): ExtendableCamera {
-		return new ExtendableCamera(this.debugFolder)
+		return new ExtendableCamera()
 	}
 
 	/**
@@ -670,15 +675,16 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 	/**
 	 * Set debug
 	 */
-	#setDebugFolder(): FolderApi | undefined {
+	#setDebug(): void {
 		if (!this.#debug) return
 
-		const folder = this.#debug.panel.addFolder({
+		const parentFolder = this.parent?.debugFolder || this.#debug.panel
+		this.debugFolder = parentFolder.addFolder({
 			expanded: false,
 			title: '🌏 Scene - ' + this.name,
 		})
 
-		folder
+		this.debugFolder
 			.addBinding(this, 'wireframe', {
 				tag: `wireframe_${this.name}`,
 			})
@@ -690,7 +696,7 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 				})
 			)
 
-		return folder
+		this.camera.setDebug(this.debugFolder)
 	}
 
 	/**
@@ -832,8 +838,7 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 
 			if (res[key]) {
 				const oldKey = key
-				const count = Object.keys(res).filter((r) => r.includes(key)).length
-				key = `${key}_${count}`
+				key = `${key}_${res[key].item.id}`
 
 				const warn_msg = `Component name '${oldKey}' already exists, renamed to '${key}'`
 				console.warn(warn_msg)
@@ -869,60 +874,33 @@ export default class ExtendableScene extends EventEmitter<TSceneEvents> {
 	 * @param c Scenes to get
 	 * @returns All scenes
 	 */
-	#getAllScenes(): Dictionary<ExtendableScene> {
-		return {
-			...this.scenes,
-			...Object.entries(this.allComponents).reduce(
-				(acc, [key, comp]) => ({
-					...acc,
-					...(Object.keys(comp.scenes).length > 0 && { [key]: comp.scenes }),
-				}),
-				{}
-			),
-		}
-	}
-
-	/**
-	 * Flatten scenes
-	 * @param c Scenes to flatten
-	 * @param parent Parent of the scenes
-	 * @returns Flattened scenes
-	 */
 	#flattenScenes(
-		c: Dictionary<ExtendableScene> = this.scenes,
-		parent?: ExtendableScene
-	): Dictionary<ExtendableScene> {
+		c: Dictionary<ExtendableScene>
+	): Dictionary<ExtendableScene<any>> {
 		let res: Dictionary<ExtendableScene> = {}
 
-		Object.keys(c).forEach((key) => {
-			const value = c[key]
+		Object.values(c).forEach((scene) => {
+			// Get the scene key
+			let key = scene.name.toLowerCase()
+
+			// Trigger load event on the scene (only if this is the master scene to prevent multiple trigger)
+			if (!this.parent) {
+				scene.trigger('load')
+			}
 
 			if (res[key]) {
 				const oldKey = key
-				const count = Object.keys(res).filter((r) => r.includes(key)).length
-				key = `${key}_${count}`
+				key = `${key}-${scene.id}`
 
-				const warn_msg = `Scene name '${oldKey}' already exists, renamed to '${key}'`
+				const warn_msg = `Component name '${oldKey}' already exists, renamed to '${key}'`
 				console.warn(warn_msg)
 			}
 
-			if (!value) {
-				const warn_msg = `Scene ${key} is not defined`
-				return console.warn(warn_msg, c)
-			}
-
-			if (parent) {
-				value.parent = parent
-			}
-
-			if (value?.scenes) {
-				res = {
-					...res,
-					...this.#flattenScenes(value.scenes, value),
-				}
-			}
-
-			res[key] = value
+			const allComps = Object.values(scene.allComponents)
+			const allCompsScenes = allComps.reduce((acc, c) => {
+				return { ...acc, ...c.scenes }
+			}, {})
+			res = { ...res, ...this.#flattenScenes(allCompsScenes), [key]: scene }
 		})
 
 		return res

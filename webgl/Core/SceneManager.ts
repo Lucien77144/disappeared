@@ -52,10 +52,7 @@ export default class SceneManager {
 	public set active(scene: ExtendableScene | undefined) {
 		// Remove the previous scene from the render list
 		if (this._active) {
-			this._removeFromRenderList([
-				...Object.values(this._active.allScenes),
-				this._active,
-			])
+			this._removeFromRenderList(this._active)
 		}
 
 		// Set the active scene
@@ -64,7 +61,8 @@ export default class SceneManager {
 
 		// Add the active scene to the render list
 		if (scene) {
-			this._addToRenderList([...Object.values(scene.allScenes), scene])
+			console.log(scene)
+			this._addToRenderList(scene)
 		}
 	}
 
@@ -84,10 +82,7 @@ export default class SceneManager {
 
 		// Add the next scene to the render list
 		if (this._next) {
-			this._addToRenderList([
-				...Object.values(this._next.allScenes),
-				this._next,
-			])
+			this._addToRenderList(this._next)
 		}
 	}
 
@@ -140,6 +135,7 @@ export default class SceneManager {
 
 		// Set the active scene
 		this.active = active
+		console.log(this.renderList)
 
 		// Start navigation
 		this.$bus?.on('scene:switch', (scene: TSceneInfos) => this.switch(scene))
@@ -170,24 +166,22 @@ export default class SceneManager {
 	 * Remove elements from render list
 	 * @param list Elements to remove
 	 */
-	private _removeFromRenderList(list: ExtendableScene[]): void {
-		list.forEach((scene) => {
-			this.renderList = this.renderList.filter((s) => s.id !== scene.id)
-			scene.isActive = false
-		})
+	private _removeFromRenderList(scene: ExtendableScene): void {
+		this.renderList = this.renderList.filter(
+			(s) => s.id !== scene.id || !scene.allScenes[s.id]
+		)
+		scene.isActive = false
 	}
 
 	/**
 	 * Add elements to render list
 	 * @param list Elements to add
 	 */
-	private _addToRenderList(list: ExtendableScene[]): void {
-		list.forEach((scene) => {
-			if (!this.renderList.find((s) => s.id === scene.id)) {
-				this.renderList.push(scene)
-				scene.isActive = true
-			}
-		})
+	private _addToRenderList(scene: ExtendableScene): void {
+		if (!this.renderList.find((s) => s.id === scene.id)) {
+			this.renderList.push(...Object.values(scene.allScenes), scene)
+			scene.isActive = true
+		}
 	}
 
 	/**

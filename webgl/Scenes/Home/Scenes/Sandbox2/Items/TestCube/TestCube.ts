@@ -1,14 +1,17 @@
-import { BoxGeometry, Mesh, MeshToonMaterial } from 'three'
+import { BoxGeometry, Mesh, ShaderMaterial, Uniform } from 'three'
 import ExtendableItem from '~/webgl/Modules/Extendables/ExtendableItem'
-import type Sandbox2 from '../Sandbox2'
+import type Sandbox2 from '../../Sandbox2'
+import vertexShader from './shaders/vertexShader.vert?raw'
+import fragmentShader from './shaders/fragmentShader.frag?raw'
+import CubeShaderTest from './Scenes/CubeShaderTest'
 
-export default class Cube2 extends ExtendableItem<Sandbox2> {
+export default class TestCube extends ExtendableItem<Sandbox2> {
 	// Public
 	public position: { x: number; y: number; z: number }
 
 	// Private
 	private _geometry?: BoxGeometry
-	private _material?: MeshToonMaterial
+	private _material?: ShaderMaterial
 	private _mesh?: Mesh
 
 	/**
@@ -16,6 +19,10 @@ export default class Cube2 extends ExtendableItem<Sandbox2> {
 	 */
 	constructor(_options: { position: { x: number; y: number; z: number } }) {
 		super()
+
+		this.scenes = {
+			test: new CubeShaderTest(),
+		}
 
 		// Public
 		this.holdDuration = 2000
@@ -25,6 +32,7 @@ export default class Cube2 extends ExtendableItem<Sandbox2> {
 		this.on('load', () => this.onLoad())
 		this.on('click', () => this.onClick())
 		this.on('scroll', () => this.onScroll())
+		this.on('update', () => this.onUpdate())
 	}
 
 	// --------------------------------
@@ -51,6 +59,10 @@ export default class Cube2 extends ExtendableItem<Sandbox2> {
 		this._mesh!.rotation.y += 0.01
 	}
 
+	public onUpdate() {
+		this._material!.uniforms.tDiffuse.value = this.scenes.test.rt.texture
+	}
+
 	// --------------------------------
 	// Private methods
 	// --------------------------------
@@ -66,7 +78,13 @@ export default class Cube2 extends ExtendableItem<Sandbox2> {
 	 * Set material
 	 */
 	private _setMaterial() {
-		this._material = new MeshToonMaterial({ color: 0x00ff00 })
+		this._material = new ShaderMaterial({
+			vertexShader,
+			fragmentShader,
+			uniforms: {
+				tDiffuse: new Uniform(this.scenes.test.rt.texture),
+			},
+		})
 	}
 
 	/**

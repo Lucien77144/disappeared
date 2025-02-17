@@ -135,7 +135,7 @@ export type TItemsEvents = {
  * @method buildInstancedMesh Build instanced mesh
  */
 export default class ExtendableItem<
-	T extends ExtendableScene = ExtendableScene
+	T extends ExtendableScene = ExtendableScene<any>
 > extends EventEmitter<TItemsEvents> {
 	// --------------------------------
 	// Public properties
@@ -149,7 +149,7 @@ export default class ExtendableItem<
 	 * Parent component of the item
 	 * @warning this is null in the constructor
 	 */
-	public parent?: ExtendableItem
+	public parent?: ExtendableItem | ExtendableScene<any>
 	/**
 	 * Item that will be added to the three scene
 	 */

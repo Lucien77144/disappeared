@@ -13,6 +13,7 @@ import type {
 import Stats from './Stats'
 import { Pane } from 'tweakpane'
 import { defined } from '~/utils/functions/defined'
+import { copyObject } from '~/utils/functions/copyObject'
 
 type TMonitoringValue = {
 	name: string
@@ -182,8 +183,6 @@ export default class Debug {
 	 * @param debug Debug folder
 	 */
 	public async remove(debug: FolderApi | BladeApi) {
-		const id = debug.element.id
-
 		const childs = (debug as FolderApi).children
 		childs?.forEach((child: BladeApi | FolderApi) => this.remove(child))
 
@@ -234,6 +233,7 @@ export default class Debug {
 		}
 		const handleSave = (id: string, state: BladeState) =>
 			this._handleLocalSave(id, state)
+		const handleUnsave = (id: string) => this._handleLocalUnsave(id)
 		const getDefaultState = (id: string) => this._handleLocalValue(id)
 		const isActive = (id: string) => this._isActive(id)
 
@@ -243,6 +243,10 @@ export default class Debug {
 					bc = bc as FolderController
 
 					const state = bc.exportState()
+					// disable animation
+					const el = bc.view.element
+					const contentEl = el.querySelector('.tp-fldv_c') as HTMLElement
+					if (contentEl) contentEl.style.transition = 'none'
 
 					// Used to prevent issues on scene changes
 					window.requestAnimationFrame(() => {
@@ -262,6 +266,10 @@ export default class Debug {
 							// Default state
 							const defaultState = getDefaultState(id)
 							if (defaultState) bc.importState(defaultState)
+
+							window.requestAnimationFrame(() => {
+								if (contentEl) contentEl.style.transition = ''
+							})
 
 							// Click event
 							bc.view.element.addEventListener('click', () => {
@@ -479,6 +487,7 @@ export default class Debug {
 
 		const handleSave = (id: string, state: BladeState) =>
 			this._handleLocalSave(id, state)
+		const handleUnsave = (id: string) => this._handleLocalUnsave(id)
 		const getDefaultState = (id: string) => this._handleLocalValue(id)
 		const isActive = (id: string) => this._isActive(id)
 		const getStackId = async (state: BladeState, element: HTMLElement) => {
@@ -493,36 +502,49 @@ export default class Debug {
 				const clonedResetButton = resetButton.cloneNode(true) as HTMLElement
 				valueElement.appendChild(clonedResetButton)
 
-				const initialValue = bc.valueController.value.rawValue
-				const initialState: any = bc.exportState()
-
 				window.requestAnimationFrame(() => {
+					const initial = { state: copyObject(bc.exportState()) }
+
 					// Wait the panel to build element
 					const element = bc.view.element
-					getStackId(initialState, element).then((id) => {
+					getStackId(initial.state, element).then((id) => {
 						if (!id) return
 						element.id = id
 
 						if (isActive(id)) {
 							console.warn(
-								`The debug "${initialState.title}" is already used in the session storage`,
+								`The debug "${initial.state?.title}" is already used in the session storage`,
 								bc
 							)
 						}
 
-						bc.value.emitter.on('change', (e) => {
-							if (JSON.stringify(e.rawValue) === JSON.stringify(initialValue)) {
+						/**
+						 * Handle reset button color
+						 * @param value Value of the binding
+						 */
+						const handleResetButton = (value: any) => {
+							const binding = initial.state?.binding as any
+
+							if (JSON.stringify(value) === JSON.stringify(binding?.value)) {
 								clonedResetButton.style.color = '#65656e'
 							} else {
 								clonedResetButton.style.color = 'var(--btn-bg-a)'
 							}
-
-							handleSave(id, bc.exportState())
-						})
+						}
 
 						// Default state
 						const defaultState = getDefaultState(id)
-						if (defaultState) bc.importState(defaultState)
+						if (defaultState) {
+							bc.importState(defaultState)
+							handleSave(id, bc.exportState())
+							handleResetButton(defaultState.binding.value)
+						}
+
+						// Handle changes
+						bc.value.emitter.on('change', (e) => {
+							handleSave(id, bc.exportState())
+							handleResetButton(e.rawValue)
+						})
 
 						// Trigger onLoad if needed
 						const binding = (bc.valueController.value as any).binding
@@ -531,7 +553,8 @@ export default class Debug {
 
 						// Click event
 						clonedResetButton.addEventListener('click', () => {
-							bc.valueController.value.setRawValue(initialValue)
+							initial.state && bc.importState(initial.state)
+							handleUnsave(id)
 						})
 					})
 				})
@@ -556,6 +579,23 @@ export default class Debug {
 			sessionStorage.setItem('debugParams', JSON.stringify(res))
 		} else {
 			console.warn('The key is not defined', state)
+		}
+	}
+
+	/**
+	 * Handle local unsave
+	 * @param id ID of the binding
+	 */
+	private _handleLocalUnsave(id: string) {
+		const current = sessionStorage.getItem('debugParams')
+		if (!current) return
+
+		if (id) {
+			const values = JSON.parse(current)
+			delete values[id]
+			sessionStorage.setItem('debugParams', JSON.stringify(values))
+		} else {
+			console.warn('Id is not defined')
 		}
 	}
 

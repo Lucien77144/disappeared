@@ -42,7 +42,7 @@ export default class ExtendableCamera {
 	/**
 	 * Constructor
 	 */
-	constructor(debugFolder?: FolderApi) {
+	constructor() {
 		// Public
 		this.pendingAudios = []
 
@@ -52,15 +52,33 @@ export default class ExtendableCamera {
 		this.#viewport = this.#experience.viewport
 		this.#audioManager = this.#experience.audioManager
 		this.#debug = this.#experience.debug
+
 		// Init
 		this.#setInstance()
 		this.#setListener()
-		debugFolder && this.#setDebug(debugFolder)
 	}
 
 	// --------------------------------
 	// Public
 	// --------------------------------
+
+	/**
+	 * Set debug
+	 */
+	public setDebug(parentFolder: FolderApi) {
+		this.debugFolder = parentFolder.addFolder({
+			expanded: false,
+			title: '🎥 Camera',
+		})
+
+		this.debugFolder.addBinding(this.instance, 'position', {
+			label: 'Position',
+			tag: `cam_position`,
+			x: { label: 'X', step: 0.5 },
+			y: { label: 'Y', step: 0.5 },
+			z: { label: 'Z', step: 0.5 },
+		})
+	}
 
 	/**
 	 * Add a audio to the scene
@@ -178,24 +196,6 @@ export default class ExtendableCamera {
 				this.pendingAudios = []
 			}
 			this.listener.setMasterVolume(1)
-		})
-	}
-
-	/**
-	 * Set debug
-	 */
-	#setDebug(parentFolder: FolderApi) {
-		this.debugFolder = parentFolder.addFolder({
-			expanded: false,
-			title: '🎥 Camera',
-		})
-
-		this.debugFolder.addBinding(this.instance, 'position', {
-			label: 'Position',
-			tag: `cam_position`,
-			x: { label: 'X', step: 0.5 },
-			y: { label: 'Y', step: 0.5 },
-			z: { label: 'Z', step: 0.5 },
 		})
 	}
 }
