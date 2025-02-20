@@ -52,9 +52,10 @@ export default class Garland extends ExtendableItem<Home> {
 		this.item.rotation.z += event.delta * 0.00025
 
 		this.#scrollEndTimeout && clearTimeout(this.#scrollEndTimeout)
-		this.#scrollEndTimeout = setTimeout(() => {
-			gsap.to(this, { rotationFactor: 1, duration: 2 })
-		}, 500)
+		this.#scrollEndTimeout = setTimeout(
+			() => gsap.to(this, { rotationFactor: 1, duration: 2 }),
+			500
+		)
 	}
 
 	/**

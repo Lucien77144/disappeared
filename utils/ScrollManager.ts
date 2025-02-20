@@ -3,6 +3,7 @@ import { isDeviceMobile } from '~/utils/functions/device'
 import Time from '~/webgl/Core/Time'
 import EventEmitter from './EventEmitter'
 import DragManager, { type TDragEvent } from './DragManager'
+import decimal from './functions/decimal'
 
 type TOptions = {
 	limit?: { min: number; max: number }
@@ -40,9 +41,6 @@ export default class ScrollManager extends EventEmitter<TScrollManagerEvents> {
 	#dragManager: DragManager
 	#handleScroll: any
 	#handleUpdate: any
-	#smoothDelta: number
-	#isScrolling: boolean
-	#scrollTimeout: NodeJS.Timeout | null
 	#baseInterval: number = 16.666 // 60 FPS comme référence pour le timing
 
 	/**
@@ -72,9 +70,6 @@ export default class ScrollManager extends EventEmitter<TScrollManagerEvents> {
 		// Private
 		this.#time = new Time()
 		this.#dragManager = new DragManager()
-		this.#smoothDelta = 0
-		this.#isScrolling = false
-		this.#scrollTimeout = null
 
 		// Init
 		this.#init()
@@ -143,7 +138,7 @@ export default class ScrollManager extends EventEmitter<TScrollManagerEvents> {
 	 */
 	#emit() {
 		const event = {
-			delta: this.#isScrolling ? this.#smoothDelta : this.delta,
+			delta: this.delta,
 			current: this.current,
 			target: this.target,
 			deltaTime: this.#time.delta,
@@ -196,11 +191,12 @@ export default class ScrollManager extends EventEmitter<TScrollManagerEvents> {
 		const current = MathUtils.lerp(this.current, this.target, lerpFactor)
 		this.current = Math.floor(current * this.decimal) / this.decimal
 
-		if (this.delta !== 0) {
-			this.delta = MathUtils.lerp(this.delta, 0, lerpFactor)
+		const prevDelta = this.delta
+		if (prevDelta !== 0) {
+			this.delta = decimal(MathUtils.lerp(prevDelta, 0, lerpFactor), 1)
 		}
 
-		if (this.current !== prev) {
+		if (this.current !== prev || prevDelta !== this.delta) {
 			this.#emit()
 		}
 	}
@@ -216,19 +212,8 @@ export default class ScrollManager extends EventEmitter<TScrollManagerEvents> {
 		const normalizedDelta = delta * (this.#baseInterval / this.#time.delta)
 
 		this.delta = normalizedDelta
-		this.#smoothDelta = MathUtils.lerp(this.#smoothDelta, normalizedDelta, 0.2)
-		this.#isScrolling = true
-
 		this.#updateTarget()
 		this.#emit()
-
-		if (this.#scrollTimeout) {
-			clearTimeout(this.#scrollTimeout)
-		}
-		this.#scrollTimeout = setTimeout(() => {
-			this.#isScrolling = false
-			this.#smoothDelta = 0
-		}, 150)
 	}
 
 	/**
