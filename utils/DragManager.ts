@@ -219,6 +219,9 @@ export default class DragManager extends EventEmitter<TDragManagerEvents> {
 	 * Destroy the cursor and remove all events
 	 */
 	public dispose(): void {
+		// Dispose events
+		this.disposeEvents()
+
 		// Desktop
 		this.el.removeEventListener('mousedown', this.#handleMouseDown)
 		window.removeEventListener('mousemove', this.#handleMouseMove)

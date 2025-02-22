@@ -42,6 +42,7 @@ export default class Experience {
 	// Private
 	#handleResize!: () => void
 	#handleStart!: () => void
+	#handleReady!: () => void
 	#handleUpdate!: () => void
 
 	/**
@@ -64,10 +65,12 @@ export default class Experience {
 		this.defaultScene = defaultScene
 		this.cursorManager = new CursorManager({ el: this.canvas, enableBus: true })
 		this.store = new Store()
+		this.active = false
 
 		// Private
 		this.#handleResize = this.#resize.bind(this)
 		this.#handleStart = this.start.bind(this)
+		this.#handleReady = this.#ready.bind(this)
 		this.#handleUpdate = this.#update.bind(this)
 		this.$bus = useNuxtApp().$bus
 
@@ -79,7 +82,7 @@ export default class Experience {
 	 * Get active status
 	 */
 	public get active() {
-		return this.store.active
+		return !!this.store.active
 	}
 
 	/**
@@ -93,23 +96,20 @@ export default class Experience {
 	 * Start the experience
 	 */
 	public start() {
+		if (!this.resources.ready || this.active) return
 		this.sceneManager.init(this.viewport?.debug ? this.defaultScene : undefined)
 		this.active = true
 
 		// Events
 		this.time.on('tick', this.#handleUpdate)
-		this.$bus.emit('experience:ready')
 	}
 
 	/**
 	 * Dispose the experience
 	 */
 	public dispose() {
-		this.$bus.off('ready', this.#handleStart)
-		this.$bus.off('resize', this.#handleResize)
-		this.time.off('tick')
+		this.viewport.dispose()
 		this.time.dispose()
-
 		this.cursorManager?.dispose()
 		this.keysManager?.dispose()
 		this.renderer.dispose()
@@ -144,8 +144,15 @@ export default class Experience {
 		this.audioManager = new AudioManager()
 
 		// Events
-		this.resources.on('ready', this.#handleStart)
-		this.viewport.on('resize', this.#handleResize)
+		this.resources.on('ready', this.#handleReady.bind(this))
+		this.viewport.on('resize', this.#handleResize.bind(this))
+	}
+
+	/**
+	 * Handle ready
+	 */
+	#ready() {
+		if (!this.store.landing || this.active) this.#handleStart()
 	}
 
 	/**

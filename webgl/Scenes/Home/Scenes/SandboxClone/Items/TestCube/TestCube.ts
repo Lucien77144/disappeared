@@ -75,7 +75,7 @@ export default class TestCube extends ExtendableItem<SandboxClone> {
 	 * Set geometry
 	 */
 	#setGeometry() {
-		this.#geometry = new BoxGeometry(4, 4, 4)
+		this.#geometry = new BoxGeometry(4, 8, 4)
 	}
 
 	/**
@@ -87,6 +87,7 @@ export default class TestCube extends ExtendableItem<SandboxClone> {
 			fragmentShader,
 			uniforms: {
 				tDiffuse: new Uniform(this.scenes.testCube.rt.texture),
+				// uRatio: new Uniform(this.experience.viewport.ratio),
 			},
 		})
 	}

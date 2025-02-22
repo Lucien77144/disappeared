@@ -1,14 +1,19 @@
-Il y a un problème de refs dans le debug, les enfants des folders sont pas removed, trouver pourquoi, peut-être le doublon d'importe state ??
+# Fonctionnalités à implémenter
 
-Chaque scene a une fonction de transition qui se trigger à chaque tick de la transition avec en entrée la renderTarget de la scène suivante ainsi que la progression dans la transition (qui peut être paramètree aussi dans la scene d’ailleurs)
-> Permet de clean tout plein de fichiers et d’enfin rajouter le fxaa 🥳
+## Debug
 
-Ranger les debugs en folders selon les scenes
+- [ ] Ajouter un debug pour les audios
+- [ ] Désactiver les interactions pour les debugObjects
 
-Ajouter l'orbit control
+## Contrôles
 
-Ajouter un debug sur les audios
+- [ ] Ajouter l'orbit control
 
-Couper les interactions si l'object est un debugobject
+## Documentation & Typage
 
-Ajouter du typage sur les data des sources (En tous cas il faut une doc sur l'utilisation des sources.)
+- [ ] Ajouter du typage sur les data des sources
+- [ ] Créer une documentation sur l'utilisation des sources
+
+## Rendu 3D
+
+- [ ] Implémenter les text3D

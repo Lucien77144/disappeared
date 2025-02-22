@@ -1,6 +1,7 @@
 import type { TCSSRenderer } from '~/models/stores/cssRenderer.store.model'
 import type { TExperienceStore } from '~/models/stores/experience.store.model'
 import type { THold } from '~/models/stores/hold.store.model'
+import type { TResourcesStore } from '~/models/stores/resources.store.model'
 import type { TSubtitle } from '~/models/stores/subtitles.store.model'
 
 /**
@@ -15,6 +16,7 @@ export default class Store {
 	#experience!: ReturnType<typeof useExperienceStore>
 	#hold!: ReturnType<typeof useHoldStore>
 	#subtitles!: ReturnType<typeof useSubtitlesStore>
+	#resources!: ReturnType<typeof useResourcesStore>
 
 	/**
 	 * Constructor
@@ -30,6 +32,7 @@ export default class Store {
 		this.#experience = useExperienceStore()
 		this.#hold = useHoldStore()
 		this.#subtitles = useSubtitlesStore()
+		this.#resources = useResourcesStore()
 	}
 
 	// -------------------------------------------------
@@ -113,7 +116,26 @@ export default class Store {
 	}
 
 	// -------------------------------------------------
-	// Css Renderer store
+	// Resources store
+	// -------------------------------------------------
+
+	/**
+	 * Set the items value in the resources store
+	 * @param {TResourcesStore['items']} value
+	 */
+	set items(value: TResourcesStore['items']) {
+		this.#resources.setItems(value)
+	}
+	/**
+	 * Get the items value in the resources store
+	 * @returns {TResourcesStore['items']}
+	 */
+	get items(): TResourcesStore['items'] {
+		return this.#resources.items
+	}
+
+	// -------------------------------------------------
+	// CSS Renderer store
 	// -------------------------------------------------
 
 	/**

@@ -491,11 +491,11 @@ export default class ExtendableScene<
 	 * Dispose the scene
 	 */
 	#onDispose(): void {
-		// Remove the debug
-		this.#removeDebug()
-
 		// Dispose events
 		this.disposeEvents()
+
+		// Remove the debug
+		this.#removeDebug()
 
 		// Items
 		Object.values(this.allComponents).forEach((c) => {

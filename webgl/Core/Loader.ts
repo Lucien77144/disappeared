@@ -43,7 +43,7 @@ export default class Loader extends EventEmitter<TLoaderEvents> {
 	// Public
 	public total: number
 	public loaded: number
-	public items: Dictionary<TResourceData>
+	public items!: Dictionary<TResourceData>
 
 	// Private
 	#experience: Experience
@@ -64,7 +64,6 @@ export default class Loader extends EventEmitter<TLoaderEvents> {
 		// Public
 		this.total = 0
 		this.loaded = 0
-		this.items = {}
 
 		// Private
 		this.#experience = new Experience()
@@ -468,6 +467,7 @@ export default class Loader extends EventEmitter<TLoaderEvents> {
 	 */
 	#fileLoadEnd(resource: TResourceFile['resource'], data: TResourceData): void {
 		this.loaded++
+		this.items ??= {}
 		this.items[resource.name] = data
 
 		this.trigger('loadingFileEnd', { resource, data })

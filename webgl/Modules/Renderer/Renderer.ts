@@ -196,6 +196,8 @@ export default class Renderer {
 	 * Render the targets and the mesh
 	 */
 	#render() {
+		if (!this.renderShader) return
+
 		// Clear the render target
 		this.instance.setRenderTarget(null)
 		this.instance.clear()
@@ -248,7 +250,7 @@ export default class Renderer {
 		this.#setInstance(this.#experience.canvas)
 
 		// Set post processing
-		this.#experience.resources.on('ready', () => this.#setPostProcessing())
+		this.#setPostProcessing()
 
 		// Debug
 		if (this.#debug) this.#setDebug()

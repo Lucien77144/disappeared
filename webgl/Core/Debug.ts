@@ -60,13 +60,20 @@ export default class Debug {
 	#statsValues?: TStatsValues
 	#monitoring!: HTMLElement
 	#self: any
+	#loading!: boolean
+	#controls: number
+	#readyControls: Array<string>
 
 	constructor() {
+		// Public
+		this.#controls = 0
+		this.#readyControls = []
+
 		// Private
 		this.#experience = new Experience()
 		this.#viewport = this.#experience.viewport
 
-		// Public
+		// Set the Debug
 		this.#setPanel()
 		this.#saveFolderState()
 		this.#setPlugins()
@@ -77,6 +84,20 @@ export default class Debug {
 		this.#setDebugManager()
 		this.#setStats()
 		this.#setMonitoring()
+	}
+
+	/**
+	 * Set the loading state of the debug panel
+	 */
+	set loading(val: boolean) {
+		this.#loading = val && this.#readyControls.length !== this.#controls
+	}
+
+	/**
+	 * Get the loading state of the debug panel
+	 */
+	get loading() {
+		return this.#loading
 	}
 
 	/**
@@ -148,7 +169,9 @@ export default class Debug {
 
 		// Check if el is in the dom :
 		const isInDom = document.body.contains(el)
-		if (isInDom) return tag && hashString(res)
+		if (isInDom && tag) {
+			return hashString(res)
+		}
 	}
 
 	/**
@@ -199,6 +222,9 @@ export default class Debug {
 	 * Unset the stats panel
 	 */
 	public dispose() {
+		this.#controls = 0
+		this.#readyControls = []
+
 		this.panel.dispose()
 		this.stats?.dispose()
 		this.#monitoring?.remove()
@@ -222,7 +248,7 @@ export default class Debug {
 
 		// Set the container style
 		this.#uiContainer.style.position = 'fixed'
-		this.#uiContainer.style.zIndex = '1000'
+		this.#uiContainer.style.zIndex = '9999'
 		this.#uiContainer.style.userSelect = 'none'
 
 		// Set the content style
@@ -231,20 +257,44 @@ export default class Debug {
 	}
 
 	/**
+	 * Add a control
+	 * @param id ID of the control, if set, it will be added to the ready controls, else it will increase the controls count
+	 */
+	#controlsChange(add: boolean, id?: string) {
+		if (!add) {
+			this.#controls--
+			this.loading = false
+		} else {
+			if (!id) {
+				this.#controls++
+				this.loading = true
+			} else {
+				this.#readyControls.push(id)
+				this.loading = false
+			}
+		}
+	}
+
+	/**
 	 * Save the folder state
 	 */
 	#saveFolderState() {
+		const getDefaultState = (id: string) => this.#handleLocalValue(id)
+		const isActive = (id: string) => this.#isActive(id)
 		const getStackId = async (state: BladeState, element: HTMLElement) => {
 			return await this.#getStackID(state, element)
 		}
-		const handleSave = (id: string, state: BladeState) =>
+		const handleSave = (id: string, state: BladeState) => {
 			this.#handleLocalSave(id, state)
-		const getDefaultState = (id: string) => this.#handleLocalValue(id)
-		const isActive = (id: string) => this.#isActive(id)
+		}
+		const controlsChange = (add: boolean, id?: string) => {
+			this.#controlsChange(add, id)
+		}
 
 		this.#pool.createApi = (function (original) {
 			return function (bc) {
 				if ((bc as FolderController).foldable) {
+					controlsChange(true)
 					bc = bc as FolderController
 
 					const state = bc.exportState()
@@ -264,7 +314,7 @@ export default class Debug {
 						// Wait the panel to build element
 						const element = bc.view.element
 						getStackId(state, element).then((id) => {
-							if (!id) return
+							if (!id) return controlsChange(false)
 							element.id = id
 							element.classList.add(id)
 
@@ -286,6 +336,9 @@ export default class Debug {
 							window.requestAnimationFrame(() => {
 								if (contentEl) contentEl.style.transition = ''
 							})
+
+							// Add the control to the ready controls
+							controlsChange(true, id)
 
 							// Click event
 							bc.view.element.addEventListener('click', () => {
@@ -509,9 +562,13 @@ export default class Debug {
 		const getStackId = async (state: BladeState, element: HTMLElement) => {
 			return await this.#getStackID(state, element)
 		}
+		const controlsChange = (add: boolean, id?: string) => {
+			this.#controlsChange(add, id)
+		}
 
 		this.#pool.createBindingApi = (function (original) {
 			return function (bc) {
+				controlsChange(true)
 				const valueElement = bc.view.valueElement
 				valueElement.style.position = 'relative'
 				valueElement.style.paddingRight = '20px'
@@ -524,7 +581,7 @@ export default class Debug {
 					// Wait the panel to build element
 					const element = bc.view.element
 					getStackId(initial.state, element).then((id) => {
-						if (!id) return
+						if (!id) return controlsChange(false)
 						element.id = id
 						element.classList.add(id)
 
@@ -567,6 +624,9 @@ export default class Debug {
 						const binding = (bc.valueController.value as any).binding
 						const onLoad = binding?.target?.obj_?.onLoad
 						if (onLoad && typeof onLoad === 'function') onLoad()
+
+						// Add the control to the ready controls
+						controlsChange(true, id)
 
 						// Click event
 						clonedResetButton.addEventListener('click', () => {
@@ -647,6 +707,8 @@ export default class Debug {
 		const keys = Object.keys(DEFAULT_SETTINGS) as Array<keyof TDebugParams>
 		keys.forEach((key) =>
 			debugManager.addBinding(this.debugParams, key).on('change', () => {
+				if (this.loading) return
+
 				switch (key) {
 					case 'Stats':
 						if (this.debugParams.Stats) {
@@ -662,12 +724,10 @@ export default class Debug {
 					case 'Landing':
 						const landing = this.debugParams.Landing
 						this.#experience.store.landing = landing
+						this.#experience.start()
 				}
 			})
 		)
-
-		this.#experience.store.loadingScreen = this.debugParams.LoadingScreen
-		this.#experience.store.landing = this.debugParams.Landing
 	}
 
 	/**

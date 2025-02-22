@@ -92,4 +92,15 @@ export default class Viewport extends EventEmitter<TViewportEvents> {
 		this.trigger('resize')
 		if (this.enableBus) this.$bus.emit('resize')
 	}
+
+	/**
+	 * Dispose
+	 */
+	public dispose(): void {
+		// Dispose events
+		this.disposeEvents()
+
+		// Remove event listener
+		window.removeEventListener('resize', this.#handleResize)
+	}
 }

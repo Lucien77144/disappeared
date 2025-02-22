@@ -10,7 +10,7 @@
 		"postinstall": "nuxt prepare"
 	},
 	"devDependencies": {
-		"@types/node": "^22.13.4",
+		"@types/node": "^22.13.5",
 		"@types/three": "^0.160.0",
 		"nuxt": "^3.15.4",
 		"sass": "^1.85.0",
@@ -20,7 +20,7 @@
 	},
 	"dependencies": {
 		"@nuxtjs/google-fonts": "^3.2.0",
-		"@nuxtjs/i18n": "^9.2.0",
+		"@nuxtjs/i18n": "^9.2.1",
 		"@pinia/nuxt": "^0.10.1",
 		"@tweakpane/core": "^2.0.5",
 		"@tweakpane/plugin-essentials": "0.2.1",

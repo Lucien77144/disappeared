@@ -62,11 +62,11 @@ export default class Time extends EventEmitter<TTimeEvents> {
 	 * Dispose the time
 	 */
 	public dispose() {
-		// Cancel ticker
-		this.#ticker && window.cancelAnimationFrame(this.#ticker)
-
 		// Dispose events
 		this.disposeEvents()
+
+		// Cancel ticker
+		this.#ticker && window.cancelAnimationFrame(this.#ticker)
 	}
 
 	/**

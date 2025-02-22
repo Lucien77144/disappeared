@@ -1,13 +1,11 @@
 import Loader from './Loader.js'
 import sources from '@/assets/data/sources.json'
-import { Texture } from 'three'
 import gsap from 'gsap'
 import Experience from '../Experience.js'
 import type {
 	TResourceData,
 	TResourceFile,
 	TResourceGroup,
-	TResourceItem,
 } from '~/models/utils/Resources.model.js'
 import type { Dictionary } from '~/models/functions/dictionary.model.js'
 import EventEmitter from '~/utils/EventEmitter.js'
@@ -15,7 +13,6 @@ import EventEmitter from '~/utils/EventEmitter.js'
 const SOURCES = sources as TResourceGroup[]
 
 export type TResourcesEvents = {
-	groupEnd: (group: TResourceGroup) => void
 	loadingGroupEnd: (group: TResourceGroup) => void
 	ready: VoidFunction
 }
@@ -24,25 +21,22 @@ export type TResourcesEvents = {
  * Resources
  */
 export default class Resources extends EventEmitter<TResourcesEvents> {
-	// Static
-	public static items: Dictionary<TResourceData>
-	public static loadedSources: Dictionary<keyof Resources['items']>
-
 	// Public
-	public groups: {
+	public groups!: {
 		loaded: Array<TResourceGroup>
 		current?: TResourceGroup
 	}
-	public progress: { value: number }
-	public total: number
-	public loaded: number
-	public sources: TResourceGroup[]
+	public progress!: { value: number }
+	public total!: number
+	public loaded!: number
+	public sources!: TResourceGroup[]
+	public loadedSources!: Dictionary<keyof Resources['items']>
 
 	// Private
 	#timeline?: gsap.core.Timeline
-	#experience: Experience
-	#debug: Experience['debug']
-	#store: Experience['store']
+	#experience!: Experience
+	#debug!: Experience['debug']
+	#store!: Experience['store']
 	#loader!: Loader
 
 	/**
@@ -54,7 +48,6 @@ export default class Resources extends EventEmitter<TResourcesEvents> {
 
 		// Public
 		this.sources = []
-		this.items = {} // Will contain every resources
 		this.loadedSources = {} // Will contain every resources
 		this.groups = { loaded: [] }
 		this.progress = { value: 0 }
@@ -72,31 +65,24 @@ export default class Resources extends EventEmitter<TResourcesEvents> {
 	}
 
 	/**
+	 * Get ready
+	 */
+	public get ready() {
+		return this.loaded === this.total
+	}
+
+	/**
 	 * Get items
 	 */
 	public get items() {
-		return Resources.items
+		return this.#store.items
 	}
 
 	/**
 	 * Set items
 	 */
-	public set items(value) {
-		Resources.items = value
-	}
-
-	/**
-	 * Get loaded sources
-	 */
-	public get loadedSources() {
-		return Resources.loadedSources
-	}
-
-	/**
-	 * Set loaded sources
-	 */
-	public set loadedSources(value) {
-		Resources.loadedSources = value
+	public set items(value: Dictionary<TResourceData>) {
+		this.#store.items = value
 	}
 
 	/**
@@ -104,6 +90,7 @@ export default class Resources extends EventEmitter<TResourcesEvents> {
 	 * @param {*} groups Groups of resources to load
 	 */
 	public load(groups?: Array<TResourceGroup['name']>): void {
+		this.items ??= {}
 		this.total = 0
 		this.loaded = 0
 
@@ -117,32 +104,25 @@ export default class Resources extends EventEmitter<TResourcesEvents> {
 			}),
 		}))
 
-		this.total ? this.#loadNextGroup() : () => this.trigger('loadingGroupEnd')
+		this.#loadNextGroup()
+
+		if (!this.total) {
+			this.#onLoadingGroupEnd()
+		}
 	}
 
 	/**
-	 * Dispose and dispose resources (if unset, dispose all resources)
-	 * @param {*} groups Groups of resources to dispose
+	 * Dispose
 	 */
-	public dispose(groups?: Array<TResourceGroup['name']>) {
+	public dispose() {
+		// Dispose events
+		this.disposeEvents()
+
 		// Dispose timeline
 		this.#timeline?.kill()
 
-		// Dispose resources
-		this.#getSources(groups)
-			.flatMap((s: TResourceGroup) => s.items.map((i) => i.name))
-			.forEach((name: TResourceItem['name']) => {
-				if (this.items[name] instanceof Texture) {
-					this.items[name].dispose()
-				}
-				delete this.items[name]
-			})
-
 		// Dispose loader
 		this.#loader.dispose()
-
-		// Dispose events
-		this.disposeEvents()
 	}
 
 	/**
@@ -160,13 +140,13 @@ export default class Resources extends EventEmitter<TResourcesEvents> {
 	 */
 	#loadNextGroup(): void {
 		this.groups.current = this.sources.shift()
-		if (!this.groups.current) return
+		if (!this.groups.current || !this.total) return
 
 		const filteredItems = this.groups.current.items.filter((i) => {
 			if (i.name in this.items) {
 				if (this.#debug?.debugParams.ResourceLog) {
 					console.debug(
-						`%c🏗️ Loaded Ressources: ${this.loaded}/${this.total}\n%c${i.name}%c already exist, skipped...`,
+						`%c🏗️ Loaded Resources: ${this.loaded}/${this.total}\n%c${i.name}%c already exist, skipped...`,
 						'color: #ffac2f; font-weight: bold;',
 						'background-color: #ffffff20; padding: 0.1rem 0.3rem; border-radius: 0.3rem;',
 						''
@@ -177,7 +157,7 @@ export default class Resources extends EventEmitter<TResourcesEvents> {
 			} else if (i.source in this.loadedSources) {
 				if (this.#debug?.debugParams.ResourceLog) {
 					console.debug(
-						`%c🏗️ Loaded Ressources: ${this.loaded}/${this.total}: %cAlready exist, skipped...\n%c${i.source}`,
+						`%c🏗️ Loaded Resources: ${this.loaded}/${this.total}: %cAlready exist, skipped...\n%c${i.source}`,
 						'color: #ffac2f; font-weight: bold;',
 						'font-style: italic;', // italic
 						'background-color: #ffffff20; padding: 0.1rem 0.3rem; border-radius: 0.3rem;'
@@ -218,12 +198,10 @@ export default class Resources extends EventEmitter<TResourcesEvents> {
 	 */
 	#groupEnd(): void {
 		// Trigger
-		this.trigger('groupEnd', this.groups.current)
-
 		if (this.sources.length > 0) {
 			this.#loadNextGroup()
 		} else {
-			this.#store
+			this.trigger('ready')
 		}
 	}
 
@@ -246,24 +224,24 @@ export default class Resources extends EventEmitter<TResourcesEvents> {
 		// Log if debugs allow it
 		if (this.#debug?.debugParams.ResourceLog && !skipped) {
 			console.debug(
-				`%c🏗️ Loaded Ressources: ${this.loaded}/${this.total}\n%c${file.resource.source}`,
+				`%c🏗️ Loaded Resources: ${this.loaded}/${this.total}\n%c${file.resource.source}`,
 				'color: #2f9bff; font-weight: bold;',
 				'background-color: #ffffff20; padding: 0.1rem 0.3rem; border-radius: 0.3rem;'
 			)
 		}
 
 		// Set the loading event
+		const value = (this.loaded / this.total) * 100
+		const duration = 0.25
 		this.#timeline = gsap.timeline().to(this.progress, {
-			value: (this.loaded / this.total) * 100,
-			duration: 1,
+			value,
+			duration,
 			ease: 'power2.inOut',
 			onUpdate: () => {
 				this.#store.loadingProgress = this.progress.value
 			},
 			onComplete: () => {
-				if (this.progress.value === 100) {
-					this.trigger('ready')
-				}
+				if (this.progress.value === 100) this.trigger('ready')
 			},
 		})
 	}
