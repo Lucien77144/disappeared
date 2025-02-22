@@ -6,6 +6,7 @@ import {
 	SRGBColorSpace,
 	Uniform,
 	WebGLRenderer,
+	WebGLRenderTarget,
 } from 'three'
 import Experience from '../../Experience'
 import type { FolderApi } from '@tweakpane/core'
@@ -78,6 +79,18 @@ export default class Renderer {
 	 */
 	get #renderList() {
 		return this.#sceneManager.renderList
+	}
+
+	// --------------------------------
+	// Public methods
+	// --------------------------------
+
+	/**
+	 * Set the render target
+	 */
+	public setRenderTarget(rt?: WebGLRenderTarget) {
+		this.instance.setRenderTarget(rt ?? null)
+		this.instance.clear()
 	}
 
 	// --------------------------------
@@ -196,32 +209,30 @@ export default class Renderer {
 	 * Render the targets and the mesh
 	 */
 	#render() {
-		// Clear the render target
-		this.instance.setRenderTarget(null)
-		this.instance.clear()
+		this.setRenderTarget()
 
 		// Render each scene from the render list
-		this.#renderList.forEach((instance) => {
-			if (instance.camera?.instance) {
+		this.#renderList.forEach((item) => {
+			if (item.camera?.instance) {
 				// Trigger before render
-				instance.trigger('beforeRender')
+				item.trigger('beforeRender')
 
 				// Set the render target & render scene
-				this.instance.setRenderTarget(instance.rt)
-				this.instance.clear()
-				this.instance.render(instance.scene, instance.camera.instance)
+				this.setRenderTarget(item.rt)
+				this.instance.render(item.scene, item.camera.instance)
 
-				// Render shader of the scene
-				instance.shader?.render()
+				// Render shader of the scene with synchronized time
+				if (item.shader) {
+					item.shader.render()
+				}
 
-				// Render transition
-				const transition = instance.transition
-				if (transition?.isActive) {
-					transition.render()
+				// Render transition with synchronized time
+				if (item.transition?.isActive) {
+					item.transition.render()
 				}
 
 				// Trigger after render
-				instance.trigger('afterRender')
+				item.trigger('afterRender')
 			}
 		})
 
@@ -232,7 +243,7 @@ export default class Renderer {
 		}
 
 		// Render final composition
-		this.instance.setRenderTarget(null)
+		this.setRenderTarget()
 		this.composer.render()
 	}
 

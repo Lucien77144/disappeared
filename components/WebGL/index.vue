@@ -58,7 +58,9 @@ onMounted(() => {
 	})
 
 	// On component unmounted, dispose the experience
-	onUnmounted(() => exp.value?.dispose())
+	onUnmounted(() => {
+		exp.value?.dispose()
+	})
 })
 </script>
 

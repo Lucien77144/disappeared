@@ -126,8 +126,7 @@ export default class ExtendableShader {
 		this.setUniform('uTime', this.time.elapsed)
 
 		// Apply the shader material to the rt
-		this.renderer.instance.setRenderTarget(this.scene.rt)
-		this.renderer.instance.clear()
+		this.renderer.setRenderTarget(this.scene.rt)
 		this.#fullScreenQuad.render(this.renderer.instance)
 	}
 

@@ -77,57 +77,64 @@ export default class Stats {
 	 * Before render occurs (called by render loop)
 	 */
 	public beforeRender(): void {
-		if (!this.active) return
+		if (!this.active || !this.#render) return
 
-		// Setup
+		const { query, context, panel, extension: ext } = this.#render
+
+		// Reset query state
 		this.queryCreated = false
-		let queryResultAvailable = false
-		const query = this.#render?.query
-		const context = this.#render?.context
-		const panel = this.#render?.panel
-		const ext = this.#render?.extension
 
-		// Test if query result available
-		if (query) {
-			queryResultAvailable = context?.getQueryParameter(
+		// Handle existing query
+		if (query && context) {
+			const queryResultAvailable = context.getQueryParameter(
 				query,
-				context?.QUERY_RESULT_AVAILABLE
+				context.QUERY_RESULT_AVAILABLE
 			)
-			const disjoint = context?.getParameter(ext.GPU_DISJOINT_EXT)
 
-			if (queryResultAvailable && !disjoint) {
-				const elapsedNanos = context?.getQueryParameter(
-					query,
-					context?.QUERY_RESULT
-				)
-				const panelValue = Math.min(elapsedNanos / 1000 / 1000, this.max)
+			if (queryResultAvailable) {
+				const disjoint = context.getParameter(ext.GPU_DISJOINT_EXT)
 
-				if (panelValue !== this.max || !this.ignoreMaxed) {
-					panel.update(panelValue, this.max)
+				if (!disjoint) {
+					const NANO_TO_MS = 1_000_000 // Conversion factor from nanoseconds to milliseconds
+					const elapsedNanos = context.getQueryParameter(
+						query,
+						context.QUERY_RESULT
+					)
+					const panelValue = Math.min(elapsedNanos / NANO_TO_MS, this.max)
+
+					if (!this.ignoreMaxed || panelValue !== this.max) {
+						panel?.update(panelValue, this.max)
+					}
 				}
+
+				// Create new query after result is processed
+				this.#createNewQuery(context, ext)
 			}
-		}
-
-		// If query result available or no query yet
-		if (this.#render && (queryResultAvailable || !this.#render?.query)) {
-			// Create new query
-			this.queryCreated = true
-			this.#render.query = context?.createQuery() ?? {}
-
-			context?.beginQuery(ext.TIME_ELAPSED_EXT, this.#render?.query)
+		} else {
+			// No existing query, create new one
+			this.#createNewQuery(context, ext)
 		}
 	}
 
 	/**
-	 * After render occured (called by render loop)
+	 * After render occurred (called by render loop)
 	 */
 	public afterRender(): void {
-		if (!this.active) return
+		if (!this.active || !this.queryCreated || !this.#render) return
 
-		// End the query (result will be available "later")
-		if (this.queryCreated) {
-			this.#render?.context?.endQuery(this.#render?.extension.TIME_ELAPSED_EXT)
-		}
+		const { context, extension } = this.#render
+		context?.endQuery(extension.TIME_ELAPSED_EXT)
+	}
+
+	/**
+	 * Create a new WebGL query
+	 */
+	#createNewQuery(context: WebGL2RenderingContext | undefined, ext: any): void {
+		if (!context) return
+
+		this.queryCreated = true
+		this.#render!.query = context.createQuery() ?? {}
+		context.beginQuery(ext.TIME_ELAPSED_EXT, this.#render!.query)
 	}
 
 	/**
