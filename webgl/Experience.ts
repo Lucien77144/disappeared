@@ -108,6 +108,7 @@ export default class Experience {
 	 * Dispose the experience
 	 */
 	public dispose() {
+		// Disposer dans l'ordre inverse de création
 		this.viewport.dispose()
 		this.time.dispose()
 		this.cursorManager?.dispose()
@@ -118,8 +119,6 @@ export default class Experience {
 		this.audioManager.dispose()
 		this.debug?.dispose()
 		this.store?.dispose()
-
-		delete Experience.instance
 	}
 
 	/**

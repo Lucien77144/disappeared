@@ -49,6 +49,7 @@ export default class Time extends EventEmitter<TTimeEvents> {
 	 */
 	public start() {
 		this.playing = true
+		this.#setTicker()
 	}
 
 	/**
@@ -56,6 +57,7 @@ export default class Time extends EventEmitter<TTimeEvents> {
 	 */
 	public pause() {
 		this.playing = false
+		this.#ticker && window.cancelAnimationFrame(this.#ticker)
 	}
 
 	/**
@@ -65,8 +67,8 @@ export default class Time extends EventEmitter<TTimeEvents> {
 		// Dispose events
 		this.disposeEvents()
 
-		// Cancel ticker
-		this.#ticker && window.cancelAnimationFrame(this.#ticker)
+		// Pause time
+		this.pause()
 	}
 
 	/**
@@ -80,6 +82,7 @@ export default class Time extends EventEmitter<TTimeEvents> {
 	 * Update time values
 	 */
 	#tick() {
+		if (!this.playing) return
 		this.#setTicker()
 
 		const current = Date.now()

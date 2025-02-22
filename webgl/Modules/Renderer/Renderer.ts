@@ -196,8 +196,6 @@ export default class Renderer {
 	 * Render the targets and the mesh
 	 */
 	#render() {
-		if (!this.renderShader) return
-
 		// Clear the render target
 		this.instance.setRenderTarget(null)
 		this.instance.clear()
