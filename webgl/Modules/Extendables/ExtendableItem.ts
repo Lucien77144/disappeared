@@ -353,6 +353,8 @@ export default class ExtendableItem<
 	 */
 	#setDebugFolder() {
 		const folder = this.parent?.debugFolder || this.scene?.debugFolder
+		if (!folder) return
+
 		this.debugFolder = folder!.addFolder({
 			title: '👷🏻 Item - ' + (this.item.name || this.constructor.name),
 			expanded: false,
