@@ -152,11 +152,7 @@ export default class ExtendableShader {
 	 * Set the ratio
 	 */
 	#setRatio() {
-		const x = this.viewport.width / this.viewport.height
-		const y = this.viewport.height / this.viewport.width
-
-		const isH = x > y
-		this.setUniform('uRatio', new Vector2(!isH ? 1 : x, isH ? 1 : y))
+		this.setUniform('uRatio', this.viewport.ratioVec2)
 	}
 
 	/**

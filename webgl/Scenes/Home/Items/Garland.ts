@@ -81,7 +81,8 @@ export default class Garland extends ExtendableItem<Home> {
 	 */
 	#onUpdate(): void {
 		if (this.rotationFactor > 0) {
-			// this.item.rotation.z += 0.001 * this.rotationFactor
+			const factor = Math.floor(this.rotationFactor * 1000) * 0.001
+			this.item.rotation.z += factor * 0.001
 		}
 	}
 

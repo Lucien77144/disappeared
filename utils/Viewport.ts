@@ -6,6 +6,7 @@ import { breakpoint, breakpoints } from '~/utils/functions/breakpoints'
 import dpr from '~/utils/functions/dpr'
 import isTouch from '~/utils/functions/isTouch'
 import EventEmitter from './EventEmitter'
+import { Vector2 } from 'three'
 
 export type TViewportEvents = {
 	resize: () => void
@@ -32,6 +33,7 @@ export default class Viewport extends EventEmitter<TViewportEvents> {
 
 	// Private
 	#handleResize: any
+	#ratioVec2!: Vector2
 
 	// Nuxt
 	private $bus: any
@@ -55,6 +57,7 @@ export default class Viewport extends EventEmitter<TViewportEvents> {
 		this.enableBus = !!options?.enableBus
 
 		// Private
+		this.#ratioVec2 = new Vector2()
 		this.#handleResize = this.resize.bind(this)
 		window.addEventListener('resize', this.#handleResize, false)
 
@@ -63,13 +66,33 @@ export default class Viewport extends EventEmitter<TViewportEvents> {
 		this.$router = useNuxtApp().$router
 
 		// Init
-		this.setData()
+		this.#setData()
+	}
+
+	/**
+	 * Get the ratio as a vector2 of the current viewport
+	 */
+	public get ratioVec2(): Vector2 {
+		return this.getRatioVec2(this.width, this.height)
+	}
+
+	/**
+	 * Get the ratio as a vector2
+	 * @param width Width
+	 * @param height Height
+	 */
+	public getRatioVec2(width: number, height: number): Vector2 {
+		const x = width / height
+		const y = height / width
+
+		const isHorizontal = x > y
+		return new Vector2(!isHorizontal ? 1 : x, isHorizontal ? 1 : y)
 	}
 
 	/**
 	 * Set data of the viewport
 	 */
-	public setData(): void {
+	#setData(): void {
 		this.debug = this.$router.currentRoute.value.href.includes('debug')
 		this.width = document.documentElement.clientWidth
 		this.height = document.documentElement.clientHeight
@@ -88,7 +111,7 @@ export default class Viewport extends EventEmitter<TViewportEvents> {
 	 * Resize
 	 */
 	public resize(): void {
-		this.setData()
+		this.#setData()
 		this.trigger('resize')
 		if (this.enableBus) this.$bus.emit('resize')
 	}
