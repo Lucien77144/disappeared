@@ -173,6 +173,21 @@ export default class Experience {
 	#update() {
 		this.renderer.update()
 		this.sceneManager.update()
+		this.#updateCursor()
 		this.debug?.update()
+	}
+
+	/**
+	 * On mouse move
+	 */
+	#updateCursor() {
+		const list = this.sceneManager.renderList
+		const cursors = [...new Set(list.map((scene) => scene.cursor))]
+		const filteredCursors = cursors.filter((c) => c !== '')
+		const value = filteredCursors?.slice(-1)?.[0] ?? ''
+
+		if (value !== this.canvas.style.cursor) {
+			this.canvas.style.cursor = value
+		}
 	}
 }

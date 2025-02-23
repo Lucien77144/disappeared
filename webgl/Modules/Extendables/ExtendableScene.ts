@@ -264,6 +264,7 @@ export default class ExtendableScene<
 	#css2dManager?: CSS2DManager
 	#css3dManager?: CSS3DManager
 	#debug: Experience['debug']
+	#cursor: 'pointer' | 'grab' | ''
 
 	/**
 	 * Constructor
@@ -285,6 +286,7 @@ export default class ExtendableScene<
 
 		// Private
 		this.#debug = this.experience.debug
+		this.#cursor = ''
 
 		// Public
 		this.isActive = false
@@ -345,6 +347,20 @@ export default class ExtendableScene<
 	 */
 	public get environment(): Texture | undefined {
 		return this.scene.environment as Texture | undefined
+	}
+
+	/**
+	 * Get the cursor style
+	 */
+	public get cursor() {
+		return this.#cursor
+	}
+
+	/**
+	 * Set the cursor
+	 */
+	public set cursor(value) {
+		this.#cursor = value
 	}
 
 	// --------------------------------
@@ -479,9 +495,9 @@ export default class ExtendableScene<
 			this.hovered = hovered
 			this.hovered?.trigger('mouseenter')
 		}
+
 		// Get holded item hovered
 		const holded = this.#getRaycastedItem(event.centered, ['hold'])?.item
-		// If user leave the hold item, reset the holded item
 		if (this.holded?.item?.id !== holded?.item?.id) {
 			this.#resetHoldedItem()
 		}
@@ -510,6 +526,9 @@ export default class ExtendableScene<
 	#onUpdate(): void {
 		// Trigger update on all components
 		Object.values(this.allComponents).forEach((c) => c.trigger('update'))
+
+		// Set the cursor
+		this.#setCursor()
 
 		// Update camera
 		this.camera.update()
@@ -603,6 +622,20 @@ export default class ExtendableScene<
 	// --------------------------------
 	// Private Functions
 	// --------------------------------
+
+	/**
+	 * Set the cursor values
+	 */
+	#setCursor() {
+		const centered = this.cursorManager.centered
+		if (this.#getRaycastedItem(centered, ['click'])) {
+			this.cursor = 'pointer'
+		} else if (this.#getRaycastedItem(centered, ['hold'])) {
+			this.cursor = 'grab'
+		} else {
+			this.cursor = ''
+		}
+	}
 
 	/**
 	 * Set scene
