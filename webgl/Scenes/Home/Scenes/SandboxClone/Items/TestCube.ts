@@ -2,7 +2,7 @@ import { MeshBasicMaterial, BoxGeometry, DoubleSide, Mesh } from 'three'
 import ExtendableItem from '~/webgl/Modules/Extendables/ExtendableItem'
 import type SandboxClone from '../SandboxClone'
 import Viewport from '~/utils/Viewport'
-import { getRatio, scaleRatioToViewport } from '~/utils/functions/ratio'
+
 export default class TestCube extends ExtendableItem<SandboxClone> {
 	// Public
 	public position: { x: number; y: number; z: number }
@@ -46,6 +46,7 @@ export default class TestCube extends ExtendableItem<SandboxClone> {
 		this.#setGeometry()
 		this.#setMaterial()
 		this.#setMesh()
+		this.#onResize()
 
 		this.addDebug()
 	}
@@ -68,26 +69,7 @@ export default class TestCube extends ExtendableItem<SandboxClone> {
 	 * On resize
 	 */
 	#onResize() {
-		// Parameters
-		const params = this.#geometry!.parameters
-		const screenRatio = this.#viewport.ratio
-
-		// Face ratio
-		const faceRatio = getRatio(params.width, params.height)
-		const uFaceRatio = scaleRatioToViewport(faceRatio, screenRatio)
-
-		// Sides ratio
-		const sidesRatio = getRatio(params.depth, params.height)
-		const uSidesRatio = scaleRatioToViewport(sidesRatio, screenRatio)
-
-		// Top ratio
-		const topRatio = getRatio(params.width, params.depth)
-		const uTopRatio = scaleRatioToViewport(topRatio, screenRatio)
-
-		// Update uniforms
-		// this.#material!.uniforms.uFaceRatio.value = uFaceRatio
-		// this.#material!.uniforms.uSidesRatio.value = uSidesRatio
-		// this.#material!.uniforms.uTopRatio.value = uTopRatio
+		this.#mesh?.scale.setScalar(this.#viewport.ratio)
 	}
 
 	// --------------------------------

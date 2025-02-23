@@ -97,24 +97,28 @@ export default class Picture extends ExtendableItem<Home> {
 	 * On resize
 	 */
 	#onResize() {
-		// Parameters
-		const params = this.#geometry!.parameters
-		const uScreenRatio = this.#viewport.ratio
+		// Get geometry parameters and viewport ratios
+		const { width, height } = this.#geometry!.parameters
+		const { ratio: viewportRatio, ratioVec2 } = this.#viewport
 
-		// Face ratio
-		const faceRatio = getRatio(params.width, params.height)
-		const uFaceRatio = scaleRatioToViewport(faceRatio, uScreenRatio)
+		// Calculate face ratio and scale it to viewport
+		const faceRatio = getRatio(width, height)
+		const uFaceRatio = scaleRatioToViewport(faceRatio, viewportRatio)
 
-		const min = Math.min(...this.#viewport.ratioVec2)
-		const max = Math.max(...this.#viewport.ratioVec2)
-		const uScreenRatio2 = (max / (uScreenRatio * min)) * (1 - faceRatio)
+		// Calculate screen ratio adjustments
+		const minRatio = Math.min(ratioVec2.x, ratioVec2.y)
+		const maxRatio = Math.max(ratioVec2.x, ratioVec2.y)
+		const ratioFactor = maxRatio / (viewportRatio * minRatio)
+		const adjustedRatio = ratioFactor * (1 - faceRatio)
 
-		// Update uniforms
-		this.#material!.uniforms.uFaceRatio.value = uFaceRatio
-		this.#material!.uniforms.uScreenRatio.value = Math.max(
-			uScreenRatio,
-			uScreenRatio2
-		)
+		// Calculate final screen ratio and update uniforms
+		const maxRatioValue = Math.max(viewportRatio, adjustedRatio)
+		const finalScreenRatio = maxRatioValue * viewportRatio * 2
+
+		// Update shader uniforms
+		const uniforms = this.#material!.uniforms
+		uniforms.uFaceRatio.value = uFaceRatio
+		uniforms.uScreenRatio.value = finalScreenRatio
 	}
 
 	// --------------------------------
