@@ -597,7 +597,9 @@ export default class Debug {
 
 						// Handle changes
 						bc.value.emitter.on('change', (e) => {
-							handleSave(id, bc.exportState(), initial.state)
+							const state = bc.exportState()
+							state.disabled &&= false
+							handleSave(id, state, initial.state)
 							handleResetButton(e.rawValue)
 						})
 
@@ -666,31 +668,31 @@ export default class Debug {
 		const current = sessionStorage.getItem('debugParams')
 		if (!current) return
 
-		const values = JSON.parse(current)
-		const res = values[id]
+		const value = JSON.parse(current)[id]
+
+		let res = value?.state
+		if (id && value) {
+			if (defined(defaultState.children)) {
+				res.children = defaultState.children
+			} else if (
+				value.defaultBinding &&
+				hasChanged(defaultState.binding, value.defaultBinding)
+			) {
+				console.info(
+					'%cℹ️ Debug values has been reset because of code changes. Previous values:',
+					'background-color: #08517e; font-weight: bold; padding: 0.1rem 0.3rem; border-radius: 0.3rem;',
+					value.state
+				)
+
+				res = defaultState
+			}
+		}
 
 		if (defined(res?.disabled)) {
 			res.disabled = false
 		}
 
-		if (id && res) {
-			if (defined(defaultState.children)) {
-				res.state.children = defaultState.children
-			} else if (
-				res.defaultBinding &&
-				hasChanged(defaultState.binding, res.defaultBinding)
-			) {
-				console.info(
-					'%cℹ️ Debug values has been reset because of code changes. Previous values:',
-					'background-color: #08517e; font-weight: bold; padding: 0.1rem 0.3rem; border-radius: 0.3rem;',
-					res.state
-				)
-
-				return defaultState
-			}
-
-			return res.state
-		}
+		return res
 	}
 
 	/**

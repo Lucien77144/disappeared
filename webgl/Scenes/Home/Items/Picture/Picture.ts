@@ -1,25 +1,30 @@
 import {
 	DoubleSide,
 	Mesh,
-	MeshStandardMaterial,
 	PlaneGeometry,
+	ShaderMaterial,
 	Texture,
+	Uniform,
+	Vector2,
 	Vector3,
 } from 'three'
 import ExtendableItem from '~/webgl/Modules/Extendables/ExtendableItem'
-import type Home from '../Home'
+import type Home from '../../Home'
+import vertexShader from './shaders/vertexShader.vert?raw'
+import fragmentShader from './shaders/fragmentShader.frag?raw'
+import type { Viewport } from '#imports'
+import { getRatio, scaleRatioToViewport } from '~/utils/functions/ratio'
 
 export default class Picture extends ExtendableItem<Home> {
 	// Public
 	public position: Vector3
-	public hdri!: Texture
+	public hdri?: Texture
 
 	// Private
+	#viewport!: Viewport
 	#geometry?: PlaneGeometry
-	#material?: MeshStandardMaterial
+	#material?: ShaderMaterial
 	#mesh!: Mesh
-	#savedPosition!: Vector3
-	#targetPosition!: Vector3
 
 	/**
 	 * Constructor
@@ -32,14 +37,20 @@ export default class Picture extends ExtendableItem<Home> {
 		this.holdDuration = 2000
 
 		// Private
-		this.#targetPosition = new Vector3()
+		this.#viewport = this.experience.viewport
 
 		// Events
 		this.on('load', this.#onLoad)
+		this.on('ready', this.#onReady)
 		this.on('click', this.#onClick)
 		this.on('update', this.#onUpdate)
-		this.on('mouseleave', this.#onMouseLeave)
-		this.on('mousehover', (event) => this.#onMouseHover(event))
+	}
+
+	/**
+	 * Get cube texture
+	 */
+	public get cubeTexture() {
+		return this.scene?.allScenes.sandboxclone?.rt.texture
 	}
 
 	// --------------------------------
@@ -47,40 +58,10 @@ export default class Picture extends ExtendableItem<Home> {
 	// --------------------------------
 
 	/**
-	 * On mouse hover
-	 * @param event Mouse hover event
-	 */
-	#onMouseHover(event: TCursorProps): void {
-		// console.log(event)
-		// this.#targetPosition.set(
-		// 	this.#savedPosition.x,
-		// 	this.#savedPosition.y,
-		// 	this.#savedPosition.z + 1
-		// )
-	}
-
-	/**
-	 * On mouse leave
-	 */
-	#onMouseLeave(): void {
-		// this.#targetPosition.set(
-		// 	this.#savedPosition.x,
-		// 	this.#savedPosition.y,
-		// 	this.#savedPosition.z
-		// )
-	}
-
-	/**
 	 * On update
 	 */
 	#onUpdate() {
-		if (this.item.position.z !== this.#targetPosition.z) {
-			// this.item.position.z = lerp(
-			// 	this.item.position.z,
-			// 	this.#targetPosition.z,
-			// 	0.1
-			// )
-		}
+		this.#material!.uniforms.tDiffuse.value = this.cubeTexture
 	}
 
 	/**
@@ -102,9 +83,30 @@ export default class Picture extends ExtendableItem<Home> {
 	#onLoad(): void {
 		this.#setHDRI()
 		this.#setGeometry()
-		this.#setMaterial()
 		this.#setMesh()
 		this.#setItem()
+	}
+
+	/**
+	 * On ready
+	 */
+	#onReady(): void {
+		this.#setMaterial()
+	}
+	/**
+	 * On resize
+	 */
+	#onResize() {
+		// Parameters
+		const params = this.#geometry!.parameters
+		const screenRatio = this.#viewport.ratio
+
+		// Face ratio
+		const faceRatio = getRatio(params.width, params.height)
+		const uFaceRatio = scaleRatioToViewport(faceRatio, screenRatio)
+
+		// Update uniforms
+		this.#material!.uniforms.uFaceRatio.value = uFaceRatio
 	}
 
 	// --------------------------------
@@ -115,7 +117,7 @@ export default class Picture extends ExtendableItem<Home> {
 	 * Set HDRI
 	 */
 	#setHDRI() {
-		this.hdri = (this.scene as Home).hdri
+		this.hdri = (this.scene as Home).background
 	}
 
 	/**
@@ -129,21 +131,20 @@ export default class Picture extends ExtendableItem<Home> {
 	 * Set material
 	 */
 	#setMaterial() {
-		// console.log(this.scene?.hdriTexture)
-
-		const map = this.resources.picture_col as Texture
-		this.#material = new MeshStandardMaterial({
-			color: 0xffffff,
-			roughness: 1,
-			aoMapIntensity: 1,
+		this.#material = new ShaderMaterial({
+			vertexShader,
+			fragmentShader,
 			side: DoubleSide,
-			map,
-			// envMap: this.scene?.hdriTexture,
-			roughnessMap: map,
-			normalMap: map,
-			aoMap: map,
-			envMapIntensity: 1.5,
+			uniforms: {
+				tDiffuse: new Uniform(this.cubeTexture),
+				uFaceRatio: new Uniform(new Vector2(0, 0)),
+			},
 		})
+
+		this.#mesh.material = this.#material
+
+		this.#onResize()
+		this.on('resize', this.#onResize)
 	}
 
 	/**
@@ -168,8 +169,5 @@ export default class Picture extends ExtendableItem<Home> {
 		}
 		this.#mesh.rotation.y = Math.PI / 2
 		this.item.position.z += 0.1
-
-		this.#savedPosition = this.item.position.clone()
-		this.#targetPosition = this.#savedPosition.clone()
 	}
 }

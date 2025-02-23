@@ -3,8 +3,10 @@ import {
 	LinearFilter,
 	MirroredRepeatWrapping,
 	Object3D,
+	PMREMGenerator,
 	RGBAFormat,
 	Scene,
+	Texture,
 	WebGLRenderTarget,
 	type Intersection,
 } from 'three'
@@ -309,6 +311,10 @@ export default class ExtendableScene<
 		this.on('dispose', this.#onDispose.bind(this))
 	}
 
+	// --------------------------------
+	// Getters & Setters
+	// --------------------------------
+
 	/**
 	 * Get the name of the scene
 	 * @returns Name of the scene
@@ -316,10 +322,6 @@ export default class ExtendableScene<
 	public get name(): string {
 		return this.constructor.name
 	}
-
-	// --------------------------------
-	// Getters & Setters
-	// --------------------------------
 
 	/**
 	 * Get the renderer
@@ -329,9 +331,53 @@ export default class ExtendableScene<
 		return this.scene.id
 	}
 
+	/**
+	 * Get the background
+	 * @returns Background
+	 */
+	public get background(): Texture | undefined {
+		return this.scene.background as Texture | undefined
+	}
+
+	/**
+	 * Get the environment
+	 * @returns Environment
+	 */
+	public get environment(): Texture | undefined {
+		return this.scene.environment as Texture | undefined
+	}
+
 	// --------------------------------
 	// Public Functions
 	// --------------------------------
+
+	/**
+	 * Setup PMREM Generator
+	 */
+	public setupEnvironment(
+		texture: Texture,
+		options: { background?: boolean; environment?: boolean } = {
+			background: true,
+			environment: true,
+		}
+	) {
+		// Setup PMREM Generator
+		const pmremGenerator = new PMREMGenerator(this.experience.renderer.instance)
+		const res = pmremGenerator.fromEquirectangular(texture).texture
+
+		// Setup background
+		if (options.background) {
+			this.scene.background = res
+		}
+
+		// Setup environment
+		if (options.environment) {
+			this.scene.environment = res
+		}
+
+		// Dispose PMREM Generator
+		pmremGenerator.dispose()
+	}
 
 	/**
 	 * Add CSS2D to the item

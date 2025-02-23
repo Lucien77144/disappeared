@@ -1,10 +1,4 @@
-import {
-	AmbientLight,
-	Light,
-	PMREMGenerator,
-	Texture,
-	type WebGLRenderer,
-} from 'three'
+import { AmbientLight, Light, Texture } from 'three'
 import ExtendableScene from '../../Modules/Extendables/ExtendableScene'
 import Garland from './Items/Garland'
 import type { Dictionary } from '~/models/functions/dictionary.model'
@@ -13,33 +7,25 @@ import TransitionSlide from '~/webgl/Modules/Transitions/TransitionSlide/Transit
 import { ShaderMix } from '~/webgl/Modules/Shaders/ShaderMix/ShaderMix'
 
 export default class Home extends ExtendableScene {
-	// Public
-	public hdri!: Texture
-	public hdriTexture!: Texture
-
-	// Private
-	#renderer: WebGLRenderer
-
 	/**
 	 * Constructor
 	 */
 	constructor() {
 		super()
-		// Public
+		// Childs
 		this.scenes = {
 			sandboxClone: new SandboxClone(),
 		}
 		this.components = {
 			garland: new Garland(),
 		}
-		this.shader = new ShaderMix(this, {
-			target: this.scenes.sandboxClone.rt.texture,
-		})
-		this.transition = new TransitionSlide(this)
-		this.hdri = this.experience.resources.items.hdri as Texture
 
-		// Private
-		this.#renderer = this.experience.renderer.instance
+		// Transition
+		this.transition = new TransitionSlide(this)
+
+		// Shader
+		const target = this.scenes.sandboxClone.rt.texture
+		this.shader = new ShaderMix(this, { target })
 
 		// Init the scene
 		this.on('load', () => this.#onLoad())
@@ -53,7 +39,7 @@ export default class Home extends ExtendableScene {
 	 * On load
 	 */
 	#onLoad() {
-		this.#setupPMREMGenerator()
+		this.setupEnvironment(this.experience.resources.items.hdri as Texture)
 		this.#setupLights()
 
 		this.camera.instance.position.z = 30
@@ -62,17 +48,6 @@ export default class Home extends ExtendableScene {
 	// --------------------------------
 	// Private methods
 	// --------------------------------
-
-	/**
-	 * Setup PMREM Generator
-	 */
-	#setupPMREMGenerator() {
-		const pmremGenerator = new PMREMGenerator(this.#renderer)
-		this.hdriTexture = pmremGenerator.fromEquirectangular(this.hdri).texture
-		this.scene.background = this.hdriTexture
-		this.scene.environment = this.hdriTexture
-		pmremGenerator.dispose()
-	}
 
 	/**
 	 * Setup lights

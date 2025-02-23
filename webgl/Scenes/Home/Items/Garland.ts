@@ -1,6 +1,6 @@
 import { Group, Mesh, Vector3 } from 'three'
 import ExtendableItem from '~/webgl/Modules/Extendables/ExtendableItem'
-import Picture from './Picture'
+import Picture from './Picture/Picture'
 import { get3DSize } from '~/utils/functions/getSize'
 import type Experience from '~/webgl/Experience'
 import gsap from 'gsap'
