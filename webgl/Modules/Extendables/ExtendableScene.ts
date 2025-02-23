@@ -361,6 +361,8 @@ export default class ExtendableScene<
 			environment: true,
 		}
 	) {
+		if (!texture) return
+
 		// Setup PMREM Generator
 		const pmremGenerator = new PMREMGenerator(this.experience.renderer.instance)
 		const res = pmremGenerator.fromEquirectangular(texture).texture

@@ -288,7 +288,34 @@ export default class Renderer {
 	 * Dispose the renderer
 	 */
 	public dispose() {
+		// Dispose post-processing
+		this.composer?.dispose()
+		this.renderShader?.dispose()
+		this.shaderPass?.dispose()
+
+		// Dispose render targets
+		this.#renderList.forEach((item) => {
+			item.rt?.dispose()
+		})
+
+		// Clear any textures and programs
+		this.instance.info.programs?.forEach((program) => {
+			this.instance.getContext().deleteProgram(program.program)
+		})
+
+		// Dispose render lists and renderer
 		this.instance.renderLists.dispose()
 		this.instance.dispose()
+
+		// Remove the canvas reference
+		this.instance.forceContextLoss()
+		this.instance.domElement = null as any
+
+		// Clear the context
+		const gl = this.context
+		if (gl) {
+			const loseContext = gl.getExtension('WEBGL_lose_context')
+			if (loseContext) loseContext.loseContext()
+		}
 	}
 }

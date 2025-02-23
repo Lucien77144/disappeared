@@ -56,14 +56,19 @@ export default class Experience {
 		Experience.instance = this
 
 		// Check if canvas
-		if (!canvas) throw Error('No canvas provided')
+		if (!canvas) {
+			throw new Error('No canvas provided')
+		}
 
 		// Public
 		this.name = name || 'Experience'
 		this.canvas = canvas
 		this.debugContainer = debug
 		this.defaultScene = defaultScene
-		this.cursorManager = new CursorManager({ el: this.canvas, enableBus: true })
+		this.cursorManager = new CursorManager({
+			el: this.canvas,
+			enableBus: true,
+		})
 		this.store = new Store()
 		this.active = false
 

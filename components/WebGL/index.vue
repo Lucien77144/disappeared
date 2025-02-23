@@ -49,18 +49,27 @@ onMounted(() => {
 		debugRef.value?.remove()
 	}
 
-	// Create the experience
-	exp.value = new Experience({
-		canvas: canvasRef.value,
-		debug: debugRef.value,
-		defaultScene: route.query.scene as string,
-		name: 'Everything disappears',
-	})
+	if (!exp.value) {
+		try {
+			exp.value = new Experience({
+				canvas: canvasRef.value,
+				debug: debugRef.value,
+				defaultScene: route.query.scene as string,
+				name: 'Everything disappears',
+			})
+		} catch (error) {
+			console.error(error)
+			setTimeout(() => window.location.reload(), 500)
+		}
+	}
+})
 
-	// On component unmounted, dispose the experience
-	onUnmounted(() => {
-		exp.value?.dispose()
-	})
+// On component unmounted, dispose the experience
+onUnmounted(() => {
+	if (exp.value) {
+		exp.value.dispose()
+		exp.value = null
+	}
 })
 </script>
 
