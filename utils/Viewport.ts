@@ -7,6 +7,12 @@ import dpr from '~/utils/functions/dpr'
 import isTouch from '~/utils/functions/isTouch'
 import EventEmitter from './EventEmitter'
 import { Vector2 } from 'three'
+import {
+	getMaxRatio,
+	getMinRatio,
+	getRatio,
+	scaleRatioToViewport,
+} from './functions/ratio'
 
 export type TViewportEvents = {
 	resize: () => void
@@ -33,7 +39,6 @@ export default class Viewport extends EventEmitter<TViewportEvents> {
 
 	// Private
 	#handleResize: any
-	#ratioVec2!: Vector2
 
 	// Nuxt
 	private $bus: any
@@ -57,7 +62,6 @@ export default class Viewport extends EventEmitter<TViewportEvents> {
 		this.enableBus = !!options?.enableBus
 
 		// Private
-		this.#ratioVec2 = new Vector2()
 		this.#handleResize = this.resize.bind(this)
 		window.addEventListener('resize', this.#handleResize, false)
 
@@ -70,23 +74,13 @@ export default class Viewport extends EventEmitter<TViewportEvents> {
 	}
 
 	/**
-	 * Get the ratio as a vector2 of the current viewport
+	 * Get the ratio as a Vector2 to fit the current viewport
 	 */
 	public get ratioVec2(): Vector2 {
-		return this.getRatioVec2(this.width, this.height)
-	}
+		const ratio = getMaxRatio(this.width, this.height)
+		const isHorizontal = this.width > this.height
 
-	/**
-	 * Get the ratio as a vector2
-	 * @param width Width
-	 * @param height Height
-	 */
-	public getRatioVec2(width: number, height: number): Vector2 {
-		const x = width / height
-		const y = height / width
-
-		const isHorizontal = x > y
-		return new Vector2(!isHorizontal ? 1 : x, isHorizontal ? 1 : y)
+		return new Vector2(!isHorizontal ? 1 : ratio, isHorizontal ? 1 : ratio)
 	}
 
 	/**
@@ -122,8 +116,5 @@ export default class Viewport extends EventEmitter<TViewportEvents> {
 	public dispose(): void {
 		// Dispose events
 		this.disposeEvents()
-
-		// Remove event listener
-		window.removeEventListener('resize', this.#handleResize)
 	}
 }

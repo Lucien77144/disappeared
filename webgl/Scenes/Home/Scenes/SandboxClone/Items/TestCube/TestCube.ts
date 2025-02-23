@@ -1,18 +1,11 @@
-import {
-	BoxGeometry,
-	Mesh,
-	ShaderMaterial,
-	Uniform,
-	Vector2,
-	Vector3,
-} from 'three'
+import { BoxGeometry, Mesh, ShaderMaterial, Uniform, Vector2 } from 'three'
 import ExtendableItem from '~/webgl/Modules/Extendables/ExtendableItem'
 import type SandboxClone from '../../SandboxClone'
 import vertexShader from './shaders/vertexShader.vert?raw'
 import fragmentShader from './shaders/fragmentShader.frag?raw'
 import TestCubeScene from './Scenes/TestCubeScene'
 import Viewport from '~/utils/Viewport'
-import { scaleRatio } from '~/utils/functions/scaleRatio'
+import { getRatio, scaleRatioToViewport } from '~/utils/functions/ratio'
 export default class TestCube extends ExtendableItem<SandboxClone> {
 	// Public
 	public position: { x: number; y: number; z: number }
@@ -47,6 +40,7 @@ export default class TestCube extends ExtendableItem<SandboxClone> {
 		this.on('click', () => this.#onClick())
 		this.on('scroll', () => this.#onScroll())
 		this.on('update', () => this.#onUpdate())
+		this.on('resize', () => this.#onResize())
 	}
 
 	// --------------------------------
@@ -85,6 +79,34 @@ export default class TestCube extends ExtendableItem<SandboxClone> {
 		this.#material!.uniforms.tDiffuse.value = this.scenes.testCube.rt.texture
 	}
 
+	/**
+	 * On resize
+	 */
+	#onResize() {
+		// Parameters
+		const params = this.#geometry!.parameters
+		const screenRatio = this.#viewport.ratio
+
+		// Face ratio
+		const faceRatio = getRatio(params.width, params.height)
+		const uFaceRatio = scaleRatioToViewport(faceRatio, screenRatio)
+
+		// Sides ratio
+		const sidesRatio = getRatio(params.depth, params.height)
+		const uSidesRatio = scaleRatioToViewport(sidesRatio, screenRatio)
+
+		// Top ratio
+		const topRatio = getRatio(params.width, params.depth)
+		const uTopRatio = scaleRatioToViewport(topRatio, screenRatio)
+
+		// Update uniforms
+		this.#material!.uniforms.uFaceRatio.value = uFaceRatio
+		this.#material!.uniforms.uSidesRatio.value = uSidesRatio
+		this.#material!.uniforms.uTopRatio.value = uTopRatio
+
+		console.log('resize')
+	}
+
 	// --------------------------------
 	// Private methods
 	// --------------------------------
@@ -93,32 +115,25 @@ export default class TestCube extends ExtendableItem<SandboxClone> {
 	 * Set geometry
 	 */
 	#setGeometry() {
-		this.#geometry = new BoxGeometry(23, 19, 4)
+		this.#geometry = new BoxGeometry(8, 12, 2)
 	}
 
 	/**
 	 * Set material
 	 */
 	#setMaterial() {
-		const params = this.#geometry!.parameters
-
-		const screenRatio = this.#viewport.ratio
-		const faceRatio = params.width / params.height
-		const uFaceRatio = scaleRatio(faceRatio, screenRatio)
-		const uSidesRatio = scaleRatio(params.width, screenRatio)
-		const uTopRatio = scaleRatio(params.height, screenRatio)
-
 		this.#material = new ShaderMaterial({
 			vertexShader,
 			fragmentShader,
 			uniforms: {
 				tDiffuse: new Uniform(this.scenes.testCube.rt.texture),
-				uScreenRatio: new Uniform(screenRatio),
-				uFaceRatio: new Uniform(uFaceRatio),
-				uSidesRatio: new Uniform(uSidesRatio),
-				uTopRatio: new Uniform(uTopRatio),
+				uFaceRatio: new Uniform(new Vector2(0, 0)),
+				uSidesRatio: new Uniform(new Vector2(0, 0)),
+				uTopRatio: new Uniform(new Vector2(0, 0)),
 			},
 		})
+
+		this.#onResize()
 	}
 
 	/**
