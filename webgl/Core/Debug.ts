@@ -88,20 +88,6 @@ export default class Debug {
 	}
 
 	/**
-	 * Set the loading state of the debug panel
-	 */
-	set loading(val: boolean) {
-		this.#loading = val && this.#readyControls.length !== this.#controls
-	}
-
-	/**
-	 * Get the loading state of the debug panel
-	 */
-	get loading() {
-		return this.#loading
-	}
-
-	/**
 	 * Get the plugin pool of the pane
 	 */
 	get #pool(): PluginPool {
@@ -258,25 +244,6 @@ export default class Debug {
 	}
 
 	/**
-	 * Add a control
-	 * @param id ID of the control, if set, it will be added to the ready controls, else it will increase the controls count
-	 */
-	#controlsChange(add: boolean, id?: string) {
-		if (!add) {
-			this.#controls--
-			this.loading = false
-		} else {
-			if (!id) {
-				this.#controls++
-				this.loading = true
-			} else {
-				this.#readyControls.push(id)
-				this.loading = false
-			}
-		}
-	}
-
-	/**
 	 * Save the folder state
 	 */
 	#saveFolderState() {
@@ -294,21 +261,19 @@ export default class Debug {
 		) => {
 			this.#handleLocalSave(id, state, defaultState)
 		}
-		const controlsChange = (add: boolean, id?: string) => {
-			this.#controlsChange(add, id)
-		}
 
 		this.#pool.createApi = (function (original) {
 			return function (bc) {
 				if ((bc as FolderController).foldable) {
-					controlsChange(true)
 					bc = bc as FolderController
 
 					const initial = { state: bc.exportState() }
 
 					const el = bc.view.element
 					const contentEl = el.querySelector('.tp-fldv_c') as HTMLElement
-					if (contentEl) contentEl.style.transition = 'none'
+					if (contentEl) {
+						contentEl.style.transition = 'none'
+					}
 
 					// Check if the folder has no children
 					const childs = initial.state?.children as any[]
@@ -321,7 +286,7 @@ export default class Debug {
 						// Wait the panel to build element
 						const element = bc.view.element
 						getStackId(initial.state, element).then((id) => {
-							if (!id) return controlsChange(false)
+							if (!id) return
 							element.id = id
 							element.classList.add(id)
 
@@ -344,11 +309,14 @@ export default class Debug {
 							}
 
 							window.requestAnimationFrame(() => {
-								if (contentEl) contentEl.style.transition = ''
-							})
+								if (contentEl) {
+									contentEl.style.transition = ''
 
-							// Add the control to the ready controls
-							controlsChange(true, id)
+									if ((defaultState || initial.state)?.expanded) {
+										contentEl.style.height = 'auto'
+									}
+								}
+							})
 
 							// Click event
 							bc.view.element.addEventListener('click', () => {
@@ -577,13 +545,9 @@ export default class Debug {
 		const getStackId = async (state: BladeState, element: HTMLElement) => {
 			return await this.#getStackID(state, element)
 		}
-		const controlsChange = (add: boolean, id?: string) => {
-			this.#controlsChange(add, id)
-		}
 
 		this.#pool.createBindingApi = (function (original) {
 			return function (bc) {
-				controlsChange(true)
 				const valueElement = bc.view.valueElement
 				valueElement.style.position = 'relative'
 				valueElement.style.paddingRight = '20px'
@@ -596,13 +560,15 @@ export default class Debug {
 					// Wait the panel to build element
 					const element = bc.view.element
 					getStackId(initial.state, element).then((id) => {
-						if (!id) return controlsChange(false)
+						if (!id) return
 						element.id = id
 						element.classList.add(id)
 
 						if (isActive(id)) {
+							const state = initial.state
+							const name = state?.title || state?.label || state?.tag
 							console.warn(
-								`The debug "${initial.state?.title}" is already used in the session storage`,
+								`The debug "${name}" is already used in the session storage`,
 								bc
 							)
 						}
@@ -639,9 +605,6 @@ export default class Debug {
 						const binding = (bc.valueController.value as any).binding
 						const onLoad = binding?.target?.obj_?.onLoad
 						if (onLoad && typeof onLoad === 'function') onLoad()
-
-						// Add the control to the ready controls
-						controlsChange(true, id)
 
 						// Click event
 						clonedResetButton.addEventListener('click', () => {

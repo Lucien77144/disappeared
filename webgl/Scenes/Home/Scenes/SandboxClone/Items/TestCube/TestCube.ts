@@ -1,4 +1,11 @@
-import { BoxGeometry, Mesh, ShaderMaterial, Uniform, Vector2 } from 'three'
+import {
+	BoxGeometry,
+	Mesh,
+	ShaderMaterial,
+	Uniform,
+	Vector2,
+	Vector3,
+} from 'three'
 import ExtendableItem from '~/webgl/Modules/Extendables/ExtendableItem'
 import type SandboxClone from '../../SandboxClone'
 import vertexShader from './shaders/vertexShader.vert?raw'
@@ -6,7 +13,6 @@ import fragmentShader from './shaders/fragmentShader.frag?raw'
 import TestCubeScene from './Scenes/TestCubeScene'
 import Viewport from '~/utils/Viewport'
 import { scaleRatio } from '~/utils/functions/scaleRatio'
-import { copyObject } from '~/utils/functions/copyObject'
 export default class TestCube extends ExtendableItem<SandboxClone> {
 	// Public
 	public position: { x: number; y: number; z: number }
@@ -87,7 +93,7 @@ export default class TestCube extends ExtendableItem<SandboxClone> {
 	 * Set geometry
 	 */
 	#setGeometry() {
-		this.#geometry = new BoxGeometry(23, 5, 4)
+		this.#geometry = new BoxGeometry(23, 19, 4)
 	}
 
 	/**
@@ -95,9 +101,12 @@ export default class TestCube extends ExtendableItem<SandboxClone> {
 	 */
 	#setMaterial() {
 		const params = this.#geometry!.parameters
+
 		const screenRatio = this.#viewport.ratio
-		const uFaceRatio = scaleRatio(params.width / params.height, screenRatio)
-		// const uFaceRatio = new Vector2(1, 1)
+		const faceRatio = params.width / params.height
+		const uFaceRatio = scaleRatio(faceRatio, screenRatio)
+		const uSidesRatio = scaleRatio(params.width, screenRatio)
+		const uTopRatio = scaleRatio(params.height, screenRatio)
 
 		this.#material = new ShaderMaterial({
 			vertexShader,
@@ -106,10 +115,10 @@ export default class TestCube extends ExtendableItem<SandboxClone> {
 				tDiffuse: new Uniform(this.scenes.testCube.rt.texture),
 				uScreenRatio: new Uniform(screenRatio),
 				uFaceRatio: new Uniform(uFaceRatio),
+				uSidesRatio: new Uniform(uSidesRatio),
+				uTopRatio: new Uniform(uTopRatio),
 			},
 		})
-
-		console.log(this.#material.uniforms.uFaceRatio.value)
 	}
 
 	/**

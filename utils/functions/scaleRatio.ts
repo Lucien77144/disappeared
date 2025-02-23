@@ -8,10 +8,9 @@ import { Vector2 } from 'three'
  */
 export function scaleRatio(faceRatio: number, viewportRatio: number): Vector2 {
 	const ratio = 1 / (viewportRatio / faceRatio)
-
 	const isHorizontal = viewportRatio > faceRatio
-	const multiply = 1 / ratio
 
+	const multiply = 1 / ratio
 	const x = (1 / ratio) * (isHorizontal ? multiply : 1)
 	const y = (1 / ratio) * (isHorizontal ? 1 : multiply)
 

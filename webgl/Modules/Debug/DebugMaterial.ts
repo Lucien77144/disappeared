@@ -192,7 +192,6 @@ export class DebugMaterial {
 							.addBinding({ image }, 'image', {
 								view: 'image',
 								label: key,
-								tag: `${this.title}-${key}`,
 							})
 							.on('change', ({ value }) => {
 								const previousValue = selfMaterial[key] as Texture
@@ -241,7 +240,6 @@ export class DebugMaterial {
 						.addBinding(list, 'value', {
 							view: 'list',
 							label: params.name || key,
-							tag: `${this.title}-${key}`,
 							options,
 						})
 						.on('change', ({ value }: { value: string }) => {
@@ -262,7 +260,6 @@ export class DebugMaterial {
 									.addBinding({ image }, 'image', {
 										view: 'image',
 										label: uniformName,
-										tag: `${this.title}-${key}`,
 									})
 									.on('change', ({ value }) => {
 										const previousValue = uniformsValues[index].value
@@ -308,7 +305,6 @@ export class DebugMaterial {
 						} else {
 							this.folder.addBinding(value[uniformName], 'value', {
 								label: uniformName,
-								tag: `${this.title}-${key}`,
 							})
 						}
 					})
@@ -320,7 +316,6 @@ export class DebugMaterial {
 						.addBinding(selfMaterial, key, {
 							...params,
 							label: params.name || key,
-							tag: `${this.title}-${key}`,
 						})
 						.on('change', () => {
 							selfMaterial.needsUpdate = true
