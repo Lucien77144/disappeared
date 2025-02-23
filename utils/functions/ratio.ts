@@ -49,7 +49,7 @@ export function scaleRatioToViewport(
 	viewportRatio: number
 ): Vector2 {
 	const ratio = getMinRatio(viewportRatio, faceRatio)
-	const isHorizontal = (viewportRatio || 1) > faceRatio
+	const isHorizontal = (viewportRatio ?? 1) > faceRatio
 
 	const x = ratio * (isHorizontal ? ratio : 1)
 	const y = ratio * (isHorizontal ? 1 : ratio)

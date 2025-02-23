@@ -1,5 +1,5 @@
 import ExtendableScene from '~/webgl/Modules/Extendables/ExtendableScene'
-import TestCube from './Items/TestCube/TestCube'
+import TestCube from './Items/TestCube'
 import { AmbientLight } from 'three'
 import type { Dictionary } from '~/models/functions/dictionary.model'
 import type { Light } from 'three'
@@ -14,7 +14,7 @@ export default class SandboxClone extends ExtendableScene {
 		// Public
 		this.components = {
 			cube: new TestCube({
-				position: { x: 0.25, y: 0.25, z: 0.25 },
+				position: { x: 0, y: 0, z: 0 },
 			}),
 		}
 

@@ -1,6 +1,6 @@
 import { MeshBasicMaterial, BoxGeometry, DoubleSide, Mesh } from 'three'
 import ExtendableItem from '~/webgl/Modules/Extendables/ExtendableItem'
-import type SandboxClone from '../../SandboxClone'
+import type SandboxClone from '../SandboxClone'
 import Viewport from '~/utils/Viewport'
 import { getRatio, scaleRatioToViewport } from '~/utils/functions/ratio'
 export default class TestCube extends ExtendableItem<SandboxClone> {

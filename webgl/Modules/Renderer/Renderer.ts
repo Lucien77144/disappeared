@@ -294,9 +294,7 @@ export default class Renderer {
 		this.shaderPass?.dispose()
 
 		// Dispose render targets
-		this.#renderList.forEach((item) => {
-			item.rt?.dispose()
-		})
+		this.#renderList.forEach((item) => item.rt?.dispose())
 
 		// Clear any textures and programs
 		this.instance.info.programs?.forEach((program) => {

@@ -99,14 +99,22 @@ export default class Picture extends ExtendableItem<Home> {
 	#onResize() {
 		// Parameters
 		const params = this.#geometry!.parameters
-		const screenRatio = this.#viewport.ratio
+		const uScreenRatio = this.#viewport.ratio
 
 		// Face ratio
 		const faceRatio = getRatio(params.width, params.height)
-		const uFaceRatio = scaleRatioToViewport(faceRatio, screenRatio)
+		const uFaceRatio = scaleRatioToViewport(faceRatio, uScreenRatio)
+
+		const min = Math.min(...this.#viewport.ratioVec2)
+		const max = Math.max(...this.#viewport.ratioVec2)
+		const uScreenRatio2 = (max / (uScreenRatio * min)) * (1 - faceRatio)
 
 		// Update uniforms
 		this.#material!.uniforms.uFaceRatio.value = uFaceRatio
+		this.#material!.uniforms.uScreenRatio.value = Math.max(
+			uScreenRatio,
+			uScreenRatio2
+		)
 	}
 
 	// --------------------------------
@@ -137,6 +145,7 @@ export default class Picture extends ExtendableItem<Home> {
 			side: DoubleSide,
 			uniforms: {
 				tDiffuse: new Uniform(this.cubeTexture),
+				uScreenRatio: new Uniform(1),
 				uFaceRatio: new Uniform(new Vector2(0, 0)),
 			},
 		})

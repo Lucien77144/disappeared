@@ -5,7 +5,7 @@ varying vec3 vLocalPosition;
 
 // Uniforms
 uniform sampler2D tDiffuse;
-uniform vec2 uScreenRatio;
+uniform float uScreenRatio;
 uniform vec2 uFaceRatio;
 uniform vec2 uSidesRatio;
 uniform vec2 uTopRatio;
@@ -25,7 +25,13 @@ void main() {
 	} else { // (Front/Back)
 		uv *= uFaceRatio;
 	}
+
+	uv *= uScreenRatio;
 	uv += .5;
 
 	gl_FragColor = texture2D(tDiffuse, uv);
+
+	if (uv.x > 1. || uv.x < 0. || uv.y > 1. || uv.y < 0.) {
+		gl_FragColor.a = 0.;
+	}
 }
