@@ -28,7 +28,9 @@ type BoneMap = {
  * @param model Original GLTF model to clone
  * @returns Cloned GLTF model with properly bound skeletons
  */
-export default function cloneModel(model: GLTF | Object3D): ClonedGLTF {
+export default function cloneModel<T extends GLTF | Object3D>(
+	model: T
+): ClonedGLTF {
 	// Create initial clone with animations and scene
 	const clone: ClonedGLTF = {
 		animations: (model as GLTF).animations || [],

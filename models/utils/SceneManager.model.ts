@@ -14,9 +14,6 @@ export type TSceneInfos = {
 		start?: number
 		end?: number
 	}
-	transition?: {
-		duration: number
-	}
 }
 
 /**

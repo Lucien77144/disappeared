@@ -9,6 +9,8 @@ import type {
 } from '~/models/utils/Resources.model.js'
 import type { Dictionary } from '~/models/functions/dictionary.model.js'
 import EventEmitter from '~/utils/EventEmitter.js'
+import { Object3D } from 'three'
+import type { GLTF } from 'three/examples/jsm/Addons.js'
 
 const SOURCES = sources as TResourceGroup[]
 
@@ -211,6 +213,18 @@ export default class Resources extends EventEmitter<TResourcesEvents> {
 	 */
 	#onLoadingFileEnd(file: TResourceFile, skipped: boolean = false): void {
 		let data = file.data
+
+		if ((data as GLTF).scene) {
+			data = (data as GLTF).scene
+		}
+
+		if ((data as Object3D).isObject3D) {
+			const object = data as Object3D
+			object.userData = {
+				...(object.userData ?? {}),
+				...(file.resource.data ?? {}),
+			}
+		}
 
 		this.items[file.resource.name] = data
 		this.loadedSources[file.resource.source] = file.resource.name

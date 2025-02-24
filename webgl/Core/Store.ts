@@ -51,7 +51,7 @@ export default class Store {
 	 * @returns {TExperienceStore['active']}
 	 */
 	get active(): TExperienceStore['active'] {
-		return this.#experience.active
+		return toRaw(this.#experience.active)
 	}
 
 	/**
@@ -67,7 +67,7 @@ export default class Store {
 	 * @returns {TExperienceStore['loadingProgress']}
 	 */
 	get loadingProgress(): TExperienceStore['loadingProgress'] {
-		return this.#experience.loadingProgress
+		return toRaw(this.#experience.loadingProgress)
 	}
 
 	/**
@@ -82,7 +82,7 @@ export default class Store {
 	 * @returns {TExperienceStore['loadingScreen']}
 	 */
 	get loadingScreen(): TExperienceStore['loadingScreen'] {
-		return this.#experience.loadingScreen
+		return toRaw(this.#experience.loadingScreen)
 	}
 
 	/**
@@ -97,7 +97,7 @@ export default class Store {
 	 * @returns {TExperienceStore['landing']}
 	 */
 	get landing(): TExperienceStore['landing'] {
-		return this.#experience.landing
+		return toRaw(this.#experience.landing)
 	}
 
 	/**
@@ -112,7 +112,7 @@ export default class Store {
 	 * @returns {TExperienceStore['scene']}
 	 */
 	get scene(): TExperienceStore['scene'] {
-		return this.#experience.scene
+		return toRaw(this.#experience.scene)
 	}
 
 	// -------------------------------------------------
@@ -131,7 +131,7 @@ export default class Store {
 	 * @returns {TResourcesStore['items']}
 	 */
 	get items(): TResourcesStore['items'] {
-		return this.#resources.items
+		return toRaw(this.#resources.items)
 	}
 
 	// -------------------------------------------------
@@ -143,7 +143,7 @@ export default class Store {
 	 * @returns {TCSSRenderer['css2DList']}
 	 */
 	get css2DList(): TCSSRenderer['css2DList'] {
-		return this.#cssRenderer.css2DList
+		return toRaw(this.#cssRenderer.css2DList)
 	}
 	/**
 	 * Set the css2DList value in the cssRenderer store
@@ -158,7 +158,7 @@ export default class Store {
 	 * @returns {TCSSRenderer['css3DList']}
 	 */
 	get css3DList(): TCSSRenderer['css3DList'] {
-		return this.#cssRenderer.css3DList
+		return toRaw(this.#cssRenderer.css3DList)
 	}
 	/**
 	 * Set the css3DList value in the cssRenderer store
@@ -184,7 +184,7 @@ export default class Store {
 	 * @returns {THold['progress']}
 	 */
 	get progress(): THold['progress'] {
-		return this.#hold.progress
+		return toRaw(this.#hold.progress)
 	}
 
 	/**
@@ -192,7 +192,7 @@ export default class Store {
 	 * @returns {THold['complete']}
 	 */
 	get complete(): THold['complete'] {
-		return this.#hold.complete
+		return toRaw(this.#hold.complete)
 	}
 
 	// -------------------------------------------------
@@ -211,7 +211,7 @@ export default class Store {
 	 * @returns {TSubtitle['cues']}
 	 */
 	get cues(): TSubtitle['cues'] {
-		return this.#subtitles.cues
+		return toRaw(this.#subtitles.cues)
 	}
 
 	/**
@@ -226,7 +226,7 @@ export default class Store {
 	 * @returns {TSubtitle['disabled']}
 	 */
 	get disabled(): TSubtitle['disabled'] {
-		return this.#subtitles.disabled
+		return toRaw(this.#subtitles.disabled)
 	}
 
 	/**

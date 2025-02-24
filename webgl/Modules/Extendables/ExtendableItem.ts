@@ -206,10 +206,18 @@ export default class ExtendableItem<
 	 */
 	protected debug: Experience['debug']
 
+	// --------------------------------
+	// Private properties
+	// --------------------------------
+	/**
+	 * Name of the item
+	 */
+	#name!: string
+
 	/**
 	 * Constructor
 	 */
-	constructor() {
+	constructor({ name }: { name?: string } = {}) {
 		super()
 
 		// Protected
@@ -218,6 +226,7 @@ export default class ExtendableItem<
 		this.debug = this.experience.debug
 
 		// Public
+		this.name = name || this.constructor.name
 		this.item = new Group()
 		this.scenes = {}
 		this.components = {}
@@ -227,6 +236,21 @@ export default class ExtendableItem<
 
 		// Events
 		this.on('dispose', () => this.#onDispose())
+	}
+
+	/**
+	 * Set the name of the item
+	 * @param name Name of the item
+	 */
+	public set name(name: string) {
+		this.#name = name
+	}
+
+	/**
+	 * Get the name of the item
+	 */
+	public get name() {
+		return this.#name
 	}
 
 	/**

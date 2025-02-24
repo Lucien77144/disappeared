@@ -23,5 +23,32 @@
 				"source": "/textures/picture/picture_col.png"
 			}
 		]
+	},
+	{
+		"name": "OldItems",
+		"data": {},
+		"items": [
+			{
+				"name": "old_crt_tv",
+				"source": "/models/old/old_crt_tv.glb",
+				"data": {
+					"garlandItems": true
+				}
+			},
+			{
+				"name": "old_radio",
+				"source": "/models/old/old_radio.glb",
+				"data": {
+					"garlandItems": true
+				}
+			},
+			{
+				"name": "old_spittoon",
+				"source": "/models/old/old_spittoon.glb",
+				"data": {
+					"garlandItems": true
+				}
+			}
+		]
 	}
 ]

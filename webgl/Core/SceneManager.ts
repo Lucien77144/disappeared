@@ -2,7 +2,7 @@ import Experience from '../Experience'
 import type { TSceneInfos, TScenes } from '~/models/utils/SceneManager.model'
 import type ExtendableScene from '../Modules/Extendables/ExtendableScene'
 import type { BindingApi } from '@tweakpane/core'
-import Scenes from '../Scenes'
+import Scenes from '../Scenes/navigation'
 
 const SCENES = Scenes as TScenes
 
