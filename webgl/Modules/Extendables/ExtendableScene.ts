@@ -460,7 +460,6 @@ export default class ExtendableScene<
 	#onMouseDown(event: TCursorProps): void {
 		// Clicked item
 		const clicked = this.#getRaycastedItem(event.centered, ['click'])?.item
-		console.log(clicked)
 		clicked?.trigger('click')
 
 		// Holded item
