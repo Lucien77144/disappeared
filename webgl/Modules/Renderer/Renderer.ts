@@ -1,6 +1,7 @@
 import {
 	ACESFilmicToneMapping,
 	Color,
+	HalfFloatType,
 	PerspectiveCamera,
 	ShaderMaterial,
 	SRGBColorSpace,
@@ -201,7 +202,10 @@ export default class Renderer {
 		// Set composer
 		this.composer = new EffectComposer(this.instance, {
 			alpha: true,
+			frameBufferType: HalfFloatType,
 		})
+
+		// Add main shader pass
 		this.composer.addPass(this.shaderPass)
 	}
 
@@ -282,6 +286,7 @@ export default class Renderer {
 		this.camera.updateProjectionMatrix()
 		this.instance.setSize(this.#viewport.width, this.#viewport.height)
 		this.instance.setPixelRatio(this.#viewport.dpr)
+		this.composer.setSize(this.#viewport.width, this.#viewport.height)
 	}
 
 	/**

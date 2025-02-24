@@ -58,19 +58,34 @@ export default class Stats {
 	 * @param context WebGL2RenderingContext
 	 */
 	public setRenderPanel(context: WebGL2RenderingContext): void {
-		const panel = new StatsJs.Panel('Render (ms)', '#f8f', '#212')
+		try {
+			const panel = new StatsJs.Panel('Render (ms)', '#f8f', '#212')
+			const extension = context.getExtension('EXT_disjoint_timer_query_webgl2')
 
-		this.#render = {
-			context,
-			extension: context.getExtension('EXT_disjoint_timer_query_webgl2'),
-			panel: this.instance.addPanel(panel),
+			if (!extension) {
+				console.warn('EXT_disjoint_timer_query_webgl2 not supported')
+				this.disable()
+				return
+			}
+
+			this.#render = {
+				context,
+				extension,
+				panel: this.instance.addPanel(panel),
+			}
+
+			const webGL2 =
+				typeof WebGL2RenderingContext !== 'undefined' &&
+				context instanceof WebGL2RenderingContext
+
+			if (!webGL2) {
+				console.warn('WebGL2 not supported')
+				this.disable()
+			}
+		} catch (error) {
+			console.error('Failed to set render panel:', error)
+			this.disable()
 		}
-
-		const webGL2 =
-			typeof WebGL2RenderingContext !== 'undefined' &&
-			context instanceof WebGL2RenderingContext
-
-		if (!webGL2 || !this.#render?.extension) this.disable()
 	}
 
 	/**
