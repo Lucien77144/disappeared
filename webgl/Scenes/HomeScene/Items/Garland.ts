@@ -126,7 +126,7 @@ export default class Garland extends ExtendableItem<HomeScene> {
 					this.components[`picture-${id}`] = new Picture({
 						position,
 						id,
-						texture: this.scenes[`olditem_${modelId}`]?.rt.texture,
+						scene: this.scenes[`olditem_${modelId}`],
 					})
 
 					id++

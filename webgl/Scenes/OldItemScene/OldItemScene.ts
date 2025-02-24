@@ -1,9 +1,10 @@
 import ExtendableScene from '~/webgl/Modules/Extendables/ExtendableScene'
-import { AmbientLight, DirectionalLight, Light } from 'three'
+import { AmbientLight, Color, DirectionalLight, Light } from 'three'
 import type { Dictionary } from '~/models/functions/dictionary.model'
 import type { Object3D } from 'three'
 import OldItem from './Items/OldItem'
 import cloneModel from '~/webgl/Core/functions/cloneModel'
+import { ShaderBackgroundColor } from '~/webgl/Modules/Shaders/ShaderBackgroundColor/ShaderBackgroundColor'
 export default class OldItemScene extends ExtendableScene {
 	/**
 	 * Constructor
@@ -15,6 +16,10 @@ export default class OldItemScene extends ExtendableScene {
 		this.components = {
 			model: new OldItem({ model: cloneModel(model).scene }),
 		}
+
+		this.shader = new ShaderBackgroundColor(this, {
+			color: new Color(0, 0, 1),
+		})
 
 		// Events
 		this.on('load', () => this.#onLoad())

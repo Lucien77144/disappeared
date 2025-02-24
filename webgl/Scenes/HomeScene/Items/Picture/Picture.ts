@@ -1,7 +1,6 @@
 import {
 	DoubleSide,
 	Mesh,
-	Object3D,
 	PlaneGeometry,
 	ShaderMaterial,
 	Texture,
@@ -15,10 +14,11 @@ import vertexShader from './shaders/vertexShader.vert?raw'
 import fragmentShader from './shaders/fragmentShader.frag?raw'
 import type { Viewport } from '#imports'
 import { getRatio, scaleRatioToViewport } from '~/utils/functions/ratio'
+import type ExtendableScene from '~/webgl/Modules/Extendables/ExtendableScene'
 
 export default class Picture extends ExtendableItem<HomeScene> {
 	// Public
-	public texture?: Texture
+	public contentScene?: ExtendableScene
 	public position: Vector3
 	public hdri?: Texture
 
@@ -34,11 +34,11 @@ export default class Picture extends ExtendableItem<HomeScene> {
 	constructor({
 		position,
 		id,
-		texture,
+		scene,
 	}: {
 		position: Vector3
 		id: number
-		texture?: Texture
+		scene?: ExtendableScene
 	}) {
 		super()
 
@@ -46,7 +46,7 @@ export default class Picture extends ExtendableItem<HomeScene> {
 		this.name = `picture_${id}`
 		this.position = position
 		this.holdDuration = 2000
-		this.texture = texture
+		this.contentScene = scene
 
 		// Private
 		this.#viewport = this.experience.viewport
@@ -57,6 +57,13 @@ export default class Picture extends ExtendableItem<HomeScene> {
 		this.on('update', this.#onUpdate)
 	}
 
+	/**
+	 * Get the content texture
+	 */
+	public get contentTexture(): Texture {
+		return this.contentScene!.rt.texture
+	}
+
 	// --------------------------------
 	// Events
 	// --------------------------------
@@ -65,7 +72,7 @@ export default class Picture extends ExtendableItem<HomeScene> {
 	 * On update
 	 */
 	#onUpdate() {
-		this.#material!.uniforms.tDiffuse.value = this.texture
+		this.#material!.uniforms.tDiffuse.value = this.contentTexture
 	}
 
 	/**
@@ -142,7 +149,7 @@ export default class Picture extends ExtendableItem<HomeScene> {
 			fragmentShader,
 			side: DoubleSide,
 			uniforms: {
-				tDiffuse: new Uniform(this.texture),
+				tDiffuse: new Uniform(this.contentTexture),
 				uScreenRatio: new Uniform(1),
 				uFaceRatio: new Uniform(new Vector2(0, 0)),
 			},
