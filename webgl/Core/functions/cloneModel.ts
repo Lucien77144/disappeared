@@ -60,6 +60,10 @@ export default function cloneModel<T extends GLTF | Object3D>(
 		if ((node as SkinnedMesh).isSkinnedMesh) {
 			cloneSkinnedMeshes[node.name] = node as SkinnedMesh
 		}
+
+		if ((node as Object3D).isObject3D) {
+			node.position.copy(node.position)
+		}
 	})
 
 	// Rebind skeletons

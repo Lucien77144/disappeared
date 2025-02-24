@@ -2,6 +2,7 @@ import type { Object3D } from 'three'
 import type { Dictionary } from '~/models/functions/dictionary.model'
 import type Resources from '~/webgl/Core/Resources'
 import OldItemScene from './OldItemScene'
+import type { GLTF } from 'three/examples/jsm/Addons.js'
 
 /**
  * Get the models usable as old items
@@ -9,9 +10,10 @@ import OldItemScene from './OldItemScene'
  * @returns Models
  */
 function getModels(resources: Resources['items']): Object3D[] {
-	return Object.values(resources).filter(
-		(r) => (r as Object3D).userData.garlandItems
-	) as Object3D[]
+	return Object.values(resources)
+		.filter((r) => (r as GLTF).parser)
+		.map((r) => (r as GLTF).scene)
+		.filter((r) => r?.userData.garlandItems)
 }
 
 /**

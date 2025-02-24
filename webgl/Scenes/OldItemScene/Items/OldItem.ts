@@ -1,4 +1,4 @@
-import { Object3D } from 'three'
+import { Group, Object3D } from 'three'
 import ExtendableItem from '~/webgl/Modules/Extendables/ExtendableItem'
 import Viewport from '~/utils/Viewport'
 import type OldItemScene from '../OldItemScene'
@@ -15,7 +15,7 @@ export default class OldItem extends ExtendableItem<OldItemScene> {
 	/**
 	 * Constructor
 	 * @param options Options
-	 * @param options.position Position
+	 * @param options.model Model
 	 */
 	constructor(options: { model: Object3D }) {
 		super()
@@ -64,11 +64,23 @@ export default class OldItem extends ExtendableItem<OldItemScene> {
 	// --------------------------------
 
 	#setModel() {
-		// re center the model origin
-		const origin = getOrigin(this.model)
-		this.model.position.sub(origin)
+		// Create a group to contain the model
+		const modelGroup = new Group()
 
-		this.item.add(this.model)
+		// Get the current origin/center of the model
+		const origin = getOrigin(this.model)
+
+		// Offset the model's position to center it
+		this.model.position.set(-origin.x, -origin.y, -origin.z)
+
+		// Add model to the group
+		modelGroup.add(this.model)
+
+		// Now you can rotate the group
+		modelGroup.rotation.y = Math.PI * 0.25
+
+		// Add the group to the item
+		this.item.add(modelGroup)
 	}
 
 	#setScale() {
@@ -76,6 +88,6 @@ export default class OldItem extends ExtendableItem<OldItemScene> {
 		const maxSize = Math.max(...size)
 		const ratio = 1 / maxSize
 
-		this.item.scale.setScalar(ratio * this.#viewport.ratio * 20)
+		this.item.scale.setScalar(ratio * this.#viewport.ratio * 10)
 	}
 }

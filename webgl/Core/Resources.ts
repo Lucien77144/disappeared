@@ -9,8 +9,10 @@ import type {
 } from '~/models/utils/Resources.model.js'
 import type { Dictionary } from '~/models/functions/dictionary.model.js'
 import EventEmitter from '~/utils/EventEmitter.js'
-import { Object3D } from 'three'
+import { Group, Object3D } from 'three'
 import type { GLTF } from 'three/examples/jsm/Addons.js'
+import cloneModel from './functions/cloneModel.js'
+import { copyObject } from '~/utils/functions/copyObject.js'
 
 const SOURCES = sources as TResourceGroup[]
 
@@ -99,9 +101,13 @@ export default class Resources extends EventEmitter<TResourcesEvents> {
 		this.sources = this.#getSources(groups).map((s: TResourceGroup) => ({
 			...s,
 			items: s.items.filter((i) => {
-				if (!(i.name in this.items) && !this.items[i.name]) {
+				const item = this.items?.[i.name]
+				if (!item) {
 					this.total++
 					return true
+				} else if (item) {
+					this.items[i.name] = this.#cloneItem(item)
+					return false
 				}
 			}),
 		}))
@@ -138,6 +144,25 @@ export default class Resources extends EventEmitter<TResourcesEvents> {
 	}
 
 	/**
+	 *
+	 * @param item
+	 * @returns
+	 */
+	#cloneItem(item: TResourceData): TResourceData {
+		if ((item as Object3D).isObject3D) {
+			return cloneModel(item as Object3D).scene
+		} else if ((item as GLTF).scene) {
+			const gltfItem = item as GLTF
+			const clonedScene = cloneModel(gltfItem.scene)
+
+			gltfItem.scene = clonedScene.scene as Group
+			return gltfItem
+		}
+
+		return item
+	}
+
+	/**
 	 * Load next group
 	 */
 	#loadNextGroup(): void {
@@ -154,7 +179,8 @@ export default class Resources extends EventEmitter<TResourcesEvents> {
 						''
 					)
 				}
-				this.#onLoadingFileEnd({ resource: i, data: this.items[i.name] }, true)
+				const data = this.items[i.name]
+				this.#onLoadingFileEnd({ resource: i, data }, true)
 				return false
 			} else if (i.source in this.loadedSources) {
 				if (this.#debug?.debugParams.ResourceLog) {
@@ -214,20 +240,27 @@ export default class Resources extends EventEmitter<TResourcesEvents> {
 	#onLoadingFileEnd(file: TResourceFile, skipped: boolean = false): void {
 		let data = file.data
 
-		if ((data as GLTF).scene) {
-			data = (data as GLTF).scene
-		}
-
+		// Add userData if needed
 		if ((data as Object3D).isObject3D) {
 			const object = data as Object3D
 			object.userData = {
 				...(object.userData ?? {}),
 				...(file.resource.data ?? {}),
 			}
+		} else if ((data as GLTF).scene) {
+			const object = data as GLTF
+			object.scene.userData = {
+				...(object.scene.userData ?? {}),
+				...(file.resource.data ?? {}),
+			}
 		}
 
-		this.items[file.resource.name] = data
-		this.loadedSources[file.resource.source] = file.resource.name
+		const name = file.resource.name
+		const source = file.resource.source
+
+		// Clone the data only once and store it
+		this.items[name] = data
+		this.loadedSources[source] = name
 
 		// Progress and event
 		if (this.groups.current?.loaded) {

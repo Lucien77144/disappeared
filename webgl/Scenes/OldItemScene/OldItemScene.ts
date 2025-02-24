@@ -3,7 +3,7 @@ import { AmbientLight, DirectionalLight, Light } from 'three'
 import type { Dictionary } from '~/models/functions/dictionary.model'
 import type { Object3D } from 'three'
 import OldItem from './Items/OldItem'
-
+import cloneModel from '~/webgl/Core/functions/cloneModel'
 export default class OldItemScene extends ExtendableScene {
 	/**
 	 * Constructor
@@ -13,7 +13,7 @@ export default class OldItemScene extends ExtendableScene {
 
 		// Public
 		this.components = {
-			model: new OldItem({ model }),
+			model: new OldItem({ model: cloneModel(model).scene }),
 		}
 
 		// Events

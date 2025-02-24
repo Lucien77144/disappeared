@@ -41,8 +41,6 @@ export default class Garland extends ExtendableItem<HomeScene> {
 		// Private methods
 		this.#setComponents()
 
-		console.log(this.components)
-
 		// Events
 		this.on('load', () => this.#onLoad())
 		this.on('resize', () => this.#onResize())
