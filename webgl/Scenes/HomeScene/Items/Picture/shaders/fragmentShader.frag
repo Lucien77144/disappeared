@@ -1,37 +1,22 @@
-// Varyings
-varying vec2 vUv;
-varying vec3 vNormal;
-varying vec3 vLocalPosition;
+precision highp float;
 
-// Uniforms
+uniform vec2 uImageSizes;
+uniform vec2 uPlaneSizes;
 uniform sampler2D tDiffuse;
-uniform float uScreenRatio;
-uniform vec2 uFaceRatio;
-uniform vec2 uSidesRatio;
-uniform vec2 uTopRatio;
+
+varying vec2 vUv;
 
 void main() {
-	vec2 uv = vUv;
+  vec2 ratio = vec2(
+    min((uPlaneSizes.x / uPlaneSizes.y) / (uImageSizes.x / uImageSizes.y), 1.0),
+    min((uPlaneSizes.y / uPlaneSizes.x) / (uImageSizes.y / uImageSizes.x), 1.0)
+  );
 
-	// Utiliser les normales locales (non affectées par la rotation)
-	vec3 absNormal = abs(vNormal);
+  vec2 uv = vec2(
+    vUv.x * ratio.x + (1.0 - ratio.x) * 0.5,
+    vUv.y * ratio.y + (1.0 - ratio.y) * 0.5
+  );
 
-	// Calculer le ratio pour chaque face en utilisant les positions locales
-	uv -= .5;
-	if(absNormal.x > absNormal.y && absNormal.x > absNormal.z) { // (Left/Right)
-		uv *= uSidesRatio;
-	} else if(absNormal.y > absNormal.x && absNormal.y > absNormal.z) { // (Top/Bottom)
-		uv *= uTopRatio;
-	} else { // (Front/Back)
-		uv *= uFaceRatio;
-	}
-
-	uv *= uScreenRatio;
-	uv += .5;
-
-	gl_FragColor = texture2D(tDiffuse, uv);
-
-	if (uv.x > 1. || uv.x < 0. || uv.y > 1. || uv.y < 0.) {
-		gl_FragColor.a = 0.;
-	}
+  gl_FragColor.rgb = texture2D(tDiffuse, uv).rgb;
+  gl_FragColor.a = 1.0;
 }

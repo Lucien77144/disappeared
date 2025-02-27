@@ -55,6 +55,7 @@ export default class Picture extends ExtendableItem<HomeScene> {
 		this.on('load', this.#onLoad)
 		this.on('ready', this.#onReady)
 		this.on('update', this.#onUpdate)
+		this.on('resize', this.#onResize)
 	}
 
 	/**
@@ -100,26 +101,14 @@ export default class Picture extends ExtendableItem<HomeScene> {
 	#onResize() {
 		// Get geometry parameters and viewport ratios
 		const { width, height } = this.#geometry!.parameters
-		const { ratio: viewportRatio, ratioVec2 } = this.#viewport
-
-		// Calculate face ratio and scale it to viewport
-		const faceRatio = getRatio(width, height)
-		const uFaceRatio = scaleRatioToViewport(faceRatio, viewportRatio)
-
-		// Calculate screen ratio adjustments
-		const minRatio = Math.min(ratioVec2.x, ratioVec2.y)
-		const maxRatio = Math.max(ratioVec2.x, ratioVec2.y)
-		const ratioFactor = maxRatio / (viewportRatio * minRatio)
-		const adjustedRatio = ratioFactor * (1 - faceRatio)
-
-		// Calculate final screen ratio and update uniforms
-		const maxRatioValue = Math.max(viewportRatio, adjustedRatio)
-		const finalScreenRatio = maxRatioValue * viewportRatio * 2
 
 		// Update shader uniforms
 		const uniforms = this.#material!.uniforms
-		uniforms.uFaceRatio.value = uFaceRatio
-		uniforms.uScreenRatio.value = finalScreenRatio
+		uniforms.uImageSizes.value = new Vector2(
+			this.#viewport.width,
+			this.#viewport.height
+		)
+		uniforms.uPlaneSizes.value = new Vector2(width, height)
 	}
 
 	// --------------------------------
@@ -150,15 +139,14 @@ export default class Picture extends ExtendableItem<HomeScene> {
 			side: DoubleSide,
 			uniforms: {
 				tDiffuse: new Uniform(this.contentTexture),
-				uScreenRatio: new Uniform(1),
-				uFaceRatio: new Uniform(new Vector2(0, 0)),
+				uImageSizes: new Uniform(new Vector2(0, 0)),
+				uPlaneSizes: new Uniform(new Vector2(0, 0)),
 			},
 		})
 
 		this.#mesh.material = this.#material
 
 		this.#onResize()
-		this.on('resize', this.#onResize)
 	}
 
 	/**
@@ -182,6 +170,11 @@ export default class Picture extends ExtendableItem<HomeScene> {
 				this.parent as ExtendableItem<HomeScene>
 			).item.position.clone()
 			this.item.lookAt(target)
+
+			// Set the rotation of the item to the right side
+			if (this.item.position.x < 0) {
+				this.item.rotation.z += Math.PI
+			}
 		}
 		this.#mesh.rotation.y = Math.PI / 2
 		this.item.position.z += 0.1

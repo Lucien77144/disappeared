@@ -56,19 +56,31 @@ export default class OldItem extends ExtendableItem<OldItemScene> {
 	 * On resize
 	 */
 	#onResize() {
-		// this.item?.scale.setScalar(this.#viewport.ratio)
+		this.#setScale()
 	}
 
 	// --------------------------------
 	// Private methods
 	// --------------------------------
 
+	/**
+	 * Set model
+	 */
 	#setModel() {
 		// Create a group to contain the model
 		const modelGroup = new Group()
 
 		// Get the current origin/center of the model
 		const origin = getOrigin(this.model)
+
+		// Get the size of the model to scale it
+		const size = get3DSize(this.model)
+		const maxSize = Math.max(...size)
+		const ratio = 1 / maxSize
+		const scalar = ratio * this.#viewport.ratio * 10
+
+		// Set the scale of the model
+		modelGroup.scale.setScalar(scalar)
 
 		// Offset the model's position to center it
 		this.model.position.set(-origin.x, -origin.y, -origin.z)
@@ -83,11 +95,11 @@ export default class OldItem extends ExtendableItem<OldItemScene> {
 		this.item.add(modelGroup)
 	}
 
+	/**
+	 * Set scale
+	 */
 	#setScale() {
-		const size = get3DSize(this.model)
-		const maxSize = Math.max(...size)
-		const ratio = 1 / maxSize
-
-		this.item.scale.setScalar(ratio * this.#viewport.ratio * 10)
+		const scalar = Math.min(this.#viewport.ratio, 2 / 3)
+		this.item.scale.setScalar(scalar)
 	}
 }
