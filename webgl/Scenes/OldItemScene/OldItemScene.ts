@@ -1,9 +1,11 @@
 import ExtendableScene from '~/webgl/Modules/Extendables/ExtendableScene'
-import { AmbientLight, DirectionalLight, Euler, Light } from 'three'
+import { AmbientLight, Color, DirectionalLight, Euler, Light } from 'three'
 import type { Dictionary } from '~/models/functions/dictionary.model'
 import { Object3D } from 'three'
 import OldItem from './Items/OldItem'
 import cloneModel from '~/webgl/Core/functions/cloneModel'
+import { getAverageColors } from '~/webgl/Core/functions/getAverageColors'
+import { cos } from 'three/tsl'
 
 /**
  * Old item scene settings
@@ -97,6 +99,21 @@ export default class OldItemScene extends ExtendableScene {
 	#onLoad() {
 		this.camera.instance.position.z = 40
 		this.#setupLights()
+
+		window.requestAnimationFrame(() => {
+			console.log(
+				this.name,
+				getAverageColors({
+					ignore: [new Color('#000000'), new Color('#ffffff')],
+					size: 5,
+					fill: true,
+					gap: 0.05,
+					rt: this.rt,
+					texture: this.rt.texture,
+					renderer: this.experience.renderer.instance,
+				})
+			)
+		})
 	}
 
 	/**
