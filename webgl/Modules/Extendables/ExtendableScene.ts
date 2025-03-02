@@ -307,7 +307,6 @@ export default class ExtendableScene<
 		this.on('mousedown', this.#onMouseDown.bind(this))
 		this.on('mouseup', this.#onMouseUp.bind(this))
 		this.on('mousemove', this.#onMouseMove.bind(this))
-		this.on('scroll', this.#onScroll.bind(this))
 		this.on('load', this.#onLoad.bind(this))
 		this.on('ready', this.#onReady.bind(this))
 		this.on('update', this.#onUpdate.bind(this))
@@ -519,6 +518,7 @@ export default class ExtendableScene<
 	 */
 	#onScroll(event: TScrollEvent): void {
 		// Trigger scroll on all components
+		this.trigger('scroll', event)
 		Object.values(this.allComponents).forEach((c) => c.trigger('scroll', event))
 	}
 
@@ -799,7 +799,7 @@ export default class ExtendableScene<
 		// Set wireframe debug
 		this.debugFolder
 			.addBinding(this, 'wireframe', {
-				tag: `wireframe_${this.name}`,
+				tag: `wireframe_${this.name?.toLowerCase()?.replaceAll(' ', '_')}`,
 			})
 			.on('change', () =>
 				this.scene.traverse((c: any) => {

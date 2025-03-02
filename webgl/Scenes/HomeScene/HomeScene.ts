@@ -3,8 +3,12 @@ import ExtendableScene from '../../Modules/Extendables/ExtendableScene'
 import Garland from './Items/Garland'
 import type { Dictionary } from '~/models/functions/dictionary.model'
 import TransitionSlide from '~/webgl/Modules/Transitions/TransitionSlide/TransitionSlide'
-
+import { ShaderHomeBackground } from '~/webgl/Modules/Shaders/ShaderHomeBackground/ShaderHomeBackground'
+import type Picture from './Items/Picture/Picture'
 export default class HomeScene extends ExtendableScene {
+	// Public
+	public activeItem!: Picture
+
 	/**
 	 * Constructor
 	 */
@@ -20,6 +24,20 @@ export default class HomeScene extends ExtendableScene {
 
 		// Init the scene
 		this.on('load', () => this.#onLoad())
+		this.on('scroll', (e) => this.#onScroll(e))
+		this.on('update', () => this.#onUpdate())
+	}
+
+	// --------------------------------
+	// Public
+	// --------------------------------
+
+	/**
+	 * Set active item
+	 * @param item Item to set as active
+	 */
+	public setActiveItem(item: Picture) {
+		this.activeItem = item
 	}
 
 	// --------------------------------
@@ -30,10 +48,31 @@ export default class HomeScene extends ExtendableScene {
 	 * On load
 	 */
 	#onLoad() {
-		this.setupEnvironment(this.experience.resources.items.hdri as Texture)
+		this.setupEnvironment(this.experience.resources.items.hdri as Texture, {
+			background: false,
+			environment: true,
+		})
 		this.#setupLights()
 
+		// Camera
 		this.camera.instance.position.z = 30
+
+		// Shader
+		this.shader = new ShaderHomeBackground(this)
+	}
+
+	/**
+	 * On scroll
+	 */
+	#onScroll(event: TScrollEvent) {
+		// this.shader!.setUniform('tItem', this.activeItem?.contentTexture)
+	}
+
+	/**
+	 * On update
+	 */
+	#onUpdate() {
+		this.shader!.setUniform('tItem', this.activeItem?.contentTexture)
 	}
 
 	// --------------------------------

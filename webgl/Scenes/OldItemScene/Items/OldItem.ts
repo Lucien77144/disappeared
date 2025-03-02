@@ -4,9 +4,11 @@ import Viewport from '~/utils/Viewport'
 import type OldItemScene from '../OldItemScene'
 import { get3DSize } from '~/utils/functions/getSize'
 import { getOrigin } from '~/utils/functions/getOrigin'
+import type { TOldItemSceneSettings } from '../OldItemScene'
 
 export default class OldItem extends ExtendableItem<OldItemScene> {
 	// Public
+	public settings: TOldItemSceneSettings
 	public model: Object3D
 
 	// Private
@@ -17,18 +19,19 @@ export default class OldItem extends ExtendableItem<OldItemScene> {
 	 * @param options Options
 	 * @param options.model Model
 	 */
-	constructor(options: { model: Object3D }) {
+	constructor(options: { model: Object3D; settings: TOldItemSceneSettings }) {
 		super()
 
 		// Public
 		this.model = options.model
+		this.settings = options.settings
 
 		// Private
 		this.#viewport = this.experience.viewport
 
 		// Events
 		this.on('load', () => this.#onLoad())
-		this.on('scroll', () => this.#onScroll())
+		this.on('scroll', (e) => this.#onScroll(e))
 		this.on('resize', () => this.#onResize())
 	}
 
@@ -50,7 +53,9 @@ export default class OldItem extends ExtendableItem<OldItemScene> {
 	/**
 	 * On scroll
 	 */
-	#onScroll() {}
+	#onScroll(e: TScrollEvent) {
+		// this.item.rotation.y += e.delta * 0.0005
+	}
 
 	/**
 	 * On resize
@@ -77,7 +82,7 @@ export default class OldItem extends ExtendableItem<OldItemScene> {
 		const size = get3DSize(this.model)
 		const maxSize = Math.max(...size)
 		const ratio = 1 / maxSize
-		const scalar = ratio * this.#viewport.ratio * 10
+		const scalar = ratio * 10
 
 		// Set the scale of the model
 		modelGroup.scale.setScalar(scalar)
@@ -88,8 +93,8 @@ export default class OldItem extends ExtendableItem<OldItemScene> {
 		// Add model to the group
 		modelGroup.add(this.model)
 
-		// Now you can rotate the group
-		modelGroup.rotation.y = Math.PI * 0.25
+		// Rotate the group
+		modelGroup.rotation.copy(this.settings.rotation)
 
 		// Add the group to the item
 		this.item.add(modelGroup)

@@ -13,8 +13,8 @@ import type HomeScene from '../../HomeScene'
 import vertexShader from './shaders/vertexShader.vert?raw'
 import fragmentShader from './shaders/fragmentShader.frag?raw'
 import type { Viewport } from '#imports'
-import { getRatio, scaleRatioToViewport } from '~/utils/functions/ratio'
 import type ExtendableScene from '~/webgl/Modules/Extendables/ExtendableScene'
+import { lerp } from 'three/src/math/MathUtils.js'
 
 export default class Picture extends ExtendableItem<HomeScene> {
 	// Public
@@ -56,6 +56,8 @@ export default class Picture extends ExtendableItem<HomeScene> {
 		this.on('ready', this.#onReady)
 		this.on('update', this.#onUpdate)
 		this.on('resize', this.#onResize)
+		this.on('scroll', this.#onScroll)
+		this.on('click', this.#onClick)
 	}
 
 	/**
@@ -74,6 +76,9 @@ export default class Picture extends ExtendableItem<HomeScene> {
 	 */
 	#onUpdate() {
 		this.#material!.uniforms.tDiffuse.value = this.contentTexture
+
+		const ratio = Math.abs(this.item.getWorldPosition(new Vector3()).y) * 0.2
+		this.item.scale.setScalar(Math.max(1, lerp(this.item.scale.x, ratio, 0.05)))
 	}
 
 	/**
@@ -109,6 +114,21 @@ export default class Picture extends ExtendableItem<HomeScene> {
 			this.#viewport.height
 		)
 		uniforms.uPlaneSizes.value = new Vector2(width, height)
+	}
+
+	/**
+	 * On scroll
+	 */
+	#onScroll(e: TScrollEvent) {
+		// const ratio = Math.abs(this.item.getWorldPosition(new Vector3()).y)
+		// this.item.position.z = Math.max(e.delta * ratio * 0.01, 0.1)
+	}
+
+	/**
+	 * On click
+	 */
+	#onClick() {
+		this.scene!.setActiveItem(this)
 	}
 
 	// --------------------------------

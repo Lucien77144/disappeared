@@ -15,6 +15,7 @@ import { Pane } from 'tweakpane'
 import { defined } from '~/utils/functions/defined'
 import { copyObject } from '~/utils/functions/copyObject'
 import { hasChanged } from '~/utils/functions/hasChanged'
+import { Color } from 'three'
 
 type TMonitoringValue = {
 	name: string
@@ -61,15 +62,8 @@ export default class Debug {
 	#statsValues?: TStatsValues
 	#monitoring!: HTMLElement
 	#self: any
-	#loading!: boolean
-	#controls: number
-	#readyControls: Array<string>
 
 	constructor() {
-		// Public
-		this.#controls = 0
-		this.#readyControls = []
-
 		// Private
 		this.#experience = new Experience()
 		this.#viewport = this.#experience.viewport
@@ -209,9 +203,6 @@ export default class Debug {
 	 * Unset the stats panel
 	 */
 	public dispose() {
-		this.#controls = 0
-		this.#readyControls = []
-
 		this.panel.dispose()
 		this.stats?.dispose()
 		this.#monitoring?.remove()
@@ -403,10 +394,11 @@ export default class Debug {
 	 * Handle reset
 	 */
 	#handleReset() {
-		sessionStorage.removeItem('debugParams')
 		this.#uiContent
 			.querySelectorAll('.tp-reset-button')
 			.forEach((button: any) => button.click())
+
+		sessionStorage.removeItem('debugParams')
 	}
 
 	/**
@@ -555,17 +547,26 @@ export default class Debug {
 				valueElement.appendChild(clonedResetButton)
 
 				window.requestAnimationFrame(() => {
-					const initial = { state: copyObject(bc.exportState()) }
+					const data: {
+						state: BladeState
+						defaultValue: any
+					} = {
+						state: copyObject(bc.exportState()),
+						defaultValue: undefined,
+					}
 
 					// Wait the panel to build element
 					const element = bc.view.element
-					getStackId(initial.state, element).then((id) => {
+					getStackId(data.state, element).then((id) => {
 						if (!id) return
 						element.id = id
 						element.classList.add(id)
 
+						// Get the type of the binding
+						const type = (bc.valueController as any).params?.view
+
 						if (isActive(id)) {
-							const state = initial.state
+							const state = data.state
 							const name = state?.title || state?.label || state?.tag
 							console.warn(
 								`The debug "${name}" is already used in the session storage`,
@@ -578,9 +579,7 @@ export default class Debug {
 						 * @param value Value of the binding
 						 */
 						const handleResetButton = (value: any) => {
-							const binding = initial.state?.binding as any
-
-							if (JSON.stringify(value) === JSON.stringify(binding?.value)) {
+							if (value === data.defaultValue) {
 								clonedResetButton.style.color = '#65656e'
 							} else {
 								clonedResetButton.style.color = 'var(--btn-bg-a)'
@@ -588,18 +587,27 @@ export default class Debug {
 						}
 
 						// Default state
-						const defaultState = getSavedState(id, initial.state)
-						if (defaultState) {
-							bc.importState(defaultState)
-							handleSave(id, bc.exportState(), initial.state)
-							handleResetButton(defaultState.binding.value)
+						if (type !== 'image') {
+							const defaultState = getSavedState(id, data.state)
+							if (defaultState) {
+								bc.importState(defaultState)
+
+								handleSave(id, bc.exportState(), data.state)
+								handleResetButton(bc.value.rawValue)
+							}
 						}
+
+						// Set the default value
+						window.requestAnimationFrame(() => {
+							data.defaultValue ??= bc.value.rawValue
+						})
 
 						// Handle changes
 						bc.value.emitter.on('change', (e) => {
 							const state = bc.exportState()
 							state.disabled &&= false
-							handleSave(id, state, initial.state)
+
+							handleSave(id, state, data.state)
 							handleResetButton(e.rawValue)
 						})
 
@@ -610,8 +618,19 @@ export default class Debug {
 
 						// Click event
 						clonedResetButton.addEventListener('click', () => {
-							initial.state && bc.importState(initial.state)
+							if (data.defaultValue) {
+								bc.value.setRawValue(data.defaultValue)
+							}
+
+							// Reset the input value if the type is image
+							if (type === 'image') {
+								bc.view.valueElement.querySelectorAll('input').forEach((i) => {
+									i.value = ''
+								})
+							}
+
 							handleUnsave(id)
+							handleResetButton(bc.value.rawValue)
 						})
 					})
 				})

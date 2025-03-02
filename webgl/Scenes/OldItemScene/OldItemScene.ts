@@ -1,11 +1,41 @@
 import ExtendableScene from '~/webgl/Modules/Extendables/ExtendableScene'
-import { AmbientLight, Color, DirectionalLight, Light } from 'three'
+import { AmbientLight, DirectionalLight, Euler, Light } from 'three'
 import type { Dictionary } from '~/models/functions/dictionary.model'
-import type { Object3D } from 'three'
+import { Object3D } from 'three'
 import OldItem from './Items/OldItem'
 import cloneModel from '~/webgl/Core/functions/cloneModel'
-import { ShaderBackgroundColor } from '~/webgl/Modules/Shaders/ShaderBackgroundColor/ShaderBackgroundColor'
+
+/**
+ * Old item scene settings
+ *
+ * @param ambientLight Ambient light
+ * @param ambientLight.color Color
+ * @param ambientLight.intensity Intensity
+ *
+ * @param directionalLight Directional light
+ * @param directionalLight.color Color
+ * @param directionalLight.intensity Intensity
+ *
+ * @param rotation Rotation (converted from rotationDeg, from degrees to radians)
+ * @param rotation.x X
+ * @param rotation.y Y
+ * @param rotation.z Z
+ */
+export type TOldItemSceneSettings = {
+	ambientLight: {
+		color: string
+		intensity: number
+	}
+	directionalLight: {
+		color: string
+		intensity: number
+	}
+	rotation: Euler
+}
+
 export default class OldItemScene extends ExtendableScene {
+	public settings: TOldItemSceneSettings
+
 	/**
 	 * Constructor
 	 */
@@ -13,22 +43,54 @@ export default class OldItemScene extends ExtendableScene {
 		super({ name: model.uuid })
 
 		// Public
+		this.name = model.userData.name
+		this.settings = this.#getSettings(model)
 		this.components = {
-			model: new OldItem({ model: cloneModel(model).scene }),
+			model: new OldItem({
+				model: cloneModel(model).scene,
+				settings: this.settings,
+			}),
 		}
 
-		this.shader = new ShaderBackgroundColor(this, {
-			color: new Color(0, 0, 1),
-		})
+		// this.shader = new ShaderBackgroundColor(this, {
+		// 	color: new Color(0, 0, 1),
+		// })
 
 		// Events
 		this.on('load', () => this.#onLoad())
 	}
 
 	// --------------------------------
-	// Events
+	// Private
 	// --------------------------------
 
+	/**
+	 * Get settings
+	 * @param model Model
+	 * @returns Settings
+	 */
+	#getSettings(model: Object3D) {
+		// Get data
+		const data = model.userData
+
+		// Get rotation
+		const rotation = new Euler(
+			(data.rotationDeg.x * Math.PI) / 180,
+			(data.rotationDeg.y * Math.PI) / 180,
+			(data.rotationDeg.z * Math.PI) / 180
+		)
+
+		// Return settings
+		return {
+			ambientLight: data.ambientLight,
+			directionalLight: data.directionalLight,
+			rotation: rotation,
+		}
+	}
+
+	// --------------------------------
+	// Events
+	// --------------------------------
 	/**
 	 * On load
 	 */
@@ -43,14 +105,16 @@ export default class OldItemScene extends ExtendableScene {
 	#setupLights() {
 		const lights: Dictionary<Light> = {}
 
-		// Lumière ambiante pour l'éclairage global
-		lights.ambient = new AmbientLight(0xffffff, 0.5)
+		// Ambient light
+		const ambientValues = Object.values(this.settings.ambientLight)
+		lights.ambient = new AmbientLight(...ambientValues)
 
-		// Lumière directionnelle pour créer des ombres et du relief
-		lights.directional = new DirectionalLight(0xffffff, 1)
+		// Directional light
+		const directionalValues = Object.values(this.settings.directionalLight)
+		lights.directional = new DirectionalLight(...directionalValues)
 		lights.directional.position.set(5, 5, 5)
 
-		// Ajouter les lumières à la scène
+		// Add lights to the scene
 		this.scene.add(lights.ambient)
 		this.scene.add(lights.directional)
 	}

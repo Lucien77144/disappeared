@@ -30,23 +30,86 @@
 		"items": [
 			{
 				"name": "old_crt_tv",
-				"source": "/models/old/old_crt_tv.glb",
+				"source": "/models/oldItems/old_crt_tv.glb",
 				"data": {
-					"garlandItems": true
+					"garlandItems": true,
+					"name": "TV",
+					"ambientLight": {
+						"color": "#ffddb4",
+						"intensity": 2
+					},
+					"directionalLight": {
+						"color": "#c0e8f1",
+						"intensity": 1.5
+					},
+					"rotationDeg": {
+						"x": 0,
+						"y": 90,
+						"z": 0
+					}
 				}
 			},
 			{
 				"name": "old_radio",
-				"source": "/models/old/old_radio.glb",
+				"source": "/models/oldItems/old_radio.glb",
 				"data": {
-					"garlandItems": true
+					"garlandItems": true,
+					"name": "Radio",
+					"ambientLight": {
+						"color": "#ffddb4",
+						"intensity": 15
+					},
+					"directionalLight": {
+						"color": "#c0e8f1",
+						"intensity": 4
+					},
+					"rotationDeg": {
+						"x": 0,
+						"y": -90,
+						"z": 0
+					}
 				}
 			},
 			{
 				"name": "old_spittoon",
-				"source": "/models/old/old_spittoon.glb",
+				"source": "/models/oldItems/old_spittoon.glb",
 				"data": {
-					"garlandItems": true
+					"garlandItems": true,
+					"name": "Vase",
+					"ambientLight": {
+						"color": "#ffddb4",
+						"intensity": 5
+					},
+					"directionalLight": {
+						"color": "#c0e8f1",
+						"intensity": 1.5
+					},
+					"rotationDeg": {
+						"x": 0,
+						"y": 0,
+						"z": 0
+					}
+				}
+			},
+			{
+				"name": "old_jerrican",
+				"source": "/models/oldItems/old_jerrican.glb",
+				"data": {
+					"garlandItems": true,
+					"name": "Jerrican",
+					"ambientLight": {
+						"color": "#ffddb4",
+						"intensity": 0.35
+					},
+					"directionalLight": {
+						"color": "#c0e8f1",
+						"intensity": 0.35
+					},
+					"rotationDeg": {
+						"x": 0,
+						"y": 180,
+						"z": 0
+					}
 				}
 			}
 		]

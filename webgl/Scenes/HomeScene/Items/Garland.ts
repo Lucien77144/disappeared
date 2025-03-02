@@ -110,8 +110,7 @@ export default class Garland extends ExtendableItem<HomeScene> {
 		const oldItemsScenesSize = Object.values(this.oldItemsScenes).length
 
 		// Get the size of the group
-		let modelId = 0
-		let id = 0
+		let positions: Array<Vector3> = []
 		const garlandSize = get3DSize(garland)
 		garland.traverse((c) => {
 			if (c instanceof Mesh) {
@@ -120,24 +119,39 @@ export default class Garland extends ExtendableItem<HomeScene> {
 					const BBox = c.geometry.boundingBox as Mesh['geometry']['boundingBox']
 					if (!BBox) return
 
+					// Get the center of the bounding box
 					const center = BBox.getCenter(new Vector3())
+
+					// Get the position of the picture
 					const position = center.sub(garlandSize.clone().multiplyScalar(0.5))
 
-					this.components[`picture-${id}`] = new Picture({
-						position,
-						id,
-						scene: this.scenes[`olditem_${modelId}`],
-					})
-
-					id++
-					if (modelId < oldItemsScenesSize - 1) {
-						modelId++
-					} else {
-						modelId = 0
-					}
+					// Add the position to the list
+					positions.push(position)
 				}
 			}
 		})
+
+		// Save the model id and the id
+		let modelId = 0
+		let id = 0
+
+		// Set the position of the pictures
+		positions
+			.sort((a, b) => Math.atan2(a.y, a.x) - Math.atan2(b.y, b.x)) // Sort the list by position (Circle)
+			.forEach((position) => {
+				this.components[`picture-${id}`] = new Picture({
+					position,
+					id,
+					scene: this.scenes[`olditem_${modelId}`],
+				})
+
+				id++
+				if (modelId < oldItemsScenesSize - 1) {
+					modelId++
+				} else {
+					modelId = 0
+				}
+			})
 	}
 
 	/**

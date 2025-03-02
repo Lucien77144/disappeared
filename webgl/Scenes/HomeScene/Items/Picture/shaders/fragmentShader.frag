@@ -17,6 +17,7 @@ void main() {
     vUv.y * ratio.y + (1.0 - ratio.y) * 0.5
   );
 
-  gl_FragColor.rgb = texture2D(tDiffuse, uv).rgb;
-  gl_FragColor.a = 1.0;
+	vec4 diffuse = texture2D(tDiffuse, uv);
+	gl_FragColor.rgb = mix(diffuse.rgb, vec3(1.), 1. - diffuse.a);
+	gl_FragColor.a = 1.0;
 }
