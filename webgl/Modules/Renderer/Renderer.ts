@@ -196,14 +196,14 @@ export default class Renderer {
 			transparent: true,
 		})
 
-		// Set shader pass
-		this.shaderPass = new ShaderPass(this.renderShader)
-
 		// Set composer
 		this.composer = new EffectComposer(this.instance, {
 			alpha: true,
 			frameBufferType: HalfFloatType,
 		})
+
+		// Set shader pass
+		this.shaderPass = new ShaderPass(this.renderShader)
 
 		// Add main shader pass
 		this.composer.addPass(this.shaderPass)

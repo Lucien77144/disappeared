@@ -139,11 +139,13 @@ export default class Garland extends ExtendableItem<HomeScene> {
 		positions
 			.sort((a, b) => Math.atan2(a.y, a.x) - Math.atan2(b.y, b.x)) // Sort the list by position (Circle)
 			.forEach((position) => {
-				this.components[`picture-${id}`] = new Picture({
+				const picture = new Picture({
 					position,
 					id,
-					scene: this.scenes[`olditem_${modelId}`],
+					scene: this.scenes[`olditem_${modelId}`] as OldItemScene,
 				})
+
+				this.components[`picture-${id}`] = picture
 
 				id++
 				if (modelId < oldItemsScenesSize - 1) {

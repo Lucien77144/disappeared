@@ -1,10 +1,11 @@
-import { AmbientLight, Light, Texture } from 'three'
+import { AmbientLight, Color, Light, Texture, Vector3 } from 'three'
 import ExtendableScene from '../../Modules/Extendables/ExtendableScene'
 import Garland from './Items/Garland'
 import type { Dictionary } from '~/models/functions/dictionary.model'
 import TransitionSlide from '~/webgl/Modules/Transitions/TransitionSlide/TransitionSlide'
 import { ShaderHomeBackground } from '~/webgl/Modules/Shaders/ShaderHomeBackground/ShaderHomeBackground'
 import type Picture from './Items/Picture/Picture'
+
 export default class HomeScene extends ExtendableScene {
 	// Public
 	public activeItem!: Picture
@@ -38,6 +39,14 @@ export default class HomeScene extends ExtendableScene {
 	 */
 	public setActiveItem(item: Picture) {
 		this.activeItem = item
+		const colors = this.activeItem?.contentScene?.colors
+
+		colors?.forEach((color, index) => {
+			this.shader!.setUniform(
+				`uColor${index + 1}`,
+				new Vector3(new Color(color).r, new Color(color).g, new Color(color).b)
+			)
+		})
 	}
 
 	// --------------------------------
@@ -66,6 +75,7 @@ export default class HomeScene extends ExtendableScene {
 	 */
 	#onScroll(event: TScrollEvent) {
 		// this.shader!.setUniform('tItem', this.activeItem?.contentTexture)
+		// console.log(this.activeItem?.contentScene?.colors)
 	}
 
 	/**

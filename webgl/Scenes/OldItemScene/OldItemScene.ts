@@ -5,7 +5,6 @@ import { Object3D } from 'three'
 import OldItem from './Items/OldItem'
 import cloneModel from '~/webgl/Core/functions/cloneModel'
 import { getAverageColors } from '~/webgl/Core/functions/getAverageColors'
-import { cos } from 'three/tsl'
 
 /**
  * Old item scene settings
@@ -36,7 +35,9 @@ export type TOldItemSceneSettings = {
 }
 
 export default class OldItemScene extends ExtendableScene {
+	// Public
 	public settings: TOldItemSceneSettings
+	public colors?: string[]
 
 	/**
 	 * Constructor
@@ -101,18 +102,17 @@ export default class OldItemScene extends ExtendableScene {
 		this.#setupLights()
 
 		window.requestAnimationFrame(() => {
-			console.log(
-				this.name,
-				getAverageColors({
-					ignore: [new Color('#000000'), new Color('#ffffff')],
-					size: 5,
-					fill: true,
-					gap: 0.05,
-					rt: this.rt,
-					texture: this.rt.texture,
-					renderer: this.experience.renderer.instance,
-				})
-			)
+			this.colors = getAverageColors({
+				ignore: [new Color('#000000'), new Color('#ffffff')],
+				size: 5,
+				fill: true,
+				gap: 0.05,
+				rt: this.rt,
+				texture: this.rt.texture,
+				renderer: this.experience.renderer.instance,
+			})
+
+			console.log(this.colors)
 		})
 	}
 

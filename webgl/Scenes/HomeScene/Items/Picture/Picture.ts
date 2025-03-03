@@ -13,12 +13,13 @@ import type HomeScene from '../../HomeScene'
 import vertexShader from './shaders/vertexShader.vert?raw'
 import fragmentShader from './shaders/fragmentShader.frag?raw'
 import type { Viewport } from '#imports'
-import type ExtendableScene from '~/webgl/Modules/Extendables/ExtendableScene'
 import { lerp } from 'three/src/math/MathUtils.js'
+import type OldItemScene from '~/webgl/Scenes/OldItemScene/OldItemScene'
 
 export default class Picture extends ExtendableItem<HomeScene> {
 	// Public
-	public contentScene?: ExtendableScene
+	public id: number
+	public contentScene?: OldItemScene
 	public position: Vector3
 	public hdri?: Texture
 
@@ -38,11 +39,12 @@ export default class Picture extends ExtendableItem<HomeScene> {
 	}: {
 		position: Vector3
 		id: number
-		scene?: ExtendableScene
+		scene?: OldItemScene
 	}) {
 		super()
 
 		// Public
+		this.id = id
 		this.name = `picture_${id}`
 		this.position = position
 		this.holdDuration = 2000
@@ -91,6 +93,14 @@ export default class Picture extends ExtendableItem<HomeScene> {
 		this.#setGeometry()
 		this.#setMesh()
 		this.#setItem()
+
+		if (this.id === 0) {
+			window.requestAnimationFrame(() => {
+				window.requestAnimationFrame(() => {
+					this.scene!.setActiveItem(this)
+				})
+			})
+		}
 	}
 
 	/**

@@ -164,6 +164,7 @@ export default class ExtendableShader {
 			fragmentShader,
 			uniforms: this.uniforms,
 			transparent: true,
+			dithering: true,
 		})
 	}
 
