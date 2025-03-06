@@ -97,7 +97,7 @@ export default class Picture extends ExtendableItem<HomeScene> {
 		if (this.id === 0) {
 			window.requestAnimationFrame(() => {
 				window.requestAnimationFrame(() => {
-					this.scene!.setActiveItem(this)
+					this.scene!.setActiveItem(this, true)
 				})
 			})
 		}

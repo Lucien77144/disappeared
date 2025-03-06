@@ -37,11 +37,11 @@ void main() {
 
 	// Background - create a smoother gradient with improved smoothstep
 	// First blend colors along Y axis with better interpolation
-	vec3 backgroundY = mix(uColor2, uColor3, uv.x * cos(uTime * .001));
+	vec3 backgroundY = mix(uColor2, uColor3, uv.x * cos(uTime * .0005));
 	// Then blend colors along X axis
-	vec3 backgroundX = mix(uColor5, uColor4, uv.x * sin(uTime * .001));
+	vec3 backgroundX = mix(uColor5, uColor4, uv.x * sin(uTime * .0005));
 	// Combine both gradients
-	vec3 background = mix(backgroundY, backgroundX, uv.y * sin(uTime * .001));
+	vec3 background = mix(backgroundY, backgroundX, uv.y * sin(uTime * .0005));
 	// Optionally add influence from uColor1 for more richness
 	background = mix(background, uColor1, 0.25);
 

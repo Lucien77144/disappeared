@@ -41,7 +41,7 @@ export default class ExtendableShaderTransition extends ExtendableShader {
 		frag,
 		uniforms,
 	}: {
-		scene: ExtendableScene
+		scene: ExtendableShader['scene']
 		options?: TExtendableShaderTransitionOptions
 		vert?: string
 		frag?: string

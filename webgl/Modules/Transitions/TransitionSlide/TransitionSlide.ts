@@ -20,7 +20,7 @@ export default class TransitionSlide extends ExtendableShaderTransition {
 	/**
 	 * Constructor
 	 */
-	constructor(scene: ExtendableScene, options?: TTransitionSlideOptions) {
+	constructor(scene: ExtendableScene<any>, options?: TTransitionSlideOptions) {
 		super({ scene, options, frag })
 
 		// Default

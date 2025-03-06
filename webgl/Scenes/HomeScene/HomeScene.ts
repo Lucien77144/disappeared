@@ -6,7 +6,9 @@ import TransitionSlide from '~/webgl/Modules/Transitions/TransitionSlide/Transit
 import { ShaderHomeBackground } from '~/webgl/Modules/Shaders/ShaderHomeBackground/ShaderHomeBackground'
 import type Picture from './Items/Picture/Picture'
 
-export default class HomeScene extends ExtendableScene {
+export default class HomeScene extends ExtendableScene<{
+	shader: ShaderHomeBackground
+}> {
 	// Public
 	public activeItem!: Picture
 
@@ -37,16 +39,19 @@ export default class HomeScene extends ExtendableScene {
 	 * Set active item
 	 * @param item Item to set as active
 	 */
-	public setActiveItem(item: Picture) {
+	public setActiveItem(item: Picture, instant: boolean = false) {
+		// Set active item
 		this.activeItem = item
-		const colors = this.activeItem?.contentScene?.colors
 
-		colors?.forEach((color, index) => {
-			this.shader!.setUniform(
-				`uColor${index + 1}`,
-				new Vector3(new Color(color).r, new Color(color).g, new Color(color).b)
-			)
-		})
+		// Get colors
+		const colors = this.activeItem?.contentScene?.colors
+		if (!colors) return
+
+		// Change colors
+		this.shader!.changeColors(
+			colors.map((color) => new Color(color)),
+			instant
+		)
 	}
 
 	// --------------------------------

@@ -146,9 +146,13 @@ export type TSceneEvents = {
  * @method removeCSS3D Remove CSS3D from the item
  */
 export default class ExtendableScene<
-	T extends ExtendableItem | ExtendableScene =
-		| ExtendableItem
-		| ExtendableScene<any>
+	T extends {
+		parent?: ExtendableItem | ExtendableScene<any>
+		shader?: ExtendableShader
+	} = {
+		parent?: ExtendableItem | ExtendableScene<any>
+		shader?: ExtendableShader
+	}
 > extends EventEmitter<TSceneEvents> {
 	// --------------------------------
 	// Public properties
@@ -172,7 +176,7 @@ export default class ExtendableScene<
 	/**
 	 * Parent scene if exists
 	 */
-	public parent?: T
+	public parent?: T['parent']
 	/**
 	 * Scene components
 	 */
@@ -224,7 +228,7 @@ export default class ExtendableScene<
 	/**
 	 * Shader applied to the scene
 	 */
-	public shader?: ExtendableShader
+	public shader?: T['shader']
 	/**
 	 * Shader transition
 	 */

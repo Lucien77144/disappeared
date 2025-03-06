@@ -1,4 +1,3 @@
-import type ExtendableScene from '../../Extendables/ExtendableScene'
 import frag from './shaders/fragmentShader.frag?raw'
 import ExtendableShader from '~/webgl/Modules/Extendables/ExtendableShader/ExtendableShader'
 import { Vector4, type Texture } from 'three'
@@ -23,7 +22,7 @@ export class ShaderMix extends ExtendableShader {
 	 * @param scene Scene
 	 * @param options Options
 	 */
-	constructor(scene: ExtendableScene, options: TShaderMixOptions) {
+	constructor(scene: ExtendableShader['scene'], options: TShaderMixOptions) {
 		super({ scene, frag })
 
 		this.target = options.target

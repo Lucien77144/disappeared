@@ -135,7 +135,7 @@ export type TItemsEvents = {
  * @method buildInstancedMesh Build instanced mesh
  */
 export default class ExtendableItem<
-	T extends ExtendableScene = ExtendableScene<any>
+	T extends ExtendableScene<any> = ExtendableScene<any>
 > extends EventEmitter<TItemsEvents> {
 	// --------------------------------
 	// Public properties

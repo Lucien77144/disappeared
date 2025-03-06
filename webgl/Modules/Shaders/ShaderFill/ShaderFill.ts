@@ -1,4 +1,3 @@
-import type ExtendableScene from '../../Extendables/ExtendableScene'
 import frag from './shaders/fragmentShader.frag?raw'
 import ExtendableShader from '~/webgl/Modules/Extendables/ExtendableShader/ExtendableShader'
 import { Color } from 'three'
@@ -16,7 +15,7 @@ export class ShaderFill extends ExtendableShader {
 	 * @param scene Scene
 	 * @param options Options
 	 */
-	constructor(scene: ExtendableScene, options: TShaderFillOptions) {
+	constructor(scene: ExtendableShader['scene'], options: TShaderFillOptions) {
 		super({ scene, frag })
 
 		this.color = options.color ?? new Color(0, 0, 0)
